@@ -1,0 +1,15 @@
+{
+  "success": true,
+  "subagent": "atdd-e2e-tests",
+  "generation_mode": "sequential",
+  "tdd_phase": "RED",
+  "tests": [],
+  "fixture_needs": [],
+  "knowledge_fragments_used": [
+    "test-levels-framework",
+    "test-priorities-matrix",
+    "test-quality"
+  ],
+  "test_count": 0,
+  "summary": "No E2E scaffolds generated because Story 2.1 is a pure backend Go library package story with no browser journey."
+}
