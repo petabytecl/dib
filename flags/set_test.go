@@ -81,6 +81,22 @@ func TestNewSetValidationErrors(t *testing.T) {
 			want:     flags.ErrInvalidNoOptionDefault,
 			flagName: "workers",
 		},
+		{
+			name: "nil option",
+			defs: []flags.Definition{
+				flags.String("config", "dev.json", "config", nil),
+			},
+			want:     flags.ErrInvalidDefinition,
+			flagName: "config",
+		},
+		{
+			name: "typed nil parser",
+			defs: []flags.Definition{
+				flags.Custom("value", flags.KindString, "", "value", flags.ParserFunc(nil)),
+			},
+			want:     flags.ErrInvalidDefinition,
+			flagName: "value",
+		},
 	}
 
 	for _, tt := range tests {

@@ -1,6 +1,7 @@
 package flags
 
 import (
+	"reflect"
 	"strings"
 	"time"
 )
@@ -22,6 +23,7 @@ type Definition struct {
 	deprecated           string
 	sensitive            bool
 	customParserRequired bool
+	invalidOption        bool
 }
 
 type optionState struct {
@@ -140,7 +142,12 @@ func Custom(name string, kind Kind, defaultValue any, usage string, parser Parse
 
 func newDefinition(name string, kind Kind, defaultValue any, usage string, parser Parser, arity Arity, customParserRequired bool, opts ...Option) Definition {
 	state := optionState{repeatPolicy: RepeatLast}
+	invalidOption := false
 	for _, opt := range opts {
+		if opt == nil {
+			invalidOption = true
+			continue
+		}
 		state = opt(state)
 	}
 
@@ -160,6 +167,7 @@ func newDefinition(name string, kind Kind, defaultValue any, usage string, parse
 		deprecated:           state.deprecated,
 		sensitive:            state.sensitive,
 		customParserRequired: customParserRequired,
+		invalidOption:        invalidOption,
 	}
 }
 
@@ -226,16 +234,31 @@ func (d Definition) Parse(raw string) (any, error) {
 
 	value, err := d.parser.ParseFlagValue(raw)
 	if err != nil {
+		if d.sensitive {
+			return nil, newValueError(d.name, d.kind, nil)
+		}
 		return nil, newValueError(d.name, d.kind, err)
+	}
+	if !valueMatchesKind(d.kind, value) {
+		return nil, newValueError(d.name, d.kind, ErrInvalidDefinition)
 	}
 	return clonePublicValue(value), nil
 }
 
 func validateDefinition(def Definition) error {
+	if def.invalidOption {
+		return newDefinitionError(def.name, "", ErrInvalidDefinition)
+	}
 	if invalidName(def.name) {
 		return newDefinitionError(def.name, "", ErrInvalidDefinition)
 	}
-	if def.customParserRequired && def.parser == nil {
+	if !validKind(def.kind) {
+		return newDefinitionError(def.name, "", ErrInvalidDefinition)
+	}
+	if def.customParserRequired && parserIsNil(def.parser) {
+		return newDefinitionError(def.name, "", ErrInvalidDefinition)
+	}
+	if !defaultMatchesKind(def) {
 		return newDefinitionError(def.name, "", ErrInvalidDefinition)
 	}
 	if def.hasShorthand && invalidShorthand(def.shorthand) {
@@ -262,6 +285,36 @@ func invalidShorthand(shorthand string) bool {
 		return true
 	}
 	return len([]rune(shorthand)) != 1 || shorthand == "-"
+}
+
+func validKind(kind Kind) bool {
+	switch kind {
+	case KindString, KindBool, KindInt, KindInt64, KindUint, KindUint64, KindFloat64, KindDuration, KindStringList:
+		return true
+	default:
+		return false
+	}
+}
+
+func parserIsNil(parser Parser) bool {
+	if parser == nil {
+		return true
+	}
+
+	value := reflect.ValueOf(parser)
+	switch value.Kind() {
+	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Pointer, reflect.Slice:
+		return value.IsNil()
+	default:
+		return false
+	}
+}
+
+func defaultMatchesKind(def Definition) bool {
+	if def.defaultValue == nil {
+		return def.kind == KindStringList
+	}
+	return valueMatchesKind(def.kind, def.defaultValue)
 }
 
 func validNoOptionDefault(def Definition) bool {

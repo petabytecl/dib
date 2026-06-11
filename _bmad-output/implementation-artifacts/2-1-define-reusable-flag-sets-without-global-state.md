@@ -5,7 +5,7 @@ created: "2026-06-11T16:21:10-04:00"
 
 # Story 2.1: Define Reusable Flag Sets Without Global State
 
-Status: review
+Status: done
 
 ## Story
 
@@ -74,6 +74,14 @@ so that I can parse CLI input without package-global mutable state or hidden pro
   - [x] Confirm root `go.mod` still has no `require`, `replace`, or `toolchain` directives.
   - [x] Confirm no package imports outside the Go standard library were added.
   - [x] Record exact commands and outcomes in the Dev Agent Record.
+
+### Review Findings
+
+- [x] [Review][Patch] Sensitive parser error cause exposure [flags/errors.go:85] — resolved decision: sensitive flag parse errors must not expose parser causes through unwrap/As, even if that weakens parser-error preservation for sensitive flags.
+- [x] [Review][Patch] Mutable custom defaults and parser results can leak aliases [flags/definition.go:137]
+- [x] [Review][Patch] Typed nil custom parser can pass validation and panic in `Parse` [flags/parser.go:16]
+- [x] [Review][Patch] Custom definitions can declare unknown or mismatched kinds, defaults, or parser results [flags/definition.go:137]
+- [x] [Review][Patch] Nil `Option` values panic before setup validation [flags/definition.go:141]
 
 ## Dev Notes
 
@@ -224,6 +232,12 @@ GPT-5 Codex
 - `go run ./tools/depgate` -> PASS.
 - `git diff --check` -> PASS.
 - `go test -race ./...` -> PASS.
+- Review fix verification: `go test ./flags -count=1` -> PASS.
+- Review fix verification: `go test ./...` -> PASS.
+- Review fix verification: `go vet ./...` -> PASS.
+- Review fix verification: `go run ./tools/depgate` -> PASS.
+- Review fix verification: `git diff --check` -> PASS.
+- Review fix verification: `go test -race ./...` -> PASS.
 
 ### Completion Notes List
 
@@ -232,6 +246,7 @@ GPT-5 Codex
 - Added inspectable definition/value errors with sentinels and typed context; sensitive raw parse values are omitted from public error strings while preserving wrapped parser errors.
 - Activated all Story 2.1 ATDD scaffolds and added focused table-driven package tests for validation, built-in parsing, derivation, defensive copies, and sensitive error redaction.
 - Updated behavior and diagnostics docs with Story 2.1 flag evidence. Root `go.mod` remains dependency-free and no `go.sum` was created.
+- Addressed code review findings by redacting sensitive parser causes, rejecting typed nil parsers and nil options during setup validation, validating custom kind/default/parser consistency, and defending custom string-list parse results from returned-slice aliasing.
 
 ### File List
 
@@ -255,3 +270,4 @@ GPT-5 Codex
 
 - 2026-06-11: Story created and marked ready for development.
 - 2026-06-11: Implemented Story 2.1 reusable flag definition, set, value-state, and diagnostic foundation; activated ATDD scaffolds; moved story to review.
+- 2026-06-11: Addressed code review findings and marked Story 2.1 done.

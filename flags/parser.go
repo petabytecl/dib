@@ -14,6 +14,9 @@ type Parser interface {
 type ParserFunc func(raw string) (any, error)
 
 func (f ParserFunc) ParseFlagValue(raw string) (any, error) {
+	if f == nil {
+		return nil, ErrInvalidDefinition
+	}
 	return f(raw)
 }
 
@@ -58,5 +61,5 @@ func durationParser(raw string) (any, error) {
 }
 
 func stringListParser(raw string) (any, error) {
-	return raw, nil
+	return []string{raw}, nil
 }

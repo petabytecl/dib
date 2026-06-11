@@ -155,8 +155,8 @@ func TestValueAndDiagnosticFoundationIsMachineReadable(t *testing.T) {
 	if !errors.Is(err, flags.ErrConversion) {
 		t.Fatalf("conversion error does not satisfy ErrConversion: %v", err)
 	}
-	if !errors.Is(err, parserErr) {
-		t.Fatalf("conversion error does not wrap parser error: %v", err)
+	if errors.Is(err, parserErr) {
+		t.Fatalf("sensitive conversion error exposes parser error: %v", err)
 	}
 	if strings.Contains(err.Error(), "dib_fake_secret_value") {
 		t.Fatalf("sensitive raw value leaked in error: %v", err)
