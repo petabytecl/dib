@@ -1,6 +1,10 @@
+---
+baseline_commit: 9ea64eea900cfbb3533df76250d87138dc27d052
+---
+
 # Story 1.1: Adopt an Auditable Go Module Baseline
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -23,36 +27,41 @@ so that I can inspect the foundation before trusting later command, flag, and co
 
 ## Tasks / Subtasks
 
-- [ ] Confirm the pre-implementation checkout state (AC: 1, 2)
-  - [ ] Verify whether `go.mod`, `command/`, `flags/`, or `config/` already exist before editing. At story creation time they were not present; preserve any user-created files if the checkout changes before implementation.
-  - [ ] Keep all implementation files small and capability-focused. Do not add broad shared helpers or `internal/` packages unless two concrete call sites prove the need.
+- [x] Confirm the pre-implementation checkout state (AC: 1, 2)
+  - [x] Verify whether `go.mod`, `command/`, `flags/`, or `config/` already exist before editing. At story creation time they were not present; preserve any user-created files if the checkout changes before implementation.
+  - [x] Keep all implementation files small and capability-focused. Do not add broad shared helpers or `internal/` packages unless two concrete call sites prove the need.
 
-- [ ] Initialize the Go module baseline (AC: 1)
-  - [ ] Run or equivalent: `go mod init github.com/petabytecl/dib`.
-  - [ ] Explicitly set the language version to `go 1.26` after initialization. Go 1.26's `go mod init` may create a lower default `go` line, so verify the final file instead of trusting the generated default.
-  - [ ] Ensure `go.mod` contains no `toolchain`, `require`, or `replace` directives for this story unless an architecture update explicitly approves them.
+- [x] Initialize the Go module baseline (AC: 1)
+  - [x] Run or equivalent: `go mod init github.com/petabytecl/dib`.
+  - [x] Explicitly set the language version to `go 1.26` after initialization. Go 1.26's `go mod init` may create a lower default `go` line, so verify the final file instead of trusting the generated default.
+  - [x] Ensure `go.mod` contains no `toolchain`, `require`, or `replace` directives for this story unless an architecture update explicitly approves them.
 
-- [ ] Create the public package boundary scaffold (AC: 2, 4)
-  - [ ] Create `command/`, `flags/`, and `config/` as public capability packages with package comments in `doc.go` or minimal compilable package files.
-  - [ ] Package comments must make the architecture direction explicit: explicit instances, caller-owned inputs, immutable definitions, per-run snapshots, typed errors, and no ambient process state.
-  - [ ] Do not create a root public facade package, a `/cmd` app scaffold, package-level default command/flag/config instances, or package-global helper APIs.
-  - [ ] Keep `flags/` independently usable without `command/` or `config/`; keep `command/` independent from `config/`.
+- [x] Create the public package boundary scaffold (AC: 2, 4)
+  - [x] Create `command/`, `flags/`, and `config/` as public capability packages with package comments in `doc.go` or minimal compilable package files.
+  - [x] Package comments must make the architecture direction explicit: explicit instances, caller-owned inputs, immutable definitions, per-run snapshots, typed errors, and no ambient process state.
+  - [x] Do not create a root public facade package, a `/cmd` app scaffold, package-level default command/flag/config instances, or package-global helper APIs.
+  - [x] Keep `flags/` independently usable without `command/` or `config/`; keep `command/` independent from `config/`.
 
-- [ ] Add one minimal standard-library-only behavior proof in `command/` (AC: 3, 4)
-  - [ ] Implement a non-executing command definition shape with name validation. Exact exported identifiers may settle during implementation, but the public behavior must let a caller construct a valid command definition, read back its stable name, and receive an inspectable error for an empty or whitespace-only name.
-  - [ ] Keep the behavior narrow: no callback invocation, no command routing, no flag parsing, no config binding, no process args/env/stdout access, and no mutable package-global state.
-  - [ ] Use returned values and errors. If a caller needs to inspect an error, expose an error value or type that works with `errors.Is` or `errors.As`; do not make string matching the programmatic contract.
-  - [ ] Add at least one `testing` package test from the external-caller perspective, such as `package command_test`, and add a runnable `Example...` test where practical. The test/example must import only the Go standard library and local Dib packages.
+- [x] Add one minimal standard-library-only behavior proof in `command/` (AC: 3, 4)
+  - [x] Implement a non-executing command definition shape with name validation. Exact exported identifiers may settle during implementation, but the public behavior must let a caller construct a valid command definition, read back its stable name, and receive an inspectable error for an empty or whitespace-only name.
+  - [x] Keep the behavior narrow: no callback invocation, no command routing, no flag parsing, no config binding, no process args/env/stdout access, and no mutable package-global state.
+  - [x] Use returned values and errors. If a caller needs to inspect an error, expose an error value or type that works with `errors.Is` or `errors.As`; do not make string matching the programmatic contract.
+  - [x] Add at least one `testing` package test from the external-caller perspective, such as `package command_test`, and add a runnable `Example...` test where practical. The test/example must import only the Go standard library and local Dib packages.
 
-- [ ] Verify the baseline locally (AC: 1, 3)
-  - [ ] Run `go test ./...`.
-  - [ ] Run `go vet ./...`.
-  - [ ] Until `tools/depgate/` exists, run the temporary architecture-approved dependency check:
+- [x] Verify the baseline locally (AC: 1, 3)
+  - [x] Run `go test ./...`.
+  - [x] Run `go vet ./...`.
+  - [x] Until `tools/depgate/` exists, run the temporary architecture-approved dependency check:
     ```bash
     go list -deps -f '{{if and (not .Standard) (not .Module.Main)}}{{.ImportPath}}{{end}}' ./... | sed '/^$/d'
     ```
     The command should produce no output for this story.
-  - [ ] Record the exact verification commands and outcomes in the Dev Agent Record.
+  - [x] Record the exact verification commands and outcomes in the Dev Agent Record.
+
+### Review Findings
+
+- [x] [Review][Patch] Document the `Definition` construction contract — decision: keep ordinary Go zero-value behavior for `command.Definition`, but document that callers must use `NewDefinition` for validated command definitions.
+- [x] [Review][Patch] Remove or implement the false `Unwrap`/`errors.Is` contract [command/definition.go:15]
 
 ## Dev Notes
 
@@ -142,12 +151,41 @@ Equivalent names are acceptable if they remain cohesive, small, and standard-lib
 
 ### Agent Model Used
 
-{{agent_model_name_version}}
+GPT-5 Codex
 
 ### Debug Log References
 
+- 2026-06-11T12:28:34-04:00: Captured baseline commit `9ea64eea900cfbb3533df76250d87138dc27d052` and moved sprint status to `in-progress`.
+- 2026-06-11T12:28:34-04:00: Confirmed `go.mod`, `command/`, `flags/`, and `config/` were absent before implementation; only story and sprint metadata were modified.
+- 2026-06-11T12:28:34-04:00: Ran `go mod init github.com/petabytecl/dib`; corrected generated `go 1.26.4` directive to required `go 1.26`; verified no `toolchain`, `require`, or `replace` directives.
+- 2026-06-11T12:28:34-04:00: Added `command/`, `flags/`, and `config/` package docs; `go test ./...` passed with compilable scaffold packages.
+- 2026-06-11T12:28:34-04:00: Red phase: `go test ./...` failed because `command.NewDefinition`, `command.NameError`, and related behavior did not exist yet.
+- 2026-06-11T12:28:34-04:00: Green/refactor phase: implemented `command.Definition`, `command.NewDefinition`, and `command.NameError`; `go test ./...` passed.
+- 2026-06-11T12:28:34-04:00: Temporary dependency check produced no output.
+- 2026-06-11T12:28:34-04:00: Final task verification: `go test ./...` passed; `go vet ./...` passed with no output; dependency gate passed with no output; `go.mod` directive check passed.
+- 2026-06-11T12:45:46-04:00: Code review patches applied; `Definition` construction contract documented and false `Unwrap`/`errors.Is` comment removed.
+- 2026-06-11T12:45:46-04:00: Post-review verification passed: `gofmt -l`, `go test ./...`, `go vet ./...`, temporary dependency gate, and `git diff --check HEAD`.
+
 ### Completion Notes List
 
-- Ultimate context engine analysis completed - comprehensive developer guide created.
+- Confirmed the pre-implementation checkout state and preserved the story's narrow implementation scope.
+- Initialized the Go module baseline with the required module path and language version.
+- Created public package boundaries with comments documenting explicit instances, caller-owned inputs, immutable definitions, per-run snapshots, typed errors, and no ambient process state.
+- Added a minimal non-executing command definition behavior proof with external-caller tests and a runnable example.
+- Verified the baseline with `go test ./...`, `go vet ./...`, and the temporary standard-library-only dependency gate.
+- Resolved code review findings and moved Story 1.1 to done.
 
 ### File List
+
+- `go.mod`
+- `command/doc.go`
+- `command/definition.go`
+- `command/definition_test.go`
+- `flags/doc.go`
+- `config/doc.go`
+- `_bmad-output/implementation-artifacts/1-1-adopt-an-auditable-go-module-baseline.md`
+- `_bmad-output/implementation-artifacts/sprint-status.yaml`
+
+### Change Log
+
+- 2026-06-11: Implemented Go module baseline, package scaffolds, minimal command definition behavior proof, and local verification gates.

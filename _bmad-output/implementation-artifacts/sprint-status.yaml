@@ -1,5 +1,5 @@
 # generated: 2026-06-11T12:01:02-04:00
-# last_updated: 2026-06-11T12:17:00-04:00
+# last_updated: 2026-06-11T14:30:45-04:00
 # project: dib
 # project_key: NOKEY
 # tracking_system: file-system
@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: "2026-06-11T12:01:02-04:00"
-last_updated: "2026-06-11T12:17:00-04:00"
+last_updated: "2026-06-11T14:30:45-04:00"
 project: dib
 project_key: NOKEY
 tracking_system: file-system
@@ -43,9 +43,9 @@ story_location: _bmad-output/implementation-artifacts
 
 development_status:
   epic-1: in-progress
-  1-1-adopt-an-auditable-go-module-baseline: ready-for-dev
-  1-2-publish-the-clean-room-contribution-contract: backlog
-  1-3-establish-cross-surface-behavior-contracts: backlog
+  1-1-adopt-an-auditable-go-module-baseline: done
+  1-2-publish-the-clean-room-contribution-contract: done
+  1-3-establish-cross-surface-behavior-contracts: done
   1-4-enforce-the-standard-library-dependency-gate: backlog
   1-5-run-trust-gates-in-ci: backlog
   epic-1-retrospective: optional
