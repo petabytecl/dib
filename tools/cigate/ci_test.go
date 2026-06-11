@@ -7,11 +7,7 @@ import (
 	"testing"
 )
 
-const redPhaseSkip = "ATDD RED PHASE: remove this skip during Story 1.5 implementation, confirm RED, then make it pass"
-
 func TestCIWorkflowRunsTrustGates(t *testing.T) {
-	t.Skip(redPhaseSkip)
-
 	workflow := readRepoFile(t, ".github/workflows/ci.yml")
 
 	requireAll(t, workflow, map[string]string{
@@ -35,8 +31,6 @@ func TestCIWorkflowRunsTrustGates(t *testing.T) {
 }
 
 func TestCIWorkflowUsesOnlyTrustedStaticSteps(t *testing.T) {
-	t.Skip(redPhaseSkip)
-
 	workflow := readRepoFile(t, ".github/workflows/ci.yml")
 
 	denyAll(t, workflow, map[string]string{
@@ -62,8 +56,6 @@ func TestCIWorkflowUsesOnlyTrustedStaticSteps(t *testing.T) {
 }
 
 func TestReleaseChecklistCapturesRequiredEvidence(t *testing.T) {
-	t.Skip(redPhaseSkip)
-
 	checklist := readRepoFile(t, "docs/release-checklist.md")
 	lowerChecklist := strings.ToLower(checklist)
 
@@ -94,8 +86,6 @@ func TestReleaseChecklistCapturesRequiredEvidence(t *testing.T) {
 }
 
 func TestStory15DoesNotWeakenStandardLibraryClaim(t *testing.T) {
-	t.Skip(redPhaseSkip)
-
 	goMod := readRepoFile(t, "go.mod")
 	workflow := readRepoFile(t, ".github/workflows/ci.yml")
 

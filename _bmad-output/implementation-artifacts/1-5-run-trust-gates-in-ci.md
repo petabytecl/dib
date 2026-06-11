@@ -5,7 +5,7 @@ created: "2026-06-11T15:51:57-04:00"
 
 # Story 1.5: Run Trust Gates in CI
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -29,40 +29,40 @@ so that standard-library-only dependency enforcement, tests, vet, and clean-room
 
 ## Tasks / Subtasks
 
-- [ ] Confirm current tracker and repository state (AC: 1-5)
-  - [ ] Verify Story 1.4 is `done` in `sprint-status.yaml` and GitHub issue #10 is closed.
-  - [ ] Verify `.github/workflows/ci.yml` does not already exist. If it exists, update it in place rather than replacing user work.
-  - [ ] Verify `docs/release-checklist.md` does not already exist. If it exists, update it in place.
-  - [ ] Verify root `go.mod` still declares `module github.com/petabytecl/dib` and `go 1.26` with no root dependency directives.
+- [x] Confirm current tracker and repository state (AC: 1-5)
+  - [x] Verify Story 1.4 is `done` in `sprint-status.yaml` and GitHub issue #10 is closed.
+  - [x] Verify `.github/workflows/ci.yml` does not already exist. If it exists, update it in place rather than replacing user work.
+  - [x] Verify `docs/release-checklist.md` does not already exist. If it exists, update it in place.
+  - [x] Verify root `go.mod` still declares `module github.com/petabytecl/dib` and `go 1.26` with no root dependency directives.
 
-- [ ] Add the GitHub Actions trust-gate workflow (AC: 1, 2, 3, 5)
-  - [ ] Create `.github/workflows/ci.yml`.
-  - [ ] Trigger on pull requests and pushes to `main`, the current default development branch.
-  - [ ] Use explicit `runs-on: ubuntu-24.04`; do not use `ubuntu-latest`.
-  - [ ] Use official GitHub actions only: `actions/checkout` and `actions/setup-go`.
-  - [ ] Configure `actions/setup-go` from `go.mod` using `go-version-file: go.mod` so CI tracks the repository Go version policy.
-  - [ ] Keep `check-latest` unset or `false` for stable repeatable CI unless architecture is updated.
-  - [ ] Set `cache: false` unless a root `go.sum` exists; the repository currently has no third-party dependencies to cache.
-  - [ ] Run `go version` before gates so CI output records the exact installed Go patch version.
-  - [ ] Run `go test ./...`, `go vet ./...`, and `go run ./tools/depgate` as distinct named steps.
-  - [ ] Do not add third-party action dependencies, generated scaffolding, Docker/Kubernetes config, or a `/cmd` binary scaffold.
+- [x] Add the GitHub Actions trust-gate workflow (AC: 1, 2, 3, 5)
+  - [x] Create `.github/workflows/ci.yml`.
+  - [x] Trigger on pull requests and pushes to `main`, the current default development branch.
+  - [x] Use explicit `runs-on: ubuntu-24.04`; do not use `ubuntu-latest`.
+  - [x] Use official GitHub actions only: `actions/checkout` and `actions/setup-go`.
+  - [x] Configure `actions/setup-go` from `go.mod` using `go-version-file: go.mod` so CI tracks the repository Go version policy.
+  - [x] Keep `check-latest` unset or `false` for stable repeatable CI unless architecture is updated.
+  - [x] Set `cache: false` unless a root `go.sum` exists; the repository currently has no third-party dependencies to cache.
+  - [x] Run `go version` before gates so CI output records the exact installed Go patch version.
+  - [x] Run `go test ./...`, `go vet ./...`, and `go run ./tools/depgate` as distinct named steps.
+  - [x] Do not add third-party action dependencies, generated scaffolding, Docker/Kubernetes config, or a `/cmd` binary scaffold.
 
-- [ ] Add release-candidate checklist documentation (AC: 2, 4, 5)
-  - [ ] Create `docs/release-checklist.md`.
-  - [ ] Record the Go version alignment policy: `go.mod`, CI, docs, and release guidance must agree, and drift blocks release.
-  - [ ] Include placeholders for exact commit, `go test ./...`, `go vet ./...`, `go run ./tools/depgate`, `go test -race ./...`, docs/examples, provenance, compatibility, migration evidence, runner image, action versions, owner, date, and waivers.
-  - [ ] State that CI failures block tagging and that waivers require owner, reason, and expiry.
-  - [ ] Keep release evidence framed for Go module tags, not binary deployments.
+- [x] Add release-candidate checklist documentation (AC: 2, 4, 5)
+  - [x] Create `docs/release-checklist.md`.
+  - [x] Record the Go version alignment policy: `go.mod`, CI, docs, and release guidance must agree, and drift blocks release.
+  - [x] Include placeholders for exact commit, `go test ./...`, `go vet ./...`, `go run ./tools/depgate`, `go test -race ./...`, docs/examples, provenance, compatibility, migration evidence, runner image, action versions, owner, date, and waivers.
+  - [x] State that CI failures block tagging and that waivers require owner, reason, and expiry.
+  - [x] Keep release evidence framed for Go module tags, not binary deployments.
 
-- [ ] Verify the story output (AC: 1-5)
-  - [ ] Run `go test ./...`.
-  - [ ] Run `go vet ./...`.
-  - [ ] Run `go run ./tools/depgate`.
-  - [ ] Confirm the workflow syntax is static YAML and has no dynamic shell interpolation from untrusted inputs.
-  - [ ] Confirm no runtime package imports `.github/`, `docs/`, or `tools/depgate`.
-  - [ ] Confirm root `go.mod` still has no `require`, `replace`, or `toolchain` directives.
-  - [ ] Confirm no extra workflow, release, binary, Docker, Kubernetes, service, or deployment files were created.
-  - [ ] Record exact commands and outcomes in the Dev Agent Record.
+- [x] Verify the story output (AC: 1-5)
+  - [x] Run `go test ./...`.
+  - [x] Run `go vet ./...`.
+  - [x] Run `go run ./tools/depgate`.
+  - [x] Confirm the workflow syntax is static YAML and has no dynamic shell interpolation from untrusted inputs.
+  - [x] Confirm no runtime package imports `.github/`, `docs/`, or `tools/depgate`.
+  - [x] Confirm root `go.mod` still has no `require`, `replace`, or `toolchain` directives.
+  - [x] Confirm no extra workflow, release, binary, Docker, Kubernetes, service, or deployment files were created.
+  - [x] Record exact commands and outcomes in the Dev Agent Record.
 
 ## Dev Notes
 
@@ -220,14 +220,40 @@ jobs:
 
 ### Agent Model Used
 
-{{agent_model_name_version}}
+GPT-5 Codex
 
 ### Debug Log References
+
+- `go test ./tools/cigate -run TestCIWorkflowRunsTrustGates` failed RED before `.github/workflows/ci.yml` existed, then passed after workflow creation.
+- `go test ./tools/cigate -run TestReleaseChecklistCapturesRequiredEvidence` failed RED before `docs/release-checklist.md` existed, then passed after checklist creation.
+- `go test ./tools/cigate -run TestCIWorkflowUsesOnlyTrustedStaticSteps` passed after the static workflow was created.
+- `go test ./tools/cigate -run TestStory15DoesNotWeakenStandardLibraryClaim` passed after workflow/docs implementation with root `go.mod` unchanged and no `go.sum`.
+- Final verification passed: `go test ./...`, `go vet ./...`, `go run ./tools/depgate`, `git diff --check`.
+- Unsafe workflow/docs interpolation scan returned no matches for `${{ github.event`, `${{ github.head_ref`, `${{ inputs.`, `ubuntu-latest`, `go get`, `go mod tidy`, or `curl ` outside the scaffold deny-list.
+- Strict secret-token/key pattern scan returned no matches.
 
 ### Completion Notes List
 
 - Ultimate context engine analysis completed - comprehensive developer guide created.
+- Confirmed Story 1.4 is done locally and GitHub issue #10 is closed.
+- Activated Story 1.5 ATDD scaffolds in `tools/cigate/ci_test.go` and implemented static repository checks without third-party dependencies.
+- Added `.github/workflows/ci.yml` with a single `ci` job on `ubuntu-24.04`, official checkout/setup-go actions, Go version from `go.mod`, `cache: false`, and distinct `go version`, `go test ./...`, `go vet ./...`, and dependency-gate steps.
+- Added `docs/release-checklist.md` as a Go module tag evidence template with Go version alignment, CI gates, race gate, docs/examples, provenance, compatibility, migration, runner/action, owner/date, and waiver placeholders.
+- Preserved the root zero-dependency module baseline: no `require`, `replace`, `toolchain`, root `go.sum`, generated scaffolding, Docker/Kubernetes config, binary scaffold, or release workflow was added.
 
 ### File List
 
+- `.github/workflows/ci.yml`
+- `_bmad-output/implementation-artifacts/1-5-run-trust-gates-in-ci.md`
+- `_bmad-output/implementation-artifacts/sprint-status.yaml`
+- `_bmad-output/test-artifacts/atdd-checklist-1-5-run-trust-gates-in-ci.md`
+- `_bmad-output/test-artifacts/tmp/tea-atdd-api-tests-2026-06-11T15-59-33-0400.json`
+- `_bmad-output/test-artifacts/tmp/tea-atdd-e2e-tests-2026-06-11T15-59-33-0400.json`
+- `_bmad-output/test-artifacts/tmp/tea-atdd-summary-2026-06-11T15-59-33-0400.json`
+- `docs/release-checklist.md`
+- `tools/cigate/ci_test.go`
+
 ### Change Log
+
+- 2026-06-11: Added Story 1.5 ATDD scaffold and checklist artifacts.
+- 2026-06-11: Implemented CI trust-gate workflow, release checklist template, activated repository acceptance tests, and moved story to review.
