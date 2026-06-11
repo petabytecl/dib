@@ -1,0 +1,85 @@
+# generated: 2026-06-11T12:01:02-04:00
+# last_updated: 2026-06-11T12:17:00-04:00
+# project: dib
+# project_key: NOKEY
+# tracking_system: file-system
+# story_location: _bmad-output/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog -> in-progress: Automatically when first story is created (via create-story)
+#   - in-progress -> done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - Developer typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+
+generated: "2026-06-11T12:01:02-04:00"
+last_updated: "2026-06-11T12:17:00-04:00"
+project: dib
+project_key: NOKEY
+tracking_system: file-system
+story_location: _bmad-output/implementation-artifacts
+
+development_status:
+  epic-1: in-progress
+  1-1-adopt-an-auditable-go-module-baseline: ready-for-dev
+  1-2-publish-the-clean-room-contribution-contract: backlog
+  1-3-establish-cross-surface-behavior-contracts: backlog
+  1-4-enforce-the-standard-library-dependency-gate: backlog
+  1-5-run-trust-gates-in-ci: backlog
+  epic-1-retrospective: optional
+
+  epic-2: backlog
+  2-1-define-reusable-flag-sets-without-global-state: backlog
+  2-2-match-flag-names-safely-across-styles: backlog
+  2-3-reject-invalid-long-flags-with-inspectable-errors: backlog
+  2-4-parse-short-flags-and-boolean-presence: backlog
+  2-5-handle-short-flag-groups-and-optional-values-predictably: backlog
+  2-6-accumulate-repeated-and-custom-values: backlog
+  2-7-preserve-parse-boundaries-and-remaining-args: backlog
+  2-8-prove-flag-parsing-across-matrices-and-fuzz-inputs: backlog
+  epic-2-retrospective: optional
+
+  epic-3: backlog
+  3-1-route-nested-commands-with-inspectable-results: backlog
+  3-2-resolve-aliases-and-unknown-commands-predictably: backlog
+  3-3-apply-local-and-inherited-flags-predictably-during-routing: backlog
+  3-4-render-deterministic-command-help-and-usage: backlog
+  3-5-preserve-caller-controlled-execution-boundaries: backlog
+  epic-3-retrospective: optional
+
+  epic-4: backlog
+  4-1-register-config-keys-with-defaults-and-type-expectations: backlog
+  4-2-read-config-sources-through-explicit-boundaries: backlog
+  4-3-resolve-config-precedence-only-when-values-are-needed: backlog
+  4-4-retrieve-typed-values-and-absence-state: backlog
+  4-5-report-provenance-and-redact-sensitive-diagnostics: backlog
+  epic-4-retrospective: optional
+
+  epic-5: backlog
+  5-1-publish-compatibility-boundaries-for-familiar-cli-concepts: backlog
+  5-2-provide-migration-examples-for-flags-commands-and-config: backlog
+  5-3-consolidate-behavior-matrices-into-adoption-evidence: backlog
+  5-4-prove-release-readiness-with-dependency-and-provenance-evidence: backlog
+  epic-5-retrospective: optional
