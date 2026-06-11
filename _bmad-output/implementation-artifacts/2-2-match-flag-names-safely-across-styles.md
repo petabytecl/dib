@@ -5,7 +5,7 @@ created: "2026-06-11T17:41:09-04:00"
 
 # Story 2.2: Match Flag Names Safely Across Styles
 
-Status: review
+Status: done
 
 ## Story
 
@@ -77,6 +77,14 @@ so that familiar naming styles do not create silent collisions or surprising par
   - [x] Confirm `go.mod` still has no `require`, `replace`, or `toolchain` directives and no `go.sum` was created.
   - [x] Confirm no package imports outside the Go standard library were added.
   - [x] Record exact commands and outcomes in the Dev Agent Record.
+
+### Review Findings
+
+- [x] [Review][Patch] Validate raw long-name lookup input before normalization [flags/set.go:73]
+- [x] [Review][Patch] Prevent registered shorthand spellings from becoming normalized long-name aliases [flags/set.go:73]
+- [x] [Review][Patch] Document `NameNormalizer` determinism and public lookup constraints [flags/normalize.go:3]
+- [x] [Review][Patch] Add table-driven coverage for `WithNormalizer` collisions and non-empty invalid normalized keys [flags/normalize_test.go:11]
+- [x] [Review][Patch] Make normalization lookup test cases deterministic instead of iterating maps [flags/normalize_test.go:36]
 
 ## Dev Notes
 
@@ -237,6 +245,13 @@ GPT-5 Codex
 - `cat go.mod` -> confirmed only `module github.com/petabytecl/dib` and `go 1.26`.
 - `test ! -e go.sum` -> PASS; no `go.sum` was created.
 - `go list -f '{{.ImportPath}} {{join .Imports "\n"}}' ./...` -> confirmed package imports are standard library plus local module packages only.
+- Code review patch validation: `go test ./flags -count=1` -> PASS.
+- Code review patch validation: `go test ./...` -> PASS.
+- Code review patch validation: `go vet ./...` -> PASS.
+- Code review patch validation: `go run ./tools/depgate` -> PASS.
+- Code review patch validation: `git diff --check` -> PASS.
+- Code review patch validation: `go test -race ./...` -> PASS.
+- Code review patch validation: `cat go.mod` and `test ! -e go.sum` -> PASS; no external dependency metadata was added.
 
 ### Completion Notes List
 
@@ -245,6 +260,7 @@ GPT-5 Codex
 - Added `flags.ErrDuplicateNormalizedName` plus `DefinitionError.CollidingName()` and `DefinitionError.NormalizedName()` for typed, string-independent normalization collision diagnostics.
 - Activated the Story 2.2 ATDD scaffold, added direct table-driven normalization tests, and documented the new public behavior/error contract.
 - Kept full parse behavior, shorthand parsing, and command/config integration out of scope for later Epic 2 stories.
+- Resolved code review findings by rejecting invalid raw lookup spellings before normalization, blocking shorthand-only normalized aliases, documenting deterministic normalizer constraints, and adding deterministic table-driven coverage for review edge cases.
 
 ### File List
 
@@ -260,5 +276,6 @@ GPT-5 Codex
 
 ### Change Log
 
+- 2026-06-11: Resolved code review findings and moved story to done.
 - 2026-06-11: Implemented explicit flag name normalization, typed collision diagnostics, ATDD activation, package tests, and adoption-facing docs; moved story to review.
 - 2026-06-11: Story created and marked ready for development.

@@ -29,6 +29,14 @@ func newDefinitionError(name string, shorthand string, category error) *Definiti
 	return &DefinitionError{name: name, shorthand: shorthand, category: category}
 }
 
+func newInvalidNormalizedDefinitionError(name string, normalizedName string) *DefinitionError {
+	return &DefinitionError{
+		name:           name,
+		normalizedName: normalizedName,
+		category:       ErrInvalidDefinition,
+	}
+}
+
 func newNormalizedDefinitionError(name string, collidingName string, normalizedName string) *DefinitionError {
 	return &DefinitionError{
 		name:           name,

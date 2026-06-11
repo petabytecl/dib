@@ -16,7 +16,7 @@ func TestNameNormalizationLookupModes(t *testing.T) {
 	tests := []struct {
 		name       string
 		build      func(t *testing.T) flags.Set
-		lookups    map[string]string
+		lookups    []lookupCase
 		notLookups []string
 	}{
 		{
@@ -33,10 +33,10 @@ func TestNameNormalizationLookupModes(t *testing.T) {
 				}
 				return set
 			},
-			lookups: map[string]string{
-				"log-level": "log-level",
-				"log_level": "log_level",
-				"log.level": "log.level",
+			lookups: []lookupCase{
+				{spelling: "log-level", wantName: "log-level"},
+				{spelling: "log_level", wantName: "log_level"},
+				{spelling: "log.level", wantName: "log.level"},
 			},
 		},
 		{
@@ -49,8 +49,8 @@ func TestNameNormalizationLookupModes(t *testing.T) {
 				}
 				return set
 			},
-			lookups: map[string]string{
-				"log-level": "log-level",
+			lookups: []lookupCase{
+				{spelling: "log-level", wantName: "log-level"},
 			},
 			notLookups: []string{"log_level"},
 		},
@@ -64,10 +64,10 @@ func TestNameNormalizationLookupModes(t *testing.T) {
 				}
 				return set
 			},
-			lookups: map[string]string{
-				"log-level": "log-level",
-				"log_level": "log-level",
-				"log.level": "log-level",
+			lookups: []lookupCase{
+				{spelling: "log-level", wantName: "log-level"},
+				{spelling: "log_level", wantName: "log-level"},
+				{spelling: "log.level", wantName: "log-level"},
 			},
 		},
 		{
@@ -83,8 +83,49 @@ func TestNameNormalizationLookupModes(t *testing.T) {
 				}
 				return set
 			},
-			lookups: map[string]string{
-				"log_level": "log-level",
+			lookups: []lookupCase{
+				{spelling: "log_level", wantName: "log-level"},
+			},
+			notLookups: []string{"l"},
+		},
+		{
+			name: "raw lookup names must be valid before normalization",
+			build: func(t *testing.T) flags.Set {
+				t.Helper()
+				set, err := flags.NewNormalizedSet(
+					flags.NameNormalizer(func(string) string { return "log-level" }),
+					flags.Bool("log-level", false, "log level"),
+				)
+				if err != nil {
+					t.Fatalf("NewNormalizedSet returned unexpected error: %v", err)
+				}
+				return set
+			},
+			lookups: []lookupCase{
+				{spelling: "log-level", wantName: "log-level"},
+			},
+			notLookups: []string{"", "-log-level", "log level"},
+		},
+		{
+			name: "normalizer cannot map a registered shorthand to a long-name alias",
+			build: func(t *testing.T) flags.Set {
+				t.Helper()
+				set, err := flags.NewNormalizedSet(
+					flags.NameNormalizer(func(name string) string {
+						if name == "l" {
+							return "log-level"
+						}
+						return strings.NewReplacer("_", "-", ".", "-").Replace(name)
+					}),
+					flags.Bool("log-level", false, "log level", flags.Shorthand("l")),
+				)
+				if err != nil {
+					t.Fatalf("NewNormalizedSet returned unexpected error: %v", err)
+				}
+				return set
+			},
+			lookups: []lookupCase{
+				{spelling: "log_level", wantName: "log-level"},
 			},
 			notLookups: []string{"l"},
 		},
@@ -93,13 +134,13 @@ func TestNameNormalizationLookupModes(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			set := tt.build(t)
-			for spelling, wantName := range tt.lookups {
-				def, ok := set.Lookup(spelling)
+			for _, lookup := range tt.lookups {
+				def, ok := set.Lookup(lookup.spelling)
 				if !ok {
-					t.Fatalf("Lookup(%q) returned false", spelling)
+					t.Fatalf("Lookup(%q) returned false", lookup.spelling)
 				}
-				if got := def.Name(); got != wantName {
-					t.Fatalf("Lookup(%q).Name() = %q, want %q", spelling, got, wantName)
+				if got := def.Name(); got != lookup.wantName {
+					t.Fatalf("Lookup(%q).Name() = %q, want %q", lookup.spelling, got, lookup.wantName)
 				}
 			}
 			for _, spelling := range tt.notLookups {
@@ -111,65 +152,140 @@ func TestNameNormalizationLookupModes(t *testing.T) {
 	}
 }
 
-func TestNameNormalizationCollisionsAreTyped(t *testing.T) {
+type lookupCase struct {
+	spelling string
+	wantName string
+}
+
+func TestNameNormalizationValidationErrors(t *testing.T) {
 	normalizeSeparators := flags.NameNormalizer(func(name string) string {
 		return strings.NewReplacer("_", "-", ".", "-").Replace(name)
 	})
 
-	_, err := flags.NewNormalizedSet(
-		normalizeSeparators,
-		flags.String("log-level", "info", "first"),
-		flags.String("log_level", "debug", "second"),
-	)
-	if err == nil {
-		t.Fatal("NewNormalizedSet returned nil error")
-	}
-	if !errors.Is(err, flags.ErrDuplicateNormalizedName) {
-		t.Fatalf("errors.Is(err, ErrDuplicateNormalizedName) = false; err=%v", err)
-	}
-	if errors.Is(err, flags.ErrDuplicateName) {
-		t.Fatalf("normalized collision should not be reported as exact duplicate name: %v", err)
+	tests := []struct {
+		name                 string
+		build                func(t *testing.T) error
+		want                 error
+		wantName             string
+		wantNormalized       string
+		wantCollidingNames   []string
+		rejectExactDuplicate bool
+	}{
+		{
+			name: "new normalized set rejects normalized collision",
+			build: func(t *testing.T) error {
+				t.Helper()
+				_, err := flags.NewNormalizedSet(
+					normalizeSeparators,
+					flags.String("log-level", "info", "first"),
+					flags.String("log_level", "debug", "second"),
+				)
+				return err
+			},
+			want:                 flags.ErrDuplicateNormalizedName,
+			wantNormalized:       "log-level",
+			wantCollidingNames:   []string{"log-level", "log_level"},
+			rejectExactDuplicate: true,
+		},
+		{
+			name: "with normalizer rejects existing exact names that normalize together",
+			build: func(t *testing.T) error {
+				t.Helper()
+				base, err := flags.NewSet(
+					flags.String("log-level", "info", "first"),
+					flags.String("log_level", "debug", "second"),
+				)
+				if err != nil {
+					t.Fatalf("NewSet returned unexpected error: %v", err)
+				}
+				_, err = base.WithNormalizer(normalizeSeparators)
+				return err
+			},
+			want:                 flags.ErrDuplicateNormalizedName,
+			wantNormalized:       "log-level",
+			wantCollidingNames:   []string{"log-level", "log_level"},
+			rejectExactDuplicate: true,
+		},
+		{
+			name: "empty normalized definition key is invalid",
+			build: func(t *testing.T) error {
+				t.Helper()
+				_, err := flags.NewNormalizedSet(
+					flags.NameNormalizer(func(string) string { return "" }),
+					flags.String("log-level", "info", "log level"),
+				)
+				return err
+			},
+			want:     flags.ErrInvalidDefinition,
+			wantName: "log-level",
+		},
+		{
+			name: "leading hyphen normalized definition key is invalid",
+			build: func(t *testing.T) error {
+				t.Helper()
+				_, err := flags.NewNormalizedSet(
+					flags.NameNormalizer(func(string) string { return "-log-level" }),
+					flags.String("log-level", "info", "log level"),
+				)
+				return err
+			},
+			want:           flags.ErrInvalidDefinition,
+			wantName:       "log-level",
+			wantNormalized: "-log-level",
+		},
+		{
+			name: "whitespace normalized definition key is invalid",
+			build: func(t *testing.T) error {
+				t.Helper()
+				_, err := flags.NewNormalizedSet(
+					flags.NameNormalizer(func(string) string { return "log level" }),
+					flags.String("log-level", "info", "log level"),
+				)
+				return err
+			},
+			want:           flags.ErrInvalidDefinition,
+			wantName:       "log-level",
+			wantNormalized: "log level",
+		},
 	}
 
-	var definitionErr *flags.DefinitionError
-	if !errors.As(err, &definitionErr) {
-		t.Fatalf("error does not expose *flags.DefinitionError: %T", err)
-	}
-	gotNames := map[string]bool{
-		definitionErr.Name():          true,
-		definitionErr.CollidingName(): true,
-	}
-	for _, want := range []string{"log-level", "log_level"} {
-		if !gotNames[want] {
-			t.Fatalf("collision diagnostics missing %q: name=%q colliding=%q", want, definitionErr.Name(), definitionErr.CollidingName())
-		}
-	}
-	if got := definitionErr.NormalizedName(); got != "log-level" {
-		t.Fatalf("NormalizedName() = %q, want log-level", got)
-	}
-}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.build(t)
+			if err == nil {
+				t.Fatal("operation returned nil error")
+			}
+			if !errors.Is(err, tt.want) {
+				t.Fatalf("errors.Is(err, %v) = false; err=%v", tt.want, err)
+			}
+			if tt.rejectExactDuplicate && errors.Is(err, flags.ErrDuplicateName) {
+				t.Fatalf("normalized collision should not be reported as exact duplicate name: %v", err)
+			}
 
-func TestNameNormalizerOutputMustRemainAValidFlagName(t *testing.T) {
-	_, err := flags.NewNormalizedSet(
-		flags.NameNormalizer(func(string) string { return "" }),
-		flags.String("log-level", "info", "log level"),
-	)
-	if err == nil {
-		t.Fatal("NewNormalizedSet returned nil error")
-	}
-	if !errors.Is(err, flags.ErrInvalidDefinition) {
-		t.Fatalf("errors.Is(err, ErrInvalidDefinition) = false; err=%v", err)
-	}
-
-	var definitionErr *flags.DefinitionError
-	if !errors.As(err, &definitionErr) {
-		t.Fatalf("error does not expose *flags.DefinitionError: %T", err)
-	}
-	if got := definitionErr.Name(); got != "log-level" {
-		t.Fatalf("DefinitionError.Name() = %q, want log-level", got)
-	}
-	if got := definitionErr.NormalizedName(); got != "" {
-		t.Fatalf("DefinitionError.NormalizedName() = %q, want empty string", got)
+			var definitionErr *flags.DefinitionError
+			if !errors.As(err, &definitionErr) {
+				t.Fatalf("error does not expose *flags.DefinitionError: %T", err)
+			}
+			if tt.wantName != "" {
+				if got := definitionErr.Name(); got != tt.wantName {
+					t.Fatalf("DefinitionError.Name() = %q, want %q", got, tt.wantName)
+				}
+			}
+			if got := definitionErr.NormalizedName(); got != tt.wantNormalized {
+				t.Fatalf("DefinitionError.NormalizedName() = %q, want %q", got, tt.wantNormalized)
+			}
+			if len(tt.wantCollidingNames) > 0 {
+				gotNames := map[string]bool{
+					definitionErr.Name():          true,
+					definitionErr.CollidingName(): true,
+				}
+				for _, want := range tt.wantCollidingNames {
+					if !gotNames[want] {
+						t.Fatalf("collision diagnostics missing %q: name=%q colliding=%q", want, definitionErr.Name(), definitionErr.CollidingName())
+					}
+				}
+			}
+		})
 	}
 }
 

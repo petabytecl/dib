@@ -3,6 +3,7 @@ package flags
 // Set is an immutable collection of flag definitions and lookup indexes.
 type Set struct {
 	definitions []Definition
+	byExactName map[string]int
 	byName      map[string]int
 	byShort     map[string]int
 	normalizer  NameNormalizer
@@ -40,7 +41,7 @@ func newSet(normalizer NameNormalizer, defs ...Definition) (Set, error) {
 
 		normalizedName := normalizeName(normalizer, def.name)
 		if invalidName(normalizedName) {
-			return Set{}, newDefinitionError(def.name, "", ErrInvalidDefinition)
+			return Set{}, newInvalidNormalizedDefinitionError(def.name, normalizedName)
 		}
 		if existing, ok := byName[normalizedName]; ok {
 			return Set{}, newNormalizedDefinitionError(def.name, definitions[existing].name, normalizedName)
@@ -53,6 +54,7 @@ func newSet(normalizer NameNormalizer, defs ...Definition) (Set, error) {
 
 	return Set{
 		definitions: append([]Definition(nil), definitions...),
+		byExactName: cloneIndex(byExactName),
 		byName:      cloneIndex(byName),
 		byShort:     cloneIndex(byShort),
 		normalizer:  normalizer,
@@ -71,6 +73,15 @@ func (s Set) Definitions() []Definition {
 
 // Lookup returns the definition for a long flag name.
 func (s Set) Lookup(name string) (Definition, bool) {
+	if invalidName(name) {
+		return Definition{}, false
+	}
+	if _, shorthand := s.byShort[name]; shorthand {
+		if _, exactName := s.byExactName[name]; !exactName {
+			return Definition{}, false
+		}
+	}
+
 	index, ok := s.byName[normalizeName(s.normalizer, name)]
 	if !ok {
 		return Definition{}, false
