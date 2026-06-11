@@ -5,7 +5,7 @@ created: "2026-06-11T15:51:57-04:00"
 
 # Story 1.5: Run Trust Gates in CI
 
-Status: review
+Status: done
 
 ## Story
 
