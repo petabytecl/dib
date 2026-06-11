@@ -3,8 +3,6 @@ package flags_test
 import "testing"
 
 func TestATDDIndependentFlagSetsIgnoreAmbientProcessState(t *testing.T) {
-	t.Skip("ATDD RED: remove this skip during Story 2.1 implementation, then prove explicit instances and snapshots are independent")
-
 	runConsumerContract(t, "independent sets", `package flagsconsumer_test
 
 import (
@@ -56,8 +54,6 @@ func TestIndependentFlagSetsIgnoreAmbientProcessState(t *testing.T) {
 }
 
 func TestATDDDerivedFlagSetsDoNotMutateOriginalsOrLeakAliases(t *testing.T) {
-	t.Skip("ATDD RED: remove this skip during Story 2.1 implementation, then prove definitions and snapshots are defensively copied")
-
 	runConsumerContract(t, "immutable derivation", `package flagsconsumer_test
 
 import (
@@ -120,8 +116,6 @@ func TestDerivedFlagSetsDoNotMutateOriginalsOrLeakAliases(t *testing.T) {
 }
 
 func TestATDDValueAndDiagnosticFoundationIsMachineReadable(t *testing.T) {
-	t.Skip("ATDD RED: remove this skip during Story 2.1 implementation, then expose value-state and diagnostic contracts")
-
 	runConsumerContract(t, "value diagnostics", `package flagsconsumer_test
 
 import (

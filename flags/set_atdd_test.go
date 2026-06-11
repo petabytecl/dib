@@ -3,8 +3,6 @@ package flags_test
 import "testing"
 
 func TestATDDFlagDefinitionsExposeMetadata(t *testing.T) {
-	t.Skip("ATDD RED: remove this skip during Story 2.1 implementation, then make the public flags API satisfy the contract")
-
 	runConsumerContract(t, "definition metadata", `package flagsconsumer_test
 
 import (
@@ -98,8 +96,6 @@ func TestDefinitionsExposeMetadata(t *testing.T) {
 }
 
 func TestATDDFlagSetValidationErrorsAreInspectable(t *testing.T) {
-	t.Skip("ATDD RED: remove this skip during Story 2.1 implementation, then make validation expose typed errors")
-
 	runConsumerContract(t, "validation errors", `package flagsconsumer_test
 
 import (

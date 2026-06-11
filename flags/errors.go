@@ -1,0 +1,109 @@
+package flags
+
+import (
+	"errors"
+	"fmt"
+)
+
+var (
+	ErrInvalidDefinition      = errors.New("invalid flag definition")
+	ErrDuplicateName          = errors.New("duplicate flag name")
+	ErrDuplicateShorthand     = errors.New("duplicate flag shorthand")
+	ErrInvalidShorthand       = errors.New("invalid flag shorthand")
+	ErrInvalidNoOptionDefault = errors.New("invalid flag no-option default")
+	ErrDuplicateValue         = errors.New("duplicate flag value")
+	ErrConversion             = errors.New("flag value conversion failed")
+)
+
+// DefinitionError reports an inspectable setup-time definition failure.
+type DefinitionError struct {
+	name      string
+	shorthand string
+	category  error
+}
+
+func newDefinitionError(name string, shorthand string, category error) *DefinitionError {
+	return &DefinitionError{name: name, shorthand: shorthand, category: category}
+}
+
+func (e *DefinitionError) Error() string {
+	if e == nil {
+		return "flags: definition error"
+	}
+
+	message := fmt.Sprintf("flags: %v", e.category)
+	if e.name != "" {
+		message += fmt.Sprintf(" for %q", e.name)
+	}
+	if e.shorthand != "" {
+		message += fmt.Sprintf(" shorthand %q", e.shorthand)
+	}
+	return message
+}
+
+func (e *DefinitionError) Unwrap() error {
+	if e == nil {
+		return nil
+	}
+	return e.category
+}
+
+// Name returns the long flag name associated with the setup failure.
+func (e *DefinitionError) Name() string {
+	if e == nil {
+		return ""
+	}
+	return e.name
+}
+
+// Shorthand returns the shorthand associated with the setup failure.
+func (e *DefinitionError) Shorthand() string {
+	if e == nil {
+		return ""
+	}
+	return e.shorthand
+}
+
+// ValueError reports an inspectable flag value conversion failure.
+type ValueError struct {
+	name  string
+	kind  Kind
+	cause error
+}
+
+func newValueError(name string, kind Kind, cause error) *ValueError {
+	return &ValueError{name: name, kind: kind, cause: cause}
+}
+
+func (e *ValueError) Error() string {
+	if e == nil {
+		return "flags: value error"
+	}
+	return fmt.Sprintf("flags: %v for %q as %s", ErrConversion, e.name, e.kind)
+}
+
+func (e *ValueError) Unwrap() []error {
+	if e == nil {
+		return nil
+	}
+	if e.cause == nil {
+		return []error{ErrConversion}
+	}
+	return []error{ErrConversion, e.cause}
+}
+
+// Name returns the flag name associated with the conversion failure.
+func (e *ValueError) Name() string {
+	if e == nil {
+		return ""
+	}
+	return e.name
+}
+
+// Kind returns the value kind associated with the conversion failure.
+func (e *ValueError) Kind() Kind {
+	if e == nil {
+		return KindString
+	}
+	return e.kind
+}

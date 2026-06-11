@@ -5,7 +5,7 @@ created: "2026-06-11T16:21:10-04:00"
 
 # Story 2.1: Define Reusable Flag Sets Without Global State
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -31,49 +31,49 @@ so that I can parse CLI input without package-global mutable state or hidden pro
 
 ## Tasks / Subtasks
 
-- [ ] Confirm current tracker and repository state (AC: 1-5)
-  - [ ] Verify this story is the first Epic 2 implementation story and Story 1.5 is `done` in `sprint-status.yaml`.
-  - [ ] Verify `flags/` currently contains only package documentation before adding the first runtime implementation files.
-  - [ ] Verify root `go.mod` still declares `module github.com/petabytecl/dib` and `go 1.26` with no root dependency directives.
-  - [ ] Check whether ATDD artifacts for Story 2.1 exist; if they do, use them as executable starting points.
+- [x] Confirm current tracker and repository state (AC: 1-5)
+  - [x] Verify this story is the first Epic 2 implementation story and Story 1.5 is `done` in `sprint-status.yaml`.
+  - [x] Verify `flags/` currently contains only package documentation before adding the first runtime implementation files.
+  - [x] Verify root `go.mod` still declares `module github.com/petabytecl/dib` and `go 1.26` with no root dependency directives.
+  - [x] Check whether ATDD artifacts for Story 2.1 exist; if they do, use them as executable starting points.
 
-- [ ] Add reusable flag definition values (AC: 1, 2, 4)
-  - [ ] Add focused `flags/` source files for flag definitions and flag-set definitions, following the architecture's expected package layout without creating a root facade.
-  - [ ] Represent long name, optional one-character shorthand, usage text, default value, value kind/parser, repeat policy, no-option default, hidden/deprecated metadata, and sensitivity metadata.
-  - [ ] Make definition structs caller-observably immutable: do not expose mutable maps, slices, parser internals, or fields that allow in-place changes to an existing definition.
-  - [ ] Provide derivation/extension APIs that return a new Flag set and leave the original value unchanged.
-  - [ ] Provide deterministic inspection APIs for definitions so tests and downstream packages do not need to scrape string output.
+- [x] Add reusable flag definition values (AC: 1, 2, 4)
+  - [x] Add focused `flags/` source files for flag definitions and flag-set definitions, following the architecture's expected package layout without creating a root facade.
+  - [x] Represent long name, optional one-character shorthand, usage text, default value, value kind/parser, repeat policy, no-option default, hidden/deprecated metadata, and sensitivity metadata.
+  - [x] Make definition structs caller-observably immutable: do not expose mutable maps, slices, parser internals, or fields that allow in-place changes to an existing definition.
+  - [x] Provide derivation/extension APIs that return a new Flag set and leave the original value unchanged.
+  - [x] Provide deterministic inspection APIs for definitions so tests and downstream packages do not need to scrape string output.
 
-- [ ] Add value and diagnostic foundation state (AC: 1, 3)
-  - [ ] Add built-in value kinds for string, bool, int, int64, uint, uint64, float64, duration, and string list.
-  - [ ] Model value arity explicitly enough for later parser stories to distinguish required values, boolean presence, no-option defaults, and repeated values.
-  - [ ] Add minimal custom parser interfaces or function types that preserve caller errors through wrapping and `errors.As`.
-  - [ ] Add machine-readable diagnostic/error categories for invalid definitions, duplicate long names, duplicate shorthands, invalid shorthands, invalid no-option defaults, duplicate values, and conversion failures needed by this foundation.
-  - [ ] Keep sensitive raw values out of `Error`, `String`, debug, and diagnostic text paths.
+- [x] Add value and diagnostic foundation state (AC: 1, 3)
+  - [x] Add built-in value kinds for string, bool, int, int64, uint, uint64, float64, duration, and string list.
+  - [x] Model value arity explicitly enough for later parser stories to distinguish required values, boolean presence, no-option defaults, and repeated values.
+  - [x] Add minimal custom parser interfaces or function types that preserve caller errors through wrapping and `errors.As`.
+  - [x] Add machine-readable diagnostic/error categories for invalid definitions, duplicate long names, duplicate shorthands, invalid shorthands, invalid no-option defaults, duplicate values, and conversion failures needed by this foundation.
+  - [x] Keep sensitive raw values out of `Error`, `String`, debug, and diagnostic text paths.
 
-- [ ] Implement setup-time validation (AC: 1, 3, 5)
-  - [ ] Reject empty or invalid long names before definitions can be used.
-  - [ ] Reject duplicate long names within the same Flag set.
-  - [ ] Reject duplicate shorthands within the same Flag set.
-  - [ ] Reject invalid shorthand definitions that are empty, multi-rune, or otherwise unusable.
-  - [ ] Reject no-option defaults where the value kind or arity cannot consume them.
-  - [ ] Return typed or sentinel errors that callers can inspect with `errors.Is` or `errors.As`; error strings are diagnostics only.
+- [x] Implement setup-time validation (AC: 1, 3, 5)
+  - [x] Reject empty or invalid long names before definitions can be used.
+  - [x] Reject duplicate long names within the same Flag set.
+  - [x] Reject duplicate shorthands within the same Flag set.
+  - [x] Reject invalid shorthand definitions that are empty, multi-rune, or otherwise unusable.
+  - [x] Reject no-option defaults where the value kind or arity cannot consume them.
+  - [x] Return typed or sentinel errors that callers can inspect with `errors.Is` or `errors.As`; error strings are diagnostics only.
 
-- [ ] Add tests and behavior evidence (AC: 2, 4, 5)
-  - [ ] Add table-driven tests beside the package under test, likely `flags/set_test.go`, `flags/value_test.go`, and `flags/errors_test.go` if that split keeps files focused.
-  - [ ] Cover definition validation, duplicate long names, duplicate shorthands, default values, explicit-set tracking foundation state, independent Flag sets with identical names, and derivation without mutation or slice/map alias leaks.
-  - [ ] Add tests proving package APIs do not read `os.Args`, mutate package globals, or share parse/definition state between Flag sets.
-  - [ ] Update `docs/behavior-matrices.md` only if the new public behavior needs an adoption-facing matrix row; do not duplicate package-level test detail.
-  - [ ] Avoid `flags/testdata/fuzz/FuzzParse/` unless ATDD scaffolding for this story explicitly asks for a parser seed. Parser fuzzing is primarily a later Epic 2 hardening story.
+- [x] Add tests and behavior evidence (AC: 2, 4, 5)
+  - [x] Add table-driven tests beside the package under test, likely `flags/set_test.go`, `flags/value_test.go`, and `flags/errors_test.go` if that split keeps files focused.
+  - [x] Cover definition validation, duplicate long names, duplicate shorthands, default values, explicit-set tracking foundation state, independent Flag sets with identical names, and derivation without mutation or slice/map alias leaks.
+  - [x] Add tests proving package APIs do not read `os.Args`, mutate package globals, or share parse/definition state between Flag sets.
+  - [x] Update `docs/behavior-matrices.md` only if the new public behavior needs an adoption-facing matrix row; do not duplicate package-level test detail.
+  - [x] Avoid `flags/testdata/fuzz/FuzzParse/` unless ATDD scaffolding for this story explicitly asks for a parser seed. Parser fuzzing is primarily a later Epic 2 hardening story.
 
-- [ ] Verify the story output (AC: 1-5)
-  - [ ] Run `go test ./...`.
-  - [ ] Run `go vet ./...`.
-  - [ ] Run `go run ./tools/depgate`.
-  - [ ] Run `git diff --check`.
-  - [ ] Confirm root `go.mod` still has no `require`, `replace`, or `toolchain` directives.
-  - [ ] Confirm no package imports outside the Go standard library were added.
-  - [ ] Record exact commands and outcomes in the Dev Agent Record.
+- [x] Verify the story output (AC: 1-5)
+  - [x] Run `go test ./...`.
+  - [x] Run `go vet ./...`.
+  - [x] Run `go run ./tools/depgate`.
+  - [x] Run `git diff --check`.
+  - [x] Confirm root `go.mod` still has no `require`, `replace`, or `toolchain` directives.
+  - [x] Confirm no package imports outside the Go standard library were added.
+  - [x] Record exact commands and outcomes in the Dev Agent Record.
 
 ## Dev Notes
 
@@ -208,20 +208,50 @@ Out of scope for this story:
 
 ### Agent Model Used
 
-TBD
+GPT-5 Codex
 
 ### Debug Log References
 
-TBD
+- `go test ./flags -run TestATDDFlagDefinitionsExposeMetadata -count=1` -> RED before implementation: missing `flags.NewSet`, `flags.String`, and related public API.
+- `go test ./flags -run TestATDDFlagDefinitionsExposeMetadata -count=1` -> GREEN after adding definition/set/value foundation.
+- `go test ./flags -run TestATDDFlagSetValidationErrorsAreInspectable -count=1` -> GREEN.
+- `go test ./flags -run TestATDDIndependentFlagSetsIgnoreAmbientProcessState -count=1` -> GREEN.
+- `go test ./flags -run TestATDDDerivedFlagSetsDoNotMutateOriginalsOrLeakAliases -count=1` -> GREEN.
+- `go test ./flags -run TestATDDValueAndDiagnosticFoundationIsMachineReadable -count=1` -> GREEN.
+- `go test ./flags -count=1` -> PASS.
+- `go test ./...` -> PASS.
+- `go vet ./...` -> PASS.
+- `go run ./tools/depgate` -> PASS.
+- `git diff --check` -> PASS.
+- `go test -race ./...` -> PASS.
 
 ### Completion Notes List
 
-TBD
+- Implemented reusable `flags.Set` construction, lookup, deterministic definition inspection, immutable derivation with `With`, and default snapshots with explicit value state.
+- Added built-in flag definitions for string, bool, int, int64, uint, uint64, float64, duration, and string list, plus custom parser support through `Parser` and `ParserFunc`.
+- Added inspectable definition/value errors with sentinels and typed context; sensitive raw parse values are omitted from public error strings while preserving wrapped parser errors.
+- Activated all Story 2.1 ATDD scaffolds and added focused table-driven package tests for validation, built-in parsing, derivation, defensive copies, and sensitive error redaction.
+- Updated behavior and diagnostics docs with Story 2.1 flag evidence. Root `go.mod` remains dependency-free and no `go.sum` was created.
 
 ### File List
 
-TBD
+- `_bmad-output/implementation-artifacts/2-1-define-reusable-flag-sets-without-global-state.md`
+- `_bmad-output/implementation-artifacts/sprint-status.yaml`
+- `docs/behavior-matrices.md`
+- `docs/diagnostics-and-errors.md`
+- `flags/definition.go`
+- `flags/errors.go`
+- `flags/errors_test.go`
+- `flags/kind.go`
+- `flags/parser.go`
+- `flags/set.go`
+- `flags/set_atdd_test.go`
+- `flags/set_test.go`
+- `flags/snapshot.go`
+- `flags/state_atdd_test.go`
+- `flags/value_test.go`
 
 ### Change Log
 
 - 2026-06-11: Story created and marked ready for development.
+- 2026-06-11: Implemented Story 2.1 reusable flag definition, set, value-state, and diagnostic foundation; activated ATDD scaffolds; moved story to review.

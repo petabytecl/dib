@@ -33,6 +33,11 @@ surface exists:
 The vocabulary describes what diagnostics communicate. It does not require a
 shared runtime diagnostic type in this story.
 
+Story 2.1 implements the first concrete `flags` error categories for definition
+validation and value conversion. Callers can inspect them with `errors.Is` and
+`errors.As`; diagnostic strings remain non-contractual and must not echo raw
+sensitive values.
+
 ## Source Labels
 
 Config provenance source labels are fixed to these exact spellings:
@@ -60,6 +65,7 @@ or validation failures.
 
 ## Current Scope
 
-This story establishes the shared contract language only. Later stories own the
-concrete error categories, source-report structures, rendered diagnostics, and
-redaction behavior for each package surface.
+Story 1.3 established the shared contract language. Story 2.1 adds initial
+`flags` definition and conversion categories. Later stories own source-report
+structures, rendered diagnostics, config provenance, and the remaining concrete
+error categories for each package surface.
