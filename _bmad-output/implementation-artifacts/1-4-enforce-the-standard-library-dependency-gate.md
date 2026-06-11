@@ -5,7 +5,7 @@ created: "2026-06-11T14:42:41-04:00"
 
 # Story 1.4: Enforce the Standard-Library Dependency Gate
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -29,42 +29,42 @@ so that Dib's zero-runtime-dependency claim is enforced before feature implement
 
 ## Tasks / Subtasks
 
-- [ ] Confirm the live checkout before editing (AC: 1-5)
-  - [ ] Verify `tools/depgate/` does not already exist. If it exists, update it in place instead of replacing user work.
-  - [ ] Verify the repo is on `main` with Story 1.1, Story 1.2, and Story 1.3 completed in `sprint-status.yaml`.
-  - [ ] Preserve the existing runtime packages: `command/`, `flags/`, and `config/` must not import `tools/depgate/` or any new dependency.
+- [x] Confirm the live checkout before editing (AC: 1-5)
+  - [x] Verify `tools/depgate/` does not already exist. If it exists, update it in place instead of replacing user work.
+  - [x] Verify the repo is on `main` with Story 1.1, Story 1.2, and Story 1.3 completed in `sprint-status.yaml`.
+  - [x] Preserve the existing runtime packages: `command/`, `flags/`, and `config/` must not import `tools/depgate/` or any new dependency.
 
-- [ ] Implement the isolated dependency gate command (AC: 1, 2, 3)
-  - [ ] Create `tools/depgate/main.go` as a package `main` command using only Go standard-library imports.
-  - [ ] Run the Go tool through `os/exec` with `go list -deps -test -e -json -buildvcs=false ./...` from the repository root so package tests and future `examples/` packages are included in the analyzed graph.
-  - [ ] Decode the JSON stream with `encoding/json.Decoder`; do not parse `go list` output with ad hoc line splitting.
-  - [ ] Treat packages as allowed only when `Standard == true` or `Module != nil && Module.Main == true`.
-  - [ ] Treat any package with `Standard == false` and not in the main module as a dependency violation, including unresolved external imports surfaced through `-e` package errors.
-  - [ ] Collect all violations, sort them deterministically, print every violation, and exit non-zero when any violation exists.
-  - [ ] Keep execution errors and JSON decode errors distinct from dependency violations in diagnostics.
+- [x] Implement the isolated dependency gate command (AC: 1, 2, 3)
+  - [x] Create `tools/depgate/main.go` as a package `main` command using only Go standard-library imports.
+  - [x] Run the Go tool through `os/exec` with `go list -deps -test -e -json -buildvcs=false ./...` from the repository root so package tests and future `examples/` packages are included in the analyzed graph.
+  - [x] Decode the JSON stream with `encoding/json.Decoder`; do not parse `go list` output with ad hoc line splitting.
+  - [x] Treat packages as allowed only when `Standard == true` or `Module != nil && Module.Main == true`.
+  - [x] Treat any package with `Standard == false` and not in the main module as a dependency violation, including unresolved external imports surfaced through `-e` package errors.
+  - [x] Collect all violations, sort them deterministically, print every violation, and exit non-zero when any violation exists.
+  - [x] Keep execution errors and JSON decode errors distinct from dependency violations in diagnostics.
 
-- [ ] Add focused depgate tests and fixtures (AC: 1, 2, 3, 5)
-  - [ ] Create `tools/depgate/main_test.go` with table-driven tests in package `main`.
-  - [ ] Create a passing stdlib-only fixture under `tools/depgate/testdata/stdlib-only/`.
-  - [ ] Create a failing non-stdlib fixture under `tools/depgate/testdata/non-stdlib-test-import/` where a package test imports a fake external path such as `example.com/external/notstdlib`.
-  - [ ] Run fixture checks with `-buildvcs=false` so temp copied fixtures do not fail because they are outside a VCS checkout.
-  - [ ] Assert the failing fixture exits non-zero and its output identifies both the package or test context and the offending import path.
-  - [ ] Assert the passing fixture exits successfully and does not report false violations for standard-library packages.
+- [x] Add focused depgate tests and fixtures (AC: 1, 2, 3, 5)
+  - [x] Create `tools/depgate/main_test.go` with table-driven tests in package `main`.
+  - [x] Create a passing stdlib-only fixture under `tools/depgate/testdata/stdlib-only/`.
+  - [x] Create a failing non-stdlib fixture under `tools/depgate/testdata/non-stdlib-test-import/` where a package test imports a fake external path such as `example.com/external/notstdlib`.
+  - [x] Run fixture checks with `-buildvcs=false` so temp copied fixtures do not fail because they are outside a VCS checkout.
+  - [x] Assert the failing fixture exits non-zero and its output identifies both the package or test context and the offending import path.
+  - [x] Assert the passing fixture exits successfully and does not report false violations for standard-library packages.
 
-- [ ] Update contributor dependency-gate guidance (AC: 4)
-  - [ ] Update `CONTRIBUTING.md` so local verification requires `go run ./tools/depgate` after `go test ./...` and `go vet ./...`.
-  - [ ] Remove or rewrite the old conditional wording that allowed the temporary ad hoc dependency check when no dedicated gate exists.
-  - [ ] Do not create `.github/workflows/ci.yml`; Story 1.5 owns CI wiring and must use `go run ./tools/depgate`.
-  - [ ] Do not create `docs/release-checklist.md`; Story 1.5 and Epic 5 own release-candidate evidence consolidation.
+- [x] Update contributor dependency-gate guidance (AC: 4)
+  - [x] Update `CONTRIBUTING.md` so local verification requires `go run ./tools/depgate` after `go test ./...` and `go vet ./...`.
+  - [x] Remove or rewrite the old conditional wording that allowed the temporary ad hoc dependency check when no dedicated gate exists.
+  - [x] Do not create `.github/workflows/ci.yml`; Story 1.5 owns CI wiring and must use `go run ./tools/depgate`.
+  - [x] Do not create `docs/release-checklist.md`; Story 1.5 and Epic 5 own release-candidate evidence consolidation.
 
-- [ ] Verify the story output (AC: 1-5)
-  - [ ] Run `go test ./...`.
-  - [ ] Run `go vet ./...`.
-  - [ ] Run `go run ./tools/depgate`.
-  - [ ] Confirm `go.mod` still has no `require`, `replace`, or `toolchain` directives unless the architecture has changed.
-  - [ ] Confirm no runtime, test, fixture, example, or tool dependency was added.
-  - [ ] Confirm no root facade package, `/cmd`, CI workflow, release checklist, compatibility docs, config precedence docs, examples, or broad `internal/` package was created.
-  - [ ] Record exact commands and outcomes in the Dev Agent Record.
+- [x] Verify the story output (AC: 1-5)
+  - [x] Run `go test ./...`.
+  - [x] Run `go vet ./...`.
+  - [x] Run `go run ./tools/depgate`.
+  - [x] Confirm `go.mod` still has no `require`, `replace`, or `toolchain` directives unless the architecture has changed.
+  - [x] Confirm no runtime, test, fixture, example, or tool dependency was added.
+  - [x] Confirm no root facade package, `/cmd`, CI workflow, release checklist, compatibility docs, config precedence docs, examples, or broad `internal/` package was created.
+  - [x] Record exact commands and outcomes in the Dev Agent Record.
 
 ## Dev Notes
 
@@ -244,12 +244,45 @@ go 1.26
 
 ### Agent Model Used
 
-{{agent_model_name_version}}
+GPT-5 Codex
 
 ### Debug Log References
+
+- `go test ./tools/depgate -run TestDepgateAllowsStdlibOnlyFixture -count=1` - RED confirmed before implementation; failed because `tools/depgate` had no non-test Go files.
+- `go test -count=1 ./...` - PASS after implementation.
+- `go vet ./...` - PASS after implementation.
+- `go run ./tools/depgate` - PASS with no dependency violations.
+- `git diff --check` - PASS.
+- `rg -n "require |replace |toolchain" go.mod tools/depgate/testdata/*/go.mod || true` - no dependency directives found.
+- `rg -n "tools/depgate|github.com/petabytecl/dib/tools/depgate" command flags config go.mod || true` - no runtime imports of the depgate tool.
 
 ### Completion Notes List
 
 - Ultimate context engine analysis completed - comprehensive developer guide created.
+- Implemented `tools/depgate` as isolated standard-library-only repository tooling.
+- The gate executes `go list -deps -test -e -json -buildvcs=false ./...`, decodes the JSON stream, allows standard-library and main-module packages, and reports every non-main non-stdlib package deterministically.
+- Added active table-driven fixture tests for stdlib-only and non-stdlib test import modules, plus direct coverage for execution failure diagnostics.
+- Updated `CONTRIBUTING.md` so `go run ./tools/depgate` is a required local verification command.
+- Verified no root dependency directives, forbidden scaffold directories, runtime imports into `tools/depgate`, CI workflow, release checklist, compatibility docs, config precedence docs, examples, or broad `internal/` package were added.
 
 ### File List
+
+- `CONTRIBUTING.md`
+- `_bmad-output/implementation-artifacts/1-4-enforce-the-standard-library-dependency-gate.md`
+- `_bmad-output/implementation-artifacts/sprint-status.yaml`
+- `_bmad-output/test-artifacts/atdd-checklist-1-4-enforce-the-standard-library-dependency-gate.md`
+- `_bmad-output/test-artifacts/tmp/tea-atdd-api-tests-2026-06-11T14-54-34-0400.json`
+- `_bmad-output/test-artifacts/tmp/tea-atdd-e2e-tests-2026-06-11T14-54-34-0400.json`
+- `_bmad-output/test-artifacts/tmp/tea-atdd-summary-2026-06-11T14-54-34-0400.json`
+- `tools/depgate/main.go`
+- `tools/depgate/main_test.go`
+- `tools/depgate/testdata/non-stdlib-test-import/go.mod`
+- `tools/depgate/testdata/non-stdlib-test-import/pkg/pkg.go`
+- `tools/depgate/testdata/non-stdlib-test-import/pkg/pkg_test.go`
+- `tools/depgate/testdata/stdlib-only/go.mod`
+- `tools/depgate/testdata/stdlib-only/pkg/pkg.go`
+- `tools/depgate/testdata/stdlib-only/pkg/pkg_test.go`
+
+### Change Log
+
+- 2026-06-11: Implemented Story 1.4 dependency gate, fixture coverage, contributor guidance, and verification evidence.

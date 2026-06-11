@@ -31,12 +31,12 @@ Run these baseline checks before handing work off for review:
 ```sh
 go test ./...
 go vet ./...
+go run ./tools/depgate
 ```
 
-If a dedicated dependency gate exists in this checkout, run it according to its
-own documentation. If it does not exist, do not create `tools/depgate/` as part
-of an unrelated contribution or treat an ad hoc dependency check as
-release-candidate evidence.
+The dependency gate is the repository authority for Dib's
+standard-library-only contract. Do not treat ad hoc `go list` commands as
+release-candidate dependency evidence once `tools/depgate/` exists.
 
 ## Documentation Expectations
 

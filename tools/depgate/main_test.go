@@ -2,52 +2,63 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
 )
 
-func TestDepgateAllowsStdlibOnlyFixture(t *testing.T) {
-	t.Skip("ATDD red phase: remove this skip while implementing Story 1.4")
-
+func TestDepgateFixtures(t *testing.T) {
 	binary := buildDepgateBinary(t)
-	result := runDepgateFixture(t, binary, "stdlib-only")
 
-	if result.err != nil {
-		t.Fatalf("depgate returned error for stdlib-only fixture: %v\n%s", result.err, result.output)
+	tests := []struct {
+		name       string
+		fixture    string
+		wantErr    bool
+		wantOutput []string
+	}{
+		{
+			name:    "stdlib-only",
+			fixture: "stdlib-only",
+		},
+		{
+			name:    "non-stdlib test imports",
+			fixture: "non-stdlib-test-import",
+			wantErr: true,
+			wantOutput: []string{
+				"non-standard import:",
+				"package=",
+				"import=",
+				"example.com/external/notstdlib",
+				"example.com/external/also-notstdlib",
+			},
+		},
 	}
-	if strings.Contains(result.output, "non-standard import") {
-		t.Fatalf("depgate reported a dependency violation for stdlib-only fixture:\n%s", result.output)
-	}
-}
 
-func TestDepgateReportsNonStandardTestImports(t *testing.T) {
-	t.Skip("ATDD red phase: remove this skip while implementing Story 1.4")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := runDepgateFixture(t, binary, tt.fixture)
 
-	binary := buildDepgateBinary(t)
-	result := runDepgateFixture(t, binary, "non-stdlib-test-import")
-
-	if result.err == nil {
-		t.Fatalf("depgate succeeded for fixture with non-standard test imports:\n%s", result.output)
-	}
-
-	for _, want := range []string{
-		"non-standard import:",
-		"package=",
-		"import=",
-		"example.com/external/notstdlib",
-		"example.com/external/also-notstdlib",
-	} {
-		if !strings.Contains(result.output, want) {
-			t.Fatalf("depgate output missing %q:\n%s", want, result.output)
-		}
+			if tt.wantErr && result.err == nil {
+				t.Fatalf("depgate succeeded unexpectedly:\n%s", result.output)
+			}
+			if !tt.wantErr && result.err != nil {
+				t.Fatalf("depgate returned unexpected error: %v\n%s", result.err, result.output)
+			}
+			if !tt.wantErr && strings.Contains(result.output, "non-standard import") {
+				t.Fatalf("depgate reported a dependency violation unexpectedly:\n%s", result.output)
+			}
+			for _, want := range tt.wantOutput {
+				if !strings.Contains(result.output, want) {
+					t.Fatalf("depgate output missing %q:\n%s", want, result.output)
+				}
+			}
+		})
 	}
 }
 
 func TestDepgateReportsEveryViolationDeterministically(t *testing.T) {
-	t.Skip("ATDD red phase: remove this skip while implementing Story 1.4")
-
 	binary := buildDepgateBinary(t)
 	first := runDepgateFixture(t, binary, "non-stdlib-test-import")
 	second := runDepgateFixture(t, binary, "non-stdlib-test-import")
@@ -60,6 +71,23 @@ func TestDepgateReportsEveryViolationDeterministically(t *testing.T) {
 	}
 	if got := strings.Count(first.output, "non-standard import:"); got != 2 {
 		t.Fatalf("depgate reported %d violations, want 2:\n%s", got, first.output)
+	}
+}
+
+func TestRunSeparatesExecutionFailureFromDependencyViolations(t *testing.T) {
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+
+	exitCode := run(context.Background(), filepath.Join(t.TempDir(), "missing"), &stdout, &stderr)
+
+	if exitCode != executionFailureExit {
+		t.Fatalf("run() exit code = %d, want %d", exitCode, executionFailureExit)
+	}
+	if stdout.Len() != 0 {
+		t.Fatalf("run() wrote dependency diagnostics to stdout for execution failure:\n%s", stdout.String())
+	}
+	if got := stderr.String(); !strings.Contains(got, "depgate execution error:") {
+		t.Fatalf("run() stderr = %q, want execution error diagnostic", got)
 	}
 }
 
