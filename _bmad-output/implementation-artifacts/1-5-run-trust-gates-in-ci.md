@@ -66,6 +66,15 @@ so that standard-library-only dependency enforcement, tests, vet, and clean-room
 
 ## Dev Notes
 
+### ATDD Artifacts
+
+- Checklist: `_bmad-output/test-artifacts/atdd-checklist-1-5-run-trust-gates-in-ci.md`
+- Backend repository tests: `tools/cigate/ci_test.go`
+- Temp API/back-end generation summary: `_bmad-output/test-artifacts/tmp/tea-atdd-api-tests-2026-06-11T15-59-33-0400.json`
+- Temp E2E generation summary: `_bmad-output/test-artifacts/tmp/tea-atdd-e2e-tests-2026-06-11T15-59-33-0400.json`
+- Temp aggregate summary: `_bmad-output/test-artifacts/tmp/tea-atdd-summary-2026-06-11T15-59-33-0400.json`
+- Dev workflow handoff: remove one `t.Skip` in `tools/cigate/ci_test.go` at a time, confirm RED with the narrow `go test ./tools/cigate -run ...` command, then implement the smallest change to pass.
+
 ### Source Discovery
 
 - Loaded sprint status: `_bmad-output/implementation-artifacts/sprint-status.yaml`.
@@ -222,4 +231,3 @@ jobs:
 ### File List
 
 ### Change Log
-
