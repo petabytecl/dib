@@ -1,0 +1,41 @@
+{
+  "success": true,
+  "subagent": "atdd-backend-command-tests",
+  "generation_mode": "sequential",
+  "tdd_phase": "RED",
+  "tests": [
+    {
+      "file": "tools/depgate/main_test.go",
+      "description": "Skipped Go acceptance scaffold for the depgate command",
+      "expected_to_fail": true,
+      "skip_marker": "t.Skip",
+      "acceptance_criteria_covered": [
+        "AC1: stdlib-only repository and package tests pass",
+        "AC2: tooling can be checked without runtime imports",
+        "AC3: diagnostics identify offending package/import paths and report all violations",
+        "AC5: fixture coverage includes passing stdlib-only and failing non-stdlib imports"
+      ],
+      "priority_coverage": {
+        "P0": 3,
+        "P1": 0,
+        "P2": 0,
+        "P3": 0
+      }
+    }
+  ],
+  "fixture_needs": [
+    "tools/depgate/testdata/stdlib-only",
+    "tools/depgate/testdata/non-stdlib-test-import"
+  ],
+  "knowledge_fragments_used": [
+    "data-factories",
+    "component-tdd",
+    "test-quality",
+    "test-healing-patterns",
+    "test-levels-framework",
+    "test-priorities-matrix",
+    "ci-burn-in"
+  ],
+  "test_count": 3,
+  "summary": "Generated three skipped Go red-phase acceptance scaffolds for Story 1.4."
+}
