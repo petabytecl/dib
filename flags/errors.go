@@ -6,24 +6,36 @@ import (
 )
 
 var (
-	ErrInvalidDefinition      = errors.New("invalid flag definition")
-	ErrDuplicateName          = errors.New("duplicate flag name")
-	ErrDuplicateShorthand     = errors.New("duplicate flag shorthand")
-	ErrInvalidShorthand       = errors.New("invalid flag shorthand")
-	ErrInvalidNoOptionDefault = errors.New("invalid flag no-option default")
-	ErrDuplicateValue         = errors.New("duplicate flag value")
-	ErrConversion             = errors.New("flag value conversion failed")
+	ErrInvalidDefinition       = errors.New("invalid flag definition")
+	ErrDuplicateName           = errors.New("duplicate flag name")
+	ErrDuplicateNormalizedName = errors.New("duplicate normalized flag name")
+	ErrDuplicateShorthand      = errors.New("duplicate flag shorthand")
+	ErrInvalidShorthand        = errors.New("invalid flag shorthand")
+	ErrInvalidNoOptionDefault  = errors.New("invalid flag no-option default")
+	ErrDuplicateValue          = errors.New("duplicate flag value")
+	ErrConversion              = errors.New("flag value conversion failed")
 )
 
 // DefinitionError reports an inspectable setup-time definition failure.
 type DefinitionError struct {
-	name      string
-	shorthand string
-	category  error
+	name           string
+	shorthand      string
+	collidingName  string
+	normalizedName string
+	category       error
 }
 
 func newDefinitionError(name string, shorthand string, category error) *DefinitionError {
 	return &DefinitionError{name: name, shorthand: shorthand, category: category}
+}
+
+func newNormalizedDefinitionError(name string, collidingName string, normalizedName string) *DefinitionError {
+	return &DefinitionError{
+		name:           name,
+		collidingName:  collidingName,
+		normalizedName: normalizedName,
+		category:       ErrDuplicateNormalizedName,
+	}
 }
 
 func (e *DefinitionError) Error() string {
@@ -37,6 +49,12 @@ func (e *DefinitionError) Error() string {
 	}
 	if e.shorthand != "" {
 		message += fmt.Sprintf(" shorthand %q", e.shorthand)
+	}
+	if e.collidingName != "" {
+		message += fmt.Sprintf(" collides with %q", e.collidingName)
+	}
+	if e.normalizedName != "" {
+		message += fmt.Sprintf(" normalized as %q", e.normalizedName)
 	}
 	return message
 }
@@ -62,6 +80,22 @@ func (e *DefinitionError) Shorthand() string {
 		return ""
 	}
 	return e.shorthand
+}
+
+// CollidingName returns the other long flag name involved in a setup collision.
+func (e *DefinitionError) CollidingName() string {
+	if e == nil {
+		return ""
+	}
+	return e.collidingName
+}
+
+// NormalizedName returns the normalized long-name key associated with the setup failure.
+func (e *DefinitionError) NormalizedName() string {
+	if e == nil {
+		return ""
+	}
+	return e.normalizedName
 }
 
 // ValueError reports an inspectable flag value conversion failure.

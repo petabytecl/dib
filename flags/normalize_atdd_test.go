@@ -3,8 +3,6 @@ package flags_test
 import "testing"
 
 func TestATDDExactFlagNamesRemainDistinctByDefault(t *testing.T) {
-	t.Skip("ATDD RED: remove this skip during Story 2.2 implementation to verify exact matching remains the default")
-
 	runConsumerContract(t, "exact names by default", `package flagsconsumer_test
 
 import (
@@ -45,8 +43,6 @@ func TestExactFlagNamesRemainDistinctByDefault(t *testing.T) {
 }
 
 func TestATDDConfiguredNormalizerResolvesCanonicalDefinitions(t *testing.T) {
-	t.Skip("ATDD RED: remove this skip during Story 2.2 implementation after adding the explicit normalizer API")
-
 	runConsumerContract(t, "configured normalizer resolves canonical definitions", `package flagsconsumer_test
 
 import (
@@ -92,8 +88,6 @@ func TestConfiguredNormalizerResolvesCanonicalDefinitions(t *testing.T) {
 }
 
 func TestATDDNormalizationCollisionsAreInspectable(t *testing.T) {
-	t.Skip("ATDD RED: remove this skip during Story 2.2 implementation after adding typed normalization collision diagnostics")
-
 	runConsumerContract(t, "normalization collisions are inspectable", `package flagsconsumer_test
 
 import (
@@ -142,8 +136,6 @@ func TestNormalizationCollisionsAreInspectable(t *testing.T) {
 }
 
 func TestATDDNormalizedDerivationDoesNotMutateOriginalSets(t *testing.T) {
-	t.Skip("ATDD RED: remove this skip during Story 2.2 implementation after normalized derivation preserves immutability")
-
 	runConsumerContract(t, "normalized derivation does not mutate originals", `package flagsconsumer_test
 
 import (
@@ -198,8 +190,6 @@ func TestNormalizedDerivationDoesNotMutateOriginalSets(t *testing.T) {
 }
 
 func TestATDDLongNameNormalizationDoesNotCreateShorthandAliases(t *testing.T) {
-	t.Skip("ATDD RED: remove this skip during Story 2.2 implementation after shorthand and long-name indexes remain independent")
-
 	runConsumerContract(t, "normalization does not create shorthand aliases", `package flagsconsumer_test
 
 import (

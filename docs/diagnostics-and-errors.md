@@ -38,6 +38,11 @@ validation and value conversion. Callers can inspect them with `errors.Is` and
 `errors.As`; diagnostic strings remain non-contractual and must not echo raw
 sensitive values.
 
+Story 2.2 adds `flags.ErrDuplicateNormalizedName` for caller-configured long-name
+normalization collisions. The error is exposed through `*flags.DefinitionError`;
+callers can inspect both raw names with `Name` and `CollidingName`, plus the
+shared normalized lookup key with `NormalizedName`.
+
 ## Source Labels
 
 Config provenance source labels are fixed to these exact spellings:

@@ -5,7 +5,7 @@ created: "2026-06-11T17:41:09-04:00"
 
 # Story 2.2: Match Flag Names Safely Across Styles
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -29,54 +29,54 @@ so that familiar naming styles do not create silent collisions or surprising par
 
 ## Tasks / Subtasks
 
-- [ ] Confirm current tracker, artifact, and source state (AC: 1-5)
-  - [ ] Verify `sprint-status.yaml` marks Story 2.1 `done` and Story 2.2 `ready-for-dev`.
-  - [ ] Check for Story 2.2 ATDD artifacts under `_bmad-output/test-artifacts/`; none existed at story creation, but use them if they are generated before implementation starts.
-  - [ ] Verify root `go.mod` still declares `module github.com/petabytecl/dib` and `go 1.26` with no `require`, `replace`, or `toolchain` directives.
-  - [ ] Reuse the existing `flags.Set`, `Definition`, `Snapshot`, and typed error foundation instead of replacing it.
+- [x] Confirm current tracker, artifact, and source state (AC: 1-5)
+  - [x] Verify `sprint-status.yaml` marks Story 2.1 `done` and Story 2.2 `ready-for-dev`.
+  - [x] Check for Story 2.2 ATDD artifacts under `_bmad-output/test-artifacts/`; none existed at story creation, but use them if they are generated before implementation starts.
+  - [x] Verify root `go.mod` still declares `module github.com/petabytecl/dib` and `go 1.26` with no `require`, `replace`, or `toolchain` directives.
+  - [x] Reuse the existing `flags.Set`, `Definition`, `Snapshot`, and typed error foundation instead of replacing it.
 
-- [ ] Add an explicit name-normalization API (AC: 1, 2, 5)
-  - [ ] Preserve `NewSet(defs ...Definition) (Set, error)` as exact-name-by-default behavior.
-  - [ ] Add a focused caller opt-in surface for long-name normalization, such as a named constructor and/or immutable derivation method, without package globals or process state.
-  - [ ] Define the normalizer shape with Go standard-library types only, for example a function from raw long name to normalized key.
-  - [ ] Treat nil or absent normalizers deterministically; do not panic or silently enable equivalence.
-  - [ ] Keep canonical `Definition.Name()` as the registered definition name, not the raw spelling used during lookup.
+- [x] Add an explicit name-normalization API (AC: 1, 2, 5)
+  - [x] Preserve `NewSet(defs ...Definition) (Set, error)` as exact-name-by-default behavior.
+  - [x] Add a focused caller opt-in surface for long-name normalization, such as a named constructor and/or immutable derivation method, without package globals or process state.
+  - [x] Define the normalizer shape with Go standard-library types only, for example a function from raw long name to normalized key.
+  - [x] Treat nil or absent normalizers deterministically; do not panic or silently enable equivalence.
+  - [x] Keep canonical `Definition.Name()` as the registered definition name, not the raw spelling used during lookup.
 
-- [ ] Build normalized long-name resolution without mutating existing sets (AC: 1, 2, 4)
-  - [ ] Add normalized lookup indexes inside `flags.Set` while preserving deterministic definition order.
-  - [ ] Make exact sets resolve `log-level`, `log_level`, and `log.level` as three distinct long names.
-  - [ ] Make normalized sets resolve supported raw spellings to the same canonical definition when the configured normalizer maps them to the same key.
-  - [ ] Ensure `Set.With` and any new derivation API return a new set, preserve the original set's observable behavior, and validate normalization for the combined definitions.
-  - [ ] Keep shorthand indexes independent from long-name normalization; a long-name normalizer must never create or accept hidden shorthand aliases.
+- [x] Build normalized long-name resolution without mutating existing sets (AC: 1, 2, 4)
+  - [x] Add normalized lookup indexes inside `flags.Set` while preserving deterministic definition order.
+  - [x] Make exact sets resolve `log-level`, `log_level`, and `log.level` as three distinct long names.
+  - [x] Make normalized sets resolve supported raw spellings to the same canonical definition when the configured normalizer maps them to the same key.
+  - [x] Ensure `Set.With` and any new derivation API return a new set, preserve the original set's observable behavior, and validate normalization for the combined definitions.
+  - [x] Keep shorthand indexes independent from long-name normalization; a long-name normalizer must never create or accept hidden shorthand aliases.
 
-- [ ] Add typed deterministic normalization-collision diagnostics (AC: 3, 5)
-  - [ ] Add a sentinel or typed category for normalization collisions, for example `ErrDuplicateNormalizedName` or `ErrNameNormalizationCollision`.
-  - [ ] Extend `DefinitionError` or add a small typed error so callers can inspect both colliding long flag names programmatically with `errors.As`; do not make tests depend on error strings.
-  - [ ] Preserve existing `DefinitionError.Name()` and `DefinitionError.Shorthand()` behavior for Story 2.1 errors.
-  - [ ] Reject invalid normalized definition keys deterministically if a configured normalizer produces an empty or otherwise unusable long-name key.
-  - [ ] Keep raw sensitive values out of collision and validation diagnostics.
+- [x] Add typed deterministic normalization-collision diagnostics (AC: 3, 5)
+  - [x] Add a sentinel or typed category for normalization collisions, for example `ErrDuplicateNormalizedName` or `ErrNameNormalizationCollision`.
+  - [x] Extend `DefinitionError` or add a small typed error so callers can inspect both colliding long flag names programmatically with `errors.As`; do not make tests depend on error strings.
+  - [x] Preserve existing `DefinitionError.Name()` and `DefinitionError.Shorthand()` behavior for Story 2.1 errors.
+  - [x] Reject invalid normalized definition keys deterministically if a configured normalizer produces an empty or otherwise unusable long-name key.
+  - [x] Keep raw sensitive values out of collision and validation diagnostics.
 
-- [ ] Connect normalization to snapshot/parse foundations only as far as this story needs (AC: 2, 5)
-  - [ ] Provide enough name-resolution state for later long-flag parsing to record canonical definition identity separately from raw CLI spelling.
-  - [ ] If modifying `Snapshot`, keep it self-contained, keyed by canonical definition names, and free of caller-owned mutable aliases.
-  - [ ] Do not implement full `--name=value`, `--name value`, unknown-flag, missing-value, or shorthand parse behavior from Stories 2.3 and 2.4 unless an ATDD scaffold for Story 2.2 explicitly requires a minimal hook.
+- [x] Connect normalization to snapshot/parse foundations only as far as this story needs (AC: 2, 5)
+  - [x] Provide enough name-resolution state for later long-flag parsing to record canonical definition identity separately from raw CLI spelling.
+  - [x] If modifying `Snapshot`, keep it self-contained, keyed by canonical definition names, and free of caller-owned mutable aliases.
+  - [x] Do not implement full `--name=value`, `--name value`, unknown-flag, missing-value, or shorthand parse behavior from Stories 2.3 and 2.4 unless an ATDD scaffold for Story 2.2 explicitly requires a minimal hook.
 
-- [ ] Add tests and documentation evidence (AC: 1-5)
-  - [ ] Add table-driven package tests, likely in a new `flags/normalize_test.go` plus focused additions to `flags/set_test.go` or `flags/errors_test.go`.
-  - [ ] Cover exact default matching for `log-level`, `log_level`, and `log.level`.
-  - [ ] Cover configured normalization with a pure test normalizer that maps `-`, `_`, and `.` consistently.
-  - [ ] Cover normalized collision errors through `errors.Is` and/or `errors.As`, including machine-readable access to both colliding names.
-  - [ ] Cover derived normalized sets, original-set immutability, shorthand uniqueness, and the absence of hidden shorthand aliases.
-  - [ ] Update `docs/behavior-matrices.md` only if the new public behavior needs an adoption-facing row; keep package tests as the executable contract.
+- [x] Add tests and documentation evidence (AC: 1-5)
+  - [x] Add table-driven package tests, likely in a new `flags/normalize_test.go` plus focused additions to `flags/set_test.go` or `flags/errors_test.go`.
+  - [x] Cover exact default matching for `log-level`, `log_level`, and `log.level`.
+  - [x] Cover configured normalization with a pure test normalizer that maps `-`, `_`, and `.` consistently.
+  - [x] Cover normalized collision errors through `errors.Is` and/or `errors.As`, including machine-readable access to both colliding names.
+  - [x] Cover derived normalized sets, original-set immutability, shorthand uniqueness, and the absence of hidden shorthand aliases.
+  - [x] Update `docs/behavior-matrices.md` only if the new public behavior needs an adoption-facing row; keep package tests as the executable contract.
 
-- [ ] Verify the story output (AC: 1-5)
-  - [ ] Run `go test ./...`.
-  - [ ] Run `go vet ./...`.
-  - [ ] Run `go run ./tools/depgate`.
-  - [ ] Run `git diff --check`.
-  - [ ] Confirm `go.mod` still has no `require`, `replace`, or `toolchain` directives and no `go.sum` was created.
-  - [ ] Confirm no package imports outside the Go standard library were added.
-  - [ ] Record exact commands and outcomes in the Dev Agent Record.
+- [x] Verify the story output (AC: 1-5)
+  - [x] Run `go test ./...`.
+  - [x] Run `go vet ./...`.
+  - [x] Run `go run ./tools/depgate`.
+  - [x] Run `git diff --check`.
+  - [x] Confirm `go.mod` still has no `require`, `replace`, or `toolchain` directives and no `go.sum` was created.
+  - [x] Confirm no package imports outside the Go standard library were added.
+  - [x] Record exact commands and outcomes in the Dev Agent Record.
 
 ## Dev Notes
 
@@ -225,10 +225,40 @@ GPT-5 Codex
 
 ### Debug Log References
 
+- `go test ./flags -run TestATDDExactFlagNamesRemainDistinctByDefault -count=1` -> PASS before production changes; confirmed exact-name behavior remained the default.
+- `go test ./flags -run 'TestATDD(ConfiguredNormalizer|NormalizationCollisions|NormalizedDerivation|LongNameNormalization)' -count=1` -> RED before production changes with missing `NameNormalizer`, `NewNormalizedSet`, `WithNormalizer`, `ErrDuplicateNormalizedName`, `CollidingName`, and `NormalizedName`.
+- `go test ./flags -run 'TestATDD(ConfiguredNormalizer|NormalizationCollisions|NormalizedDerivation|LongNameNormalization)' -count=1` -> PASS after adding the normalizer API, normalized index validation, immutable derivation, and typed collision diagnostics.
+- `go test ./flags -count=1` -> PASS.
+- `go test ./...` -> PASS.
+- `go vet ./...` -> PASS.
+- `go run ./tools/depgate` -> PASS.
+- `go test -race ./...` -> PASS.
+- `git diff --check` -> PASS.
+- `cat go.mod` -> confirmed only `module github.com/petabytecl/dib` and `go 1.26`.
+- `test ! -e go.sum` -> PASS; no `go.sum` was created.
+- `go list -f '{{.ImportPath}} {{join .Imports "\n"}}' ./...` -> confirmed package imports are standard library plus local module packages only.
+
 ### Completion Notes List
+
+- Added `flags.NameNormalizer`, `flags.NewNormalizedSet`, and `Set.WithNormalizer` as explicit opt-in long-name normalization APIs while preserving exact matching in `NewSet`.
+- Reworked `flags.Set` construction through one immutable validation/indexing path so normalized sets preserve deterministic definition order, original-set behavior, and canonical `Definition.Name()` results.
+- Added `flags.ErrDuplicateNormalizedName` plus `DefinitionError.CollidingName()` and `DefinitionError.NormalizedName()` for typed, string-independent normalization collision diagnostics.
+- Activated the Story 2.2 ATDD scaffold, added direct table-driven normalization tests, and documented the new public behavior/error contract.
+- Kept full parse behavior, shorthand parsing, and command/config integration out of scope for later Epic 2 stories.
 
 ### File List
 
+- `_bmad-output/implementation-artifacts/2-2-match-flag-names-safely-across-styles.md`
+- `_bmad-output/implementation-artifacts/sprint-status.yaml`
+- `docs/behavior-matrices.md`
+- `docs/diagnostics-and-errors.md`
+- `flags/errors.go`
+- `flags/normalize.go`
+- `flags/normalize_atdd_test.go`
+- `flags/normalize_test.go`
+- `flags/set.go`
+
 ### Change Log
 
+- 2026-06-11: Implemented explicit flag name normalization, typed collision diagnostics, ATDD activation, package tests, and adoption-facing docs; moved story to review.
 - 2026-06-11: Story created and marked ready for development.

@@ -5,11 +5,22 @@ type Set struct {
 	definitions []Definition
 	byName      map[string]int
 	byShort     map[string]int
+	normalizer  NameNormalizer
 }
 
 // NewSet validates and returns an independent flag definition set.
 func NewSet(defs ...Definition) (Set, error) {
+	return newSet(nil, defs...)
+}
+
+// NewNormalizedSet validates and returns a set that normalizes long flag names for lookup.
+func NewNormalizedSet(normalizer NameNormalizer, defs ...Definition) (Set, error) {
+	return newSet(normalizer, defs...)
+}
+
+func newSet(normalizer NameNormalizer, defs ...Definition) (Set, error) {
 	definitions := make([]Definition, 0, len(defs))
+	byExactName := make(map[string]int, len(defs))
 	byName := make(map[string]int, len(defs))
 	byShort := make(map[string]int)
 
@@ -17,7 +28,7 @@ func NewSet(defs ...Definition) (Set, error) {
 		if err := validateDefinition(def); err != nil {
 			return Set{}, err
 		}
-		if _, ok := byName[def.name]; ok {
+		if _, ok := byExactName[def.name]; ok {
 			return Set{}, newDefinitionError(def.name, "", ErrDuplicateName)
 		}
 		if def.hasShorthand {
@@ -27,7 +38,16 @@ func NewSet(defs ...Definition) (Set, error) {
 			byShort[def.shorthand] = len(definitions)
 		}
 
-		byName[def.name] = len(definitions)
+		normalizedName := normalizeName(normalizer, def.name)
+		if invalidName(normalizedName) {
+			return Set{}, newDefinitionError(def.name, "", ErrInvalidDefinition)
+		}
+		if existing, ok := byName[normalizedName]; ok {
+			return Set{}, newNormalizedDefinitionError(def.name, definitions[existing].name, normalizedName)
+		}
+
+		byExactName[def.name] = len(definitions)
+		byName[normalizedName] = len(definitions)
 		definitions = append(definitions, def)
 	}
 
@@ -35,6 +55,7 @@ func NewSet(defs ...Definition) (Set, error) {
 		definitions: append([]Definition(nil), definitions...),
 		byName:      cloneIndex(byName),
 		byShort:     cloneIndex(byShort),
+		normalizer:  normalizer,
 	}, nil
 }
 
@@ -50,7 +71,7 @@ func (s Set) Definitions() []Definition {
 
 // Lookup returns the definition for a long flag name.
 func (s Set) Lookup(name string) (Definition, bool) {
-	index, ok := s.byName[name]
+	index, ok := s.byName[normalizeName(s.normalizer, name)]
 	if !ok {
 		return Definition{}, false
 	}
@@ -61,7 +82,12 @@ func (s Set) Lookup(name string) (Definition, bool) {
 func (s Set) With(defs ...Definition) (Set, error) {
 	next := s.Definitions()
 	next = append(next, defs...)
-	return NewSet(next...)
+	return newSet(s.normalizer, next...)
+}
+
+// WithNormalizer returns a new Set with the same definitions and a new long-name normalizer.
+func (s Set) WithNormalizer(normalizer NameNormalizer) (Set, error) {
+	return newSet(normalizer, s.definitions...)
 }
 
 // DefaultSnapshot returns the default value state for this set.
