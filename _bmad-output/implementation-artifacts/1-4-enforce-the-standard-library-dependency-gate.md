@@ -5,7 +5,7 @@ created: "2026-06-11T14:42:41-04:00"
 
 # Story 1.4: Enforce the Standard-Library Dependency Gate
 
-Status: review
+Status: done
 
 ## Story
 
@@ -65,6 +65,12 @@ so that Dib's zero-runtime-dependency claim is enforced before feature implement
   - [x] Confirm no runtime, test, fixture, example, or tool dependency was added.
   - [x] Confirm no root facade package, `/cmd`, CI workflow, release checklist, compatibility docs, config precedence docs, examples, or broad `internal/` package was created.
   - [x] Record exact commands and outcomes in the Dev Agent Record.
+
+### Review Findings
+
+- [x] [Review][Patch] Disable workspace mode while running `go list` [tools/depgate/main.go:61]
+- [x] [Review][Patch] Process `DepsErrors` as dependency violations [tools/depgate/main.go:100]
+- [x] [Review][Patch] Report resolved external imports with the main-module importer context [tools/depgate/main.go:100]
 
 ## Dev Notes
 
@@ -255,6 +261,13 @@ GPT-5 Codex
 - `git diff --check` - PASS.
 - `rg -n "require |replace |toolchain" go.mod tools/depgate/testdata/*/go.mod || true` - no dependency directives found.
 - `rg -n "tools/depgate|github.com/petabytecl/dib/tools/depgate" command flags config go.mod || true` - no runtime imports of the depgate tool.
+- `go test -count=1 ./tools/depgate` - PASS after code-review fixes.
+- `go test -count=1 ./...` - PASS after code-review fixes.
+- `go vet ./...` - PASS after code-review fixes.
+- `go run ./tools/depgate` - PASS after code-review fixes.
+- `git diff --check` - PASS after code-review fixes.
+- Secret-pattern scan over source, docs, tools, module files, and BMAD artifacts - no secret-like matches found.
+- `rg -n "require |replace |toolchain" go.mod tools/depgate/testdata/*/go.mod || true` - only deliberate local fixture `require`/`replace` entries found under `tools/depgate/testdata/resolved-nonstdlib-import/`.
 
 ### Completion Notes List
 
@@ -264,6 +277,8 @@ GPT-5 Codex
 - Added active table-driven fixture tests for stdlib-only and non-stdlib test import modules, plus direct coverage for execution failure diagnostics.
 - Updated `CONTRIBUTING.md` so `go run ./tools/depgate` is a required local verification command.
 - Verified no root dependency directives, forbidden scaffold directories, runtime imports into `tools/depgate`, CI workflow, release checklist, compatibility docs, config precedence docs, examples, or broad `internal/` package were added.
+- Addressed code-review findings by disabling Go workspace mode during dependency scans, processing `DepsErrors`, and reporting resolved non-standard imports with direct main-module importer context.
+- Added resolved external import and workspace-mode regression coverage without changing the root module dependency graph.
 
 ### File List
 
@@ -279,6 +294,11 @@ GPT-5 Codex
 - `tools/depgate/testdata/non-stdlib-test-import/go.mod`
 - `tools/depgate/testdata/non-stdlib-test-import/pkg/pkg.go`
 - `tools/depgate/testdata/non-stdlib-test-import/pkg/pkg_test.go`
+- `tools/depgate/testdata/resolved-external/go.mod`
+- `tools/depgate/testdata/resolved-external/resolved.go`
+- `tools/depgate/testdata/resolved-nonstdlib-import/go.mod`
+- `tools/depgate/testdata/resolved-nonstdlib-import/pkg/pkg.go`
+- `tools/depgate/testdata/resolved-nonstdlib-import/pkg/pkg_test.go`
 - `tools/depgate/testdata/stdlib-only/go.mod`
 - `tools/depgate/testdata/stdlib-only/pkg/pkg.go`
 - `tools/depgate/testdata/stdlib-only/pkg/pkg_test.go`
@@ -286,3 +306,4 @@ GPT-5 Codex
 ### Change Log
 
 - 2026-06-11: Implemented Story 1.4 dependency gate, fixture coverage, contributor guidance, and verification evidence.
+- 2026-06-11: Addressed code-review findings and marked Story 1.4 done.
