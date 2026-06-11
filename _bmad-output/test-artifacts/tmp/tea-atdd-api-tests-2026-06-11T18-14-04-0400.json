@@ -1,0 +1,40 @@
+{
+  "success": true,
+  "subagent": "atdd-backend-flags-normalization-tests",
+  "generation_mode": "sequential",
+  "tdd_phase": "RED",
+  "tests": [
+    {
+      "file": "flags/normalize_atdd_test.go",
+      "description": "Skipped Go package acceptance scaffolds for Story 2.2 exact matching, configured normalization, typed collision diagnostics, immutable derivation, and shorthand independence.",
+      "expected_to_fail": true,
+      "skip_marker": "t.Skip",
+      "acceptance_criteria_covered": [
+        "AC1: exact names remain distinct when no normalizer is configured",
+        "AC2: configured normalization resolves equivalent raw spellings to the canonical definition",
+        "AC3: normalization collisions return typed deterministic diagnostics with both colliding names",
+        "AC4: shorthand uniqueness remains independent from long-name normalization",
+        "AC5: table-driven package acceptance scaffolds cover normalization behavior and use only the Go standard library"
+      ],
+      "priority_coverage": {
+        "P0": 4,
+        "P1": 1,
+        "P2": 0,
+        "P3": 0
+      }
+    }
+  ],
+  "fixture_needs": [],
+  "knowledge_fragments_used": [
+    "data-factories",
+    "component-tdd",
+    "test-quality",
+    "test-healing-patterns",
+    "test-levels-framework",
+    "test-priorities-matrix",
+    "ci-burn-in"
+  ],
+  "test_count": 5,
+  "provider_scrutiny": "not-applicable",
+  "summary": "Generated five skipped Go red-phase acceptance scaffolds for Story 2.2 flag name normalization."
+}

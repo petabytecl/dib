@@ -80,6 +80,16 @@ so that familiar naming styles do not create silent collisions or surprising par
 
 ## Dev Notes
 
+### ATDD Artifacts
+
+- Checklist: `_bmad-output/test-artifacts/atdd-checklist-2-2-match-flag-names-safely-across-styles.md`
+- Backend package acceptance scaffold:
+  - `flags/normalize_atdd_test.go`
+- Temp API/back-end generation summary: `_bmad-output/test-artifacts/tmp/tea-atdd-api-tests-2026-06-11T18-14-04-0400.json`
+- Temp E2E generation summary: `_bmad-output/test-artifacts/tmp/tea-atdd-e2e-tests-2026-06-11T18-14-04-0400.json`
+- Temp aggregate summary: `_bmad-output/test-artifacts/tmp/tea-atdd-summary-2026-06-11T18-14-04-0400.json`
+- Dev workflow handoff: remove one `t.Skip` in `flags/normalize_atdd_test.go` at a time, confirm RED with the narrow `go test ./flags -run ... -count=1` command, then implement the smallest change to pass.
+
 ### Source Discovery
 
 - Loaded sprint status: `_bmad-output/implementation-artifacts/sprint-status.yaml`.
@@ -88,7 +98,7 @@ so that familiar naming styles do not create silent collisions or surprising par
 - Loaded PRD: `_bmad-output/planning-artifacts/prds/prd-dib-2026-06-10/prd.md`.
 - Loaded previous story: `_bmad-output/implementation-artifacts/2-1-define-reusable-flag-sets-without-global-state.md`.
 - Loaded current source/docs: `flags/set.go`, `flags/definition.go`, `flags/errors.go`, `flags/snapshot.go`, `flags/set_test.go`, `docs/behavior-matrices.md`, and `docs/diagnostics-and-errors.md`.
-- No UX document, `project-context.md`, `CLAUDE.md`, local `MEMORY.md`, or Story 2.2 ATDD artifact was discovered in the repo at story creation.
+- No UX document, `project-context.md`, `CLAUDE.md`, local `MEMORY.md`, or Story 2.2 ATDD artifact was discovered in the repo at story creation. Story 2.2 ATDD artifacts were generated after story creation and are linked above.
 
 ### Current Repository State
 
