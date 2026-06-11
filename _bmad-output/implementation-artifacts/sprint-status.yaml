@@ -1,5 +1,5 @@
 # generated: 2026-06-11T12:01:02-04:00
-# last_updated: 2026-06-11T19:35:00-04:00
+# last_updated: 2026-06-11T19:46:09-04:00
 # project: dib
 # project_key: NOKEY
 # tracking_system: file-system
@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: "2026-06-11T12:01:02-04:00"
-last_updated: "2026-06-11T19:35:00-04:00"
+last_updated: "2026-06-11T19:46:09-04:00"
 project: dib
 project_key: NOKEY
 tracking_system: file-system
@@ -53,7 +53,7 @@ development_status:
   epic-2: in-progress
   2-1-define-reusable-flag-sets-without-global-state: done
   2-2-match-flag-names-safely-across-styles: done
-  2-3-reject-invalid-long-flags-with-inspectable-errors: backlog
+  2-3-reject-invalid-long-flags-with-inspectable-errors: ready-for-dev
   2-4-parse-short-flags-and-boolean-presence: backlog
   2-5-handle-short-flag-groups-and-optional-values-predictably: backlog
   2-6-accumulate-repeated-and-custom-values: backlog
