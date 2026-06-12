@@ -1,5 +1,64 @@
 # Test Automation Summary
 
+## Story 6.1 - Generated Tests
+
+### API Tests
+
+- [x] HTTP API tests are not applicable; this story adds a repository-local Go lint gate and CI/release documentation, not an HTTP API.
+
+### E2E Tests
+
+- [x] `tools/lint/main_test.go` - end-to-end `go run ./tools/lint` invocation from the repository root.
+- [x] `tools/lint/main_test.go` - lint happy path, deterministic violation output, ignored repository metadata, missing-root execution failure, and invalid Go source execution failure.
+- [x] `tools/cigate/ci_test.go` - CI lint gate presence and ordering after Go setup and before test, vet, and dependency gates.
+- [x] `docs/testing_test.go` - local lint command, CI command, pinning model, rejected installer guidance, and standard-library isolation evidence.
+- [x] Browser UI E2E tests are not applicable; Dib is a Go library with no UI surface for Story 6.1.
+
+## Story 6.1 - Coverage
+
+- API endpoints: 0/0 applicable.
+- UI features: 0/0 applicable.
+- Story 6.1 QA gaps fixed: 4/4.
+- Lint command workflows: 5/5 covered.
+- CI lint gate assertions: presence, trusted actions, denied untrusted patterns, and order covered.
+- Documentation evidence: release checklist, release notes, behavior matrix, and testing guide covered.
+
+## Story 6.1 - Validation
+
+- [x] `GOCACHE=/tmp/dib-go-build go test ./tools/lint` - PASS
+- [x] `GOCACHE=/tmp/dib-go-build go test ./tools/cigate` - PASS
+- [x] `GOCACHE=/tmp/dib-go-build go test ./docs` - PASS
+- [x] `GOCACHE=/tmp/dib-go-build go run ./tools/lint` - PASS
+- [x] `GOCACHE=/tmp/dib-go-build go test ./...` - PASS
+- [x] `GOCACHE=/tmp/dib-go-build go vet ./...` - PASS
+- [x] `GOCACHE=/tmp/dib-go-build go run ./tools/depgate` - PASS
+- [x] `git diff --check` - PASS
+- [x] `rg -n "^(require|replace|toolchain)\\b" go.mod` - PASS; returned no output.
+- [x] `test ! -e go.sum` - PASS
+
+## Story 6.1 - Review Fixes
+
+- [x] `tools/lint` now skips BMAD and agent metadata directories so the lint gate stays focused on repository Go source.
+- [x] `docs/release-checklist.md` now states that Story 6.1 lint evidence was collected from the Story 6.1 working tree, while final exact tag commit reconciliation remains later release-review work.
+- [x] Story 6.1 File List now includes changed automation artifacts.
+
+## Story 6.1 - Checklist
+
+- [x] API tests generated where applicable.
+- [x] E2E tests generated where applicable through Go command/docs/CI guard tests.
+- [x] Tests use standard Go `testing` APIs.
+- [x] Tests cover happy path.
+- [x] Tests cover critical error cases.
+- [x] All generated tests run successfully.
+- [x] Tests use semantic command, CI, and documentation evidence locators.
+- [x] Tests have clear descriptions.
+- [x] No hardcoded waits or sleeps.
+- [x] Tests are independent and do not depend on execution order.
+- [x] Test summary created.
+- [x] Tests saved to the appropriate package-local directories.
+- [x] Summary includes coverage metrics.
+
+---
 
 ## Story 5.4 - Generated Tests
 

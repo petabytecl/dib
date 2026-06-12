@@ -20,6 +20,7 @@ func TestCIWorkflowRunsTrustGates(t *testing.T) {
 		"go.mod version file":  "go-version-file: go.mod",
 		"cache disabled":       "cache: false",
 		"go version evidence":  "run: go version",
+		"lint gate":            "run: go run ./tools/lint",
 		"go test gate":         "run: go test ./...",
 		"go vet gate":          "run: go vet ./...",
 		"dependency gate":      "run: go run ./tools/depgate",
@@ -55,6 +56,19 @@ func TestCIWorkflowUsesOnlyTrustedStaticSteps(t *testing.T) {
 	}
 }
 
+func TestCIWorkflowRunsLintAfterGoSetupAndBeforeReleaseGates(t *testing.T) {
+	workflow := readRepoFile(t, ".github/workflows/ci.yml")
+
+	assertOrderedMarkers(t, workflow, []string{
+		"uses: actions/setup-go@v6",
+		"run: go version",
+		"run: go run ./tools/lint",
+		"run: go test ./...",
+		"run: go vet ./...",
+		"run: go run ./tools/depgate",
+	})
+}
+
 func TestReleaseChecklistCapturesRequiredEvidence(t *testing.T) {
 	checklist := readRepoFile(t, "docs/release-checklist.md")
 	lowerChecklist := strings.ToLower(checklist)
@@ -66,8 +80,11 @@ func TestReleaseChecklistCapturesRequiredEvidence(t *testing.T) {
 		"go.mod reference":       "go.mod",
 		"ci reference":           ".github/workflows/ci.yml",
 		"go test gate":           "go test ./...",
+		"lint gate":              "go run ./tools/lint",
 		"go vet gate":            "go vet ./...",
 		"dependency gate":        "go run ./tools/depgate",
+		"lint isolation":         "standard-library-only repository-local lint tool",
+		"lint documentation":     "docs/testing.md",
 		"race gate":              "go test -race ./...",
 		"docs examples":          "docs/examples",
 		"provenance evidence":    "provenance",
@@ -140,6 +157,22 @@ func denyAll(t *testing.T, content string, denied map[string]string) {
 		if strings.Contains(content, needle) {
 			t.Fatalf("found denied %s marker %q in content:\n%s", label, needle, content)
 		}
+	}
+}
+
+func assertOrderedMarkers(t *testing.T, content string, markers []string) {
+	t.Helper()
+
+	previous := -1
+	for _, marker := range markers {
+		index := strings.Index(content, marker)
+		if index < 0 {
+			t.Fatalf("missing ordered marker %q in content:\n%s", marker, content)
+		}
+		if index <= previous {
+			t.Fatalf("marker %q is out of order in content:\n%s", marker, content)
+		}
+		previous = index
 	}
 }
 

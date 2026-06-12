@@ -44,7 +44,7 @@ func TestBehaviorMatricesCoverAdoptionEvidenceRows(t *testing.T) {
 		"source reports, diagnostics, and redaction":             {"story 4.5", "nfr8", "current"},
 		"compatibility boundaries":                               {"story 5.1", "nfr7", "supported", "narrowed", "omitted", "intentionally different"},
 		"migration examples":                                     {"story 5.2", "fr18", "fr19", "current"},
-		"dependency gate evidence":                               {"story 5.3", "fr21", "go run ./tools/depgate", "current"},
+		"dependency gate evidence":                               {"story 5.3", "story 6.1", "fr21", "fr23", "go run ./tools/depgate", "go run ./tools/lint", "current"},
 		"release-candidate evidence":                             {"story 5.4", "docs/release-notes-v0.md", "current"},
 	}
 

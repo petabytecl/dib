@@ -36,12 +36,14 @@ func TestReleaseChecklistRecordsReleaseCandidateEvidence(t *testing.T) {
 		"owner: coto",
 		"date: 2026-06-12",
 		"reviewer: release reviewer",
+		"story 6.1 evidence scope:",
 		"`go.mod` version: `go 1.26`",
 		"ci `actions/setup-go` source: `go-version-file: go.mod`",
 		"release guidance version: `docs/release-notes-v0.md` states go 1.26+",
 		"documentation version references:",
 		"drift review result:",
 		"`go test ./...`:",
+		"`go run ./tools/lint`:",
 		"`go vet ./...`:",
 		"`go run ./tools/depgate`:",
 		"`go test -race ./...`:",
@@ -84,6 +86,9 @@ func TestReleaseChecklistRecordsReleaseCandidateEvidence(t *testing.T) {
 		"Root `go.mod` contains no `require`, `replace`, or `toolchain` directives",
 		"Root `go.sum` absent",
 		"Dependency gate reviewed",
+		"Lint gate reviewed",
+		"Lint isolation evidence",
+		"Lint pinning evidence",
 		"Any fixture-local dependency exceptions",
 		"All required evidence captured",
 		"All waivers approved with expiry",
@@ -156,6 +161,7 @@ func TestReleaseChecklistRecordsPassingRequiredGates(t *testing.T) {
 
 	for _, command := range []string{
 		"go test ./...",
+		"go run ./tools/lint",
 		"go vet ./...",
 		"go run ./tools/depgate",
 		"go test -race ./...",
@@ -166,6 +172,27 @@ func TestReleaseChecklistRecordsPassingRequiredGates(t *testing.T) {
 		pattern := regexp.MustCompile(`(?m)^\s*-\s*` + "`" + regexp.QuoteMeta(command) + "`" + `: PASS on \d{4}-\d{2}-\d{2} with ` + "`" + `GOCACHE=/tmp/dib-go-build ` + regexp.QuoteMeta(command) + "`")
 		if !pattern.MatchString(text) {
 			t.Fatalf("release checklist must record passing gate outcome for %q", command)
+		}
+	}
+}
+
+func TestReleaseChecklistRejectsFloatingLintEvidence(t *testing.T) {
+	content, err := os.ReadFile("release-checklist.md")
+	if err != nil {
+		t.Fatalf("read release checklist: %v", err)
+	}
+	lower := strings.ToLower(string(content))
+
+	for _, prohibited := range []string{
+		"golangci-lint@latest",
+		"golangci-lint@stable",
+		"version: latest",
+		"version: stable",
+		"go install ",
+		"curl ",
+	} {
+		if strings.Contains(lower, prohibited) {
+			t.Fatalf("release checklist contains floating or installer-based lint evidence %q", prohibited)
 		}
 	}
 }
@@ -212,6 +239,7 @@ func TestReleaseNotesV0ExistAndPreserveBoundaries(t *testing.T) {
 		"not a drop-in replacement",
 		"migration examples",
 		"`go test ./...`",
+		"`go run ./tools/lint`",
 		"`go vet ./...`",
 		"`go run ./tools/depgate`",
 		"`go test -race ./...`",

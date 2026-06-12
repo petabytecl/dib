@@ -9,6 +9,7 @@ Use this checklist for each Dib Go module tag. It records release-candidate evid
 - Owner: Coto
 - Date: 2026-06-12
 - Reviewer: Release reviewer
+- Story 6.1 evidence scope: lint evidence below was collected from the Story 6.1 working tree based on `7cfdfcaf62b9f344eb4258eb03fc95f6e4783ac6`; final tag commit reconciliation remains a later release-review step.
 
 ## Go Version Alignment
 
@@ -25,6 +26,7 @@ Release is blocked if `go.mod`, `.github/workflows/ci.yml`, release guidance, or
 CI failures block tagging. Record the exact command outcome for each required gate.
 
 - `go test ./...`: PASS on 2026-06-12 with `GOCACHE=/tmp/dib-go-build go test ./...`.
+- `go run ./tools/lint`: PASS on 2026-06-12 with `GOCACHE=/tmp/dib-go-build go run ./tools/lint`; output was empty and exit code was 0.
 - `go vet ./...`: PASS on 2026-06-12 with `GOCACHE=/tmp/dib-go-build go vet ./...`.
 - `go run ./tools/depgate`: PASS on 2026-06-12 with `GOCACHE=/tmp/dib-go-build go run ./tools/depgate`; output was empty and exit code was 0.
 - Workflow file: `.github/workflows/ci.yml`
@@ -54,6 +56,9 @@ CI failures block tagging. Record the exact command outcome for each required ga
 - Root `go.mod` contains no `require`, `replace`, or `toolchain` directives: PASS; `rg -n "^(require|replace|toolchain)\b" go.mod` returned no output on 2026-06-12.
 - Root `go.sum` absent: PASS; `test ! -e go.sum` exited 0 on 2026-06-12.
 - Dependency gate reviewed: PASS; `go run ./tools/depgate` proves zero external imports for library, test, example, and tool packages in the root module.
+- Lint gate reviewed: PASS; `go run ./tools/lint` enforces deterministic Go formatting as a standard-library-only repository-local lint tool.
+- Lint isolation evidence: PASS; `tools/lint` imports only the Go standard library, CI invokes it with `go run ./tools/lint`, root `go.mod` remains dependency-free, and no external linter import appears under library, test, example, or tool packages.
+- Lint pinning evidence: PASS; `docs/testing.md` records the local command and isolation model, and the lint implementation is versioned in the repository with the Go version selected from `go.mod`; no floating linter version, shell installer, or external action is used.
 - Any fixture-local dependency exceptions: Fixture-local external modules are isolated under `tools/depgate/testdata/` as intentional negative fixtures for `tools/depgate/main_test.go`.
 
 ## Waivers
@@ -66,6 +71,6 @@ Waivers require owner, reason, expiry, and impact tracking. Open-ended waivers b
 
 ## Final Review
 
-- All required evidence captured: Yes; exact commit, test, vet, dependency-gate, race-test, docs/examples, fuzz, provenance, compatibility, migration, CI runner/action, Go version, and dependency evidence are recorded above.
+- All required evidence captured: Yes; exact commit, lint, test, vet, dependency-gate, race-test, docs/examples, fuzz, provenance, compatibility, migration, CI runner/action, Go version, and dependency evidence are recorded above.
 - All waivers approved with expiry: No waivers requested; any future waiver must include owner, reason, expiry, and impact before release review continues.
 - Tagging decision: Evidence is captured for human release review of `v0.1.0`; this checklist does not approve or perform the tag action.

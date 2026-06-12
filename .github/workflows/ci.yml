@@ -24,6 +24,9 @@ jobs:
       - name: Show Go version
         run: go version
 
+      - name: Lint
+        run: go run ./tools/lint
+
       - name: Test
         run: go test ./...
 

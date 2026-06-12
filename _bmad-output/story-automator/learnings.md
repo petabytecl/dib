@@ -21,3 +21,27 @@
 - Keep using direct sprint-status/story-file verification after every subagent step.
 - Prefer Claude for review/summary-repair fallback when Codex sessions stall after producing useful artifacts.
 - Before final release review, refresh `docs/release-checklist.md` exact commit and rerun the documented gates against the intended tag candidate.
+
+## Run: 2026-06-12T16:28:04Z
+
+**Epic:** dib - Epic Breakdown
+**Stories:** 6.1
+
+### Patterns Observed
+- Source-of-truth checks were again more reliable than tmux monitor completion; both automate and review finished in dead panes while monitor wrappers needed manual cleanup.
+- A repository-local standard-library tool was the lowest-risk lint gate for Dib because it preserved root module dependency claims and kept CI/local parity simple.
+- The automate step added valuable guard tests even when the implementation was already green.
+
+### Code Review Insights
+- Common issues: lint traversal boundaries around BMAD/agent metadata directories and ambiguous release evidence scope after adding Story 6.1 evidence beside older tag-candidate metadata.
+- Average cycles to clean: one review cycle; the reviewer auto-fixed all findings and synced sprint-status to done.
+
+### Timing Estimates
+- create-story: minutes, mostly artifact synthesis and source grounding.
+- dev-story: longer than create because it selected the lint mechanism, implemented the tool, wired CI, updated docs, and ran full gates.
+- code-review: one cycle with targeted auto-fixes and revalidation.
+
+### Recommendations for Future Runs
+- For Story 6.2, reuse the Story 6.1 pattern: executable local command, CI wiring, release evidence, and docs tests that prevent drift.
+- Continue excluding agent/runtime metadata directories from repository-local developer tools unless a story explicitly needs to inspect them.
+- Keep final release exact-commit reconciliation in Story 6.4 so intermediate hardening stories do not overclaim tag readiness.

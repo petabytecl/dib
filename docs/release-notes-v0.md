@@ -18,6 +18,7 @@ Release review for a v0 module tag records these local gates in
 `docs/release-checklist.md`:
 
 - `go test ./...`
+- `go run ./tools/lint`
 - `go vet ./...`
 - `go run ./tools/depgate`
 - `go test -race ./...`
