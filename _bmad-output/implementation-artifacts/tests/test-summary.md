@@ -1,9 +1,9 @@
 # Test Automation Summary
 
-## Story 3.4 - Gap Analysis
+## Story 3.5 - Gap Analysis
 
-Story 3.4 is a Go package API story for deterministic command help and usage
-rendering. There is no HTTP API endpoint or browser UI surface, so applicable
+Story 3.5 is a Go package API story for caller-controlled command execution
+boundaries. There is no HTTP API endpoint or browser UI surface, so applicable
 automated coverage is package-level public API and end-to-end command workflow
 tests using Go's standard `testing` package.
 
@@ -11,30 +11,31 @@ The workflow found and fixed these test gaps:
 
 | Gap | Status |
 | --- | --- |
-| Definition-local help rendering was covered through routed/root examples but lacked a focused no-route API test for local visible, hidden, deprecated, and sensitive flags | Fixed |
-| `WriteUsage` writer failure and invalid-target behavior lacked direct API coverage | Fixed |
+| `RouteBoundary` help-request passthrough was covered indirectly by `Route`, but lacked boundary-level proof that help is not rendered and no process streams are written | Fixed |
+| Successful boundary routing retained writers, but lacked an end-to-end route-to-caller-render workflow proving rendering remains caller-owned | Fixed |
+| `RouteBoundary` reused parser terminator behavior, but lacked direct coverage that `--` passthrough survives the boundary wrapper | Fixed |
 
 ## Generated Tests
 
 ### API Tests
 
-- [x] `command/help_qa_test.go` - `TestWriteHelpRendersDefinitionLocalFlagsWithoutRoute` validates direct definition help rendering for local flags without calling `Route`, including exact output order, hidden flag omission, deprecation notes, and sensitive default redaction.
-- [x] `command/help_qa_test.go` - `TestWriteUsagePropagatesWriterFailuresAndRejectsInvalidTargets` validates `Definition.WriteUsage` and `Result.WriteUsage` writer error propagation and zero-value definition/result diagnostics through `*command.NameError`.
-- [x] `command/help_test.go` - Existing Story 3.4 tests validate definition and routed help output, aliases, descriptions, usage metadata, child commands, inherited/local flag ordering, hidden flags, deprecated flags, sensitive redaction, writer ownership, writer failures, repeated/concurrent rendering, and unchanged help-request routing behavior.
+- [x] `command/boundary_qa_test.go` - `TestRouteBoundaryPassesHelpRequestsWithoutRendering` validates that `RouteBoundary(... --help)` returns typed `flags.ErrHelpRequest` / `*flags.ParseError`, returns no boundary result, renders nothing, and ignores misleading process streams.
+- [x] `command/boundary_qa_test.go` - `TestRouteBoundaryPreservesTerminatorPassthrough` validates that `RouteBoundary` preserves `--` passthrough while still parsing pre-terminator flags.
+- [x] `command/boundary_test.go` - Existing Story 3.5 tests validate explicit args, context propagation, writer retention without writes, canceled context observability, typed command/flag error passthrough, ordinary caller-error separation, defensive accessors, concurrent reuse, and zero-value absent state.
 
 ### E2E Tests
 
-- [x] `command/help_test.go` - `TestWriteHelpRendersRoutedCommandFlagsAndUsage` covers the end-to-end route-to-render workflow for nested commands, aliases, inherited flags, local flags, hidden flags remaining parseable, exact help output, and exact usage output.
-- [x] `command/help_test.go` - `TestWriteHelpDoesNotChangeRouteHelpRequestBehavior` covers the end-to-end boundary where `Route(... --help)` still returns `flags.ErrHelpRequest` instead of rendering help or mutating process state.
-- [x] Browser UI E2E tests are not applicable; this repository has no UI surface for Story 3.4.
+- [x] `command/boundary_qa_test.go` - `TestRouteBoundaryLeavesRenderingUnderCallerControl` covers the end-to-end route-boundary-to-render workflow: `RouteBoundary` writes nothing, the caller retrieves the retained stdout writer, then explicitly renders usage to that writer.
+- [x] Browser UI E2E tests are not applicable; this repository has no UI surface for Story 3.5.
+- [x] HTTP API E2E tests are not applicable; this repository exposes Go package APIs for Story 3.5.
 
 ## Coverage
 
 - API endpoints: 0/0 applicable.
 - UI features: 0/0 applicable.
-- Story 3.4 QA gaps fixed: 2/2.
-- Story 3.4 command rendering tests now include: definition help, definition usage, routed help, routed usage, canonical names, aliases, descriptions, usage metadata, child commands, inherited flags, local flags, hidden flag omission, hidden flag parseability, deprecated flag notes, sensitive value redaction, caller-supplied writers, writer failure propagation, zero-value diagnostics, repeatability, concurrent rendering, defensive accessors, and help-request route boundaries.
-- Command package test functions after generation: 42 tests plus 1 example.
+- Story 3.5 QA gaps fixed: 3/3.
+- Story 3.5 execution-boundary tests now include: explicit args, context values, canceled context, stdout/stderr writer retention, no boundary writes, caller-controlled rendering, help-request passthrough, typed command errors, typed flag parse errors, ordinary caller errors, `--` passthrough, defensive accessors, concurrent reuse, zero-value absent state, and misleading process state isolation.
+- Command package test functions after generation: 52 tests plus 1 example.
 
 ## Validation
 
