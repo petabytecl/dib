@@ -1,0 +1,2 @@
+go test fuzz v1
+string("--secret-count\ndib_fake_secret_value")

@@ -376,6 +376,62 @@ func TestParseShorthandSensitiveValuesDoNotLeakInErrors(t *testing.T) {
 	}
 }
 
+// TestParseShorthandNoOptionDefault verifies that a short flag with NoOptionDefault uses the
+// configured fallback when no explicit value follows: at end of args or before --.
+// Short-flag parsing uses stopBeforeLong=false, so a following long-flag token is consumed
+// as the value rather than triggering the no-option default.
+func TestParseShorthandNoOptionDefault(t *testing.T) {
+	set, err := flags.NewSet(
+		flags.String("output", "stdout", "output", flags.Shorthand("o"), flags.NoOptionDefault("file.out")),
+		flags.Bool("verbose", false, "verbose", flags.Shorthand("v")),
+	)
+	if err != nil {
+		t.Fatalf("NewSet: %v", err)
+	}
+
+	cases := []struct {
+		name      string
+		args      []string
+		wantValue any
+		wantArgs  []string
+	}{
+		{
+			name:      "short flag at end of args applies no-option default",
+			args:      []string{"-o"},
+			wantValue: "file.out",
+			wantArgs:  nil,
+		},
+		{
+			name:      "short flag before double-dash applies no-option default",
+			args:      []string{"-o", "--", "passthrough"},
+			wantValue: "file.out",
+			wantArgs:  []string{"passthrough"},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			snapshot, err := set.Parse(tc.args)
+			if err != nil {
+				t.Fatalf("Parse returned unexpected error: %v", err)
+			}
+			state, ok := snapshot.Lookup("output")
+			if !ok {
+				t.Fatal("snapshot missing output state")
+			}
+			if got := state.Values(); !reflect.DeepEqual(got, []any{tc.wantValue}) {
+				t.Fatalf("output Values() = %#v, want %#v", got, []any{tc.wantValue})
+			}
+			if !state.Explicit() {
+				t.Fatal("output Explicit() = false; no-option default should mark the flag explicit")
+			}
+			if got := snapshot.RemainingArgs(); !reflect.DeepEqual(got, tc.wantArgs) {
+				t.Fatalf("RemainingArgs() = %#v, want %#v", got, tc.wantArgs)
+			}
+		})
+	}
+}
+
 func TestParseShorthandTerminatorProtectsLaterTokens(t *testing.T) {
 	set, err := flags.NewSet(flags.Bool("verbose", false, "verbose", flags.Shorthand("v")))
 	if err != nil {

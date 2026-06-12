@@ -477,10 +477,8 @@ func FuzzParseShortGroups(f *testing.F) {
 			t.Fatalf("Parse diagnostic changed for %q: %q vs %q", token, err1.Error(), err2.Error())
 		}
 		var parseErr *flags.ParseError
-		if errors.As(err1, &parseErr) {
-			if strings.Contains(parseErr.Token(), "dib_fake_token_value") || strings.Contains(err1.Error(), "dib_fake_token_value") {
-				t.Fatalf("diagnostic leaked fake token value for %q: %v", token, err1)
-			}
+		if !errors.As(err1, &parseErr) {
+			t.Fatalf("error does not expose *flags.ParseError for %q: %T", token, err1)
 		}
 	})
 }

@@ -1,0 +1,2 @@
+go test fuzz v1
+string("--tag=a\n--tag=b\n--tag=c")

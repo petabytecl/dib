@@ -214,6 +214,79 @@ func TestParseLongDuplicateNormalizedNameKeepsRawContext(t *testing.T) {
 	}
 }
 
+// TestParseLongNoOptionDefault verifies that a long flag with NoOptionDefault uses the
+// configured fallback when no explicit value follows: at end of args, before --, or before
+// another long-flag token (long-flag parsing uses stopBeforeLong=true to avoid consuming
+// a flag token as a value).
+func TestParseLongNoOptionDefault(t *testing.T) {
+	set, err := flags.NewSet(
+		flags.String("output", "stdout", "output", flags.NoOptionDefault("file.out")),
+		flags.Bool("verbose", false, "verbose"),
+	)
+	if err != nil {
+		t.Fatalf("NewSet: %v", err)
+	}
+
+	cases := []struct {
+		name        string
+		args        []string
+		wantValue   any
+		wantArgs    []string
+		wantVerbose bool
+	}{
+		{
+			name:        "long flag at end of args applies no-option default",
+			args:        []string{"--output"},
+			wantValue:   "file.out",
+			wantArgs:    nil,
+			wantVerbose: false,
+		},
+		{
+			name:        "long flag before double-dash applies no-option default",
+			args:        []string{"--output", "--", "passthrough"},
+			wantValue:   "file.out",
+			wantArgs:    []string{"passthrough"},
+			wantVerbose: false,
+		},
+		{
+			name:        "long flag before another long-flag token applies no-option default",
+			args:        []string{"--output", "--verbose"},
+			wantValue:   "file.out",
+			wantArgs:    nil,
+			wantVerbose: true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			snapshot, err := set.Parse(tc.args)
+			if err != nil {
+				t.Fatalf("Parse returned unexpected error: %v", err)
+			}
+			state, ok := snapshot.Lookup("output")
+			if !ok {
+				t.Fatal("snapshot missing output state")
+			}
+			if got := state.Values(); !reflect.DeepEqual(got, []any{tc.wantValue}) {
+				t.Fatalf("output Values() = %#v, want %#v", got, []any{tc.wantValue})
+			}
+			if !state.Explicit() {
+				t.Fatal("output Explicit() = false; no-option default should mark the flag explicit")
+			}
+			if got := snapshot.RemainingArgs(); !reflect.DeepEqual(got, tc.wantArgs) {
+				t.Fatalf("RemainingArgs() = %#v, want %#v", got, tc.wantArgs)
+			}
+			verbose, ok := snapshot.Lookup("verbose")
+			if !ok {
+				t.Fatal("snapshot missing verbose state")
+			}
+			if got := verbose.Explicit(); got != tc.wantVerbose {
+				t.Fatalf("verbose Explicit() = %v, want %v", got, tc.wantVerbose)
+			}
+		})
+	}
+}
+
 func TestParseLongSeparateSensitiveValuesDoNotLeakInErrors(t *testing.T) {
 	parserErr := errors.New("parser rejected dib_fake_token_value")
 	set, err := flags.NewSet(flags.Custom("token", flags.KindString, "", "token", flags.ParserFunc(func(raw string) (any, error) {

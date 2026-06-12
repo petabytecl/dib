@@ -47,6 +47,34 @@ date for the source actually reviewed. If an entry is added after the affected
 artifact was written, say so in the notes and identify the date or phase the
 source influenced when known.
 
+## Story 2.8 Entries
+
+### Go Fuzzing Documentation
+
+- Source: Go fuzzing documentation
+- URL: https://go.dev/doc/security/fuzz/
+- Access date: 2026-06-11
+- License or terms: Go project BSD-style license, https://go.dev/LICENSE
+- Affected artifact: `flags/fuzz_test.go` (`FuzzParse` target and seed corpus), `docs/behavior-matrices.md`
+- Classification: inspiration-only
+- Reviewer: Not applicable
+- Approval date: Not applicable
+- Approval notes: Not applicable for inspiration-only entry
+- Notes: Used to understand Go fuzz corpus format (`go test fuzz v1`), `testing.F` API, seed corpus file placement under `testdata/fuzz/FuzzName/`, and the distinction between corpus-based unit runs and `-fuzz=` mutation mode. No source, tests, comments, examples, fixtures, internal names, file organization, or source-derived structure copied from the Go fuzzing documentation into Dib runtime source, tests, seeds, or docs.
+
+### Go testing Package Documentation
+
+- Source: Go `testing` package documentation (`testing.F` section)
+- URL: https://pkg.go.dev/testing#hdr-Fuzzing
+- Access date: 2026-06-11
+- License or terms: Go project BSD-style license, https://go.dev/LICENSE
+- Affected artifact: `flags/fuzz_test.go` (`FuzzParse` target)
+- Classification: inspiration-only
+- Reviewer: Not applicable
+- Approval date: Not applicable
+- Approval notes: Not applicable for inspiration-only entry
+- Notes: Used to understand `testing.F.Add` argument type constraints and `testing.F.Fuzz` callback signature. No source, tests, comments, examples, fixtures, internal names, or source-derived structure copied.
+
 ## Initial Entries
 
 ### Go flag Package Documentation

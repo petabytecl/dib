@@ -1,0 +1,2 @@
+go test fuzz v1
+string("pos-a\n--verbose\npos-b")
