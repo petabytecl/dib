@@ -232,6 +232,30 @@ Story 4.2 source ingestion redacts sensitive raw values in explicit setter, env
 lookup, and JSON conversion diagnostics. It does not introduce source reports
 or rendered config diagnostics.
 
+Story 4.4 adds typed config getter diagnostics through `*config.GetError`.
+Three new sentinel categories cover retrieval failures:
+- `config.ErrKeyNotFound`: the requested key is not registered in the set.
+  Exposed through `*config.GetError`; `errors.Is(err, config.ErrKeyNotFound)` and
+  `errors.As` with `*config.GetError`. The `Key()` accessor returns the failing key;
+  `Kind()` returns `KindString` as a safe zero (definition is unknown for not-found).
+- `config.ErrKeyAbsent`: the key is registered but has no value from any source and no
+  default. Exposed through `*config.GetError`; `errors.Is(err, config.ErrKeyAbsent)` and
+  `errors.As` with `*config.GetError`. `Kind()` returns the actual registered kind.
+  For sensitive keys, `Redacted()` returns true and raw values are omitted.
+- `config.ErrGetConversion`: the key resolved but the caller requested a different kind
+  (e.g. `GetString` on a `KindBool` key). Exposed through `*config.GetError`. `Kind()`
+  returns the actual registered kind; `WantKind()` returns the caller's requested kind;
+  `SourceLabel()` returns the provenance label of the resolved value.
+
+`*config.GetError` accessors: `Key()`, `Kind()`, `WantKind()`, `SourceLabel()`,
+`Redacted()`, `Category()`. The `Category()` method returns the matching sentinel
+(`ErrKeyNotFound`, `ErrKeyAbsent`, or `ErrGetConversion`). `GetError` satisfies
+`errors.Is` against its category directly. Sensitive getter failures set `Redacted()`
+to true; error strings do not expose raw sensitive values.
+
+`Snapshot.IsSet` is a presence check, not a retrieval failure: it returns false for
+unregistered and absent keys without returning an error.
+
 ## Current Scope
 
 Story 1.3 established the shared contract language. Stories 2.1 through 2.8

@@ -1,5 +1,67 @@
 # Test Automation Summary
 
+## Story 4.4 - Gap Analysis
+
+Story 4.4 is a Go package API story for typed config retrieval and absence-state
+handling. There is no HTTP API endpoint or browser UI surface, so applicable
+automated coverage is package-level public API and QA-style end-to-end consumer
+workflow tests using Go's standard `testing` package.
+
+The workflow found and fixed this test gap:
+
+| Gap | Status |
+| --- | --- |
+| Existing Story 4.4 QA tests covered all typed getter methods and basic diagnostics, but lacked one resolved-snapshot workflow that distinguished absent, unregistered, default zero, empty default, explicit zero, and empty env states through `IsSet` and typed getters | Fixed |
+
+## Story 4.4 - Generated Tests
+
+### API Tests
+
+- [x] `config/getter_test.go` - existing focused typed getter tests cover `GetString` through `GetStringList`, `IsSet`, defensive string-list copies, source labels, zero/empty values, sensitive redaction, and `errors.Is`/`errors.As` inspection of `*config.GetError`.
+- [x] `config/qa_e2e_test.go` - `TestQAConfigGetterDiagnosticsCoverAbsenceAndKindMismatch` validates the three getter error sentinels (`ErrKeyNotFound`, `ErrKeyAbsent`, `ErrGetConversion`) through public APIs and verifies sensitive absent-key redaction.
+
+### E2E Tests
+
+- [x] `config/qa_e2e_test.go` - `TestQAConfigTypedGettersWorkflowCoversAllKinds` covers every typed getter on a resolved snapshot.
+- [x] `config/qa_e2e_test.go` - `TestQAConfigTypedGettersResolvedPresenceStates` covers the Story 4.4 presence-state matrix on a resolved snapshot: absent registered key, unregistered key, zero default, empty default, explicit zero, and empty env value.
+- [x] Browser UI E2E tests are not applicable; this repository has no UI surface for Story 4.4.
+- [x] HTTP API E2E tests are not applicable; this repository exposes Go package APIs for Story 4.4.
+
+## Story 4.4 - Coverage
+
+- API endpoints: 0/0 applicable.
+- UI features: 0/0 applicable.
+- Story 4.4 QA gaps fixed: 1/1.
+- Typed getters: 9/9 covered (`GetString`, `GetBool`, `GetInt`, `GetInt64`, `GetUint`, `GetUint64`, `GetFloat64`, `GetDuration`, `GetStringList`).
+- Getter diagnostics: 3/3 sentinel categories covered (`ErrKeyNotFound`, `ErrKeyAbsent`, `ErrGetConversion`).
+- Presence states: absent, unregistered, zero default, empty default, explicit zero, empty env, and empty string-list states covered.
+
+## Story 4.4 - Validation
+
+- [x] `GOCACHE=/tmp/dib-go-build GOPATH=/tmp/dib-gopath go test ./config -count=1` - PASS
+- [x] `GOCACHE=/tmp/dib-go-build GOPATH=/tmp/dib-gopath go test ./...` - PASS
+- [x] `GOCACHE=/tmp/dib-go-build GOPATH=/tmp/dib-gopath go vet ./...` - PASS
+- [x] `GOCACHE=/tmp/dib-go-build GOPATH=/tmp/dib-gopath go run ./tools/depgate` - PASS
+- [x] `git diff --check` - PASS
+
+## Story 4.4 - Checklist
+
+- [x] API tests generated (Go package API typed getters and `IsSet`).
+- [x] E2E tests generated where applicable (QA-style resolved-snapshot workflows).
+- [x] Tests use standard Go `testing` APIs.
+- [x] Tests cover happy paths.
+- [x] Tests cover critical error cases.
+- [x] Generated tests run successfully.
+- [x] Tests use public config APIs and semantic returned values/errors.
+- [x] Tests have clear descriptions.
+- [x] No hardcoded waits or sleeps.
+- [x] Tests are independent and do not depend on execution order.
+- [x] Test summary created.
+- [x] Tests saved to appropriate package-local directories.
+- [x] Summary includes coverage metrics.
+
+---
+
 ## Story 4.3 - Gap Analysis
 
 Story 4.3 adds lazy config precedence resolution (`Resolve`) and flag binding (`NewFlagSnapshot`, `FlagValue`). There is no HTTP API or browser UI; all coverage is Go package-level public API and end-to-end consumer workflow tests using the standard `testing` package.

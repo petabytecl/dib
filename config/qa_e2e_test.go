@@ -610,6 +610,216 @@ func TestQAConfigFlagBindingDiagnosticsCoverErrorCategories(t *testing.T) {
 	}
 }
 
+func TestQAConfigTypedGettersWorkflowCoversAllKinds(t *testing.T) {
+	t.Parallel()
+
+	set, err := config.NewSet(
+		config.String("sval", "hello", "string"),
+		config.Bool("bval", true, "bool"),
+		config.Int("ival", 42, "int"),
+		config.Int64("i64val", int64(64), "int64"),
+		config.Uint("uval", uint(7), "uint"),
+		config.Uint64("u64val", uint64(128), "uint64"),
+		config.Float64("fval", 3.14, "float64"),
+		config.Duration("dval", 5*time.Second, "duration"),
+		config.StringList("lval", []string{"x", "y"}, "string-list"),
+	)
+	if err != nil {
+		t.Fatalf("NewSet: %v", err)
+	}
+
+	snap := config.Resolve(set, config.Snapshot{}, config.Snapshot{}, config.Snapshot{}, config.Snapshot{})
+
+	if s, err := snap.GetString("sval"); err != nil || s != "hello" {
+		t.Fatalf("GetString(sval) = %q, %v; want hello, nil", s, err)
+	}
+	if v, err := snap.GetBool("bval"); err != nil || !v {
+		t.Fatalf("GetBool(bval) = %v, %v; want true, nil", v, err)
+	}
+	if v, err := snap.GetInt("ival"); err != nil || v != 42 {
+		t.Fatalf("GetInt(ival) = %d, %v; want 42, nil", v, err)
+	}
+	if v, err := snap.GetInt64("i64val"); err != nil || v != 64 {
+		t.Fatalf("GetInt64(i64val) = %d, %v; want 64, nil", v, err)
+	}
+	if v, err := snap.GetUint("uval"); err != nil || v != 7 {
+		t.Fatalf("GetUint(uval) = %d, %v; want 7, nil", v, err)
+	}
+	if v, err := snap.GetUint64("u64val"); err != nil || v != 128 {
+		t.Fatalf("GetUint64(u64val) = %d, %v; want 128, nil", v, err)
+	}
+	if v, err := snap.GetFloat64("fval"); err != nil || v != 3.14 {
+		t.Fatalf("GetFloat64(fval) = %f, %v; want 3.14, nil", v, err)
+	}
+	if v, err := snap.GetDuration("dval"); err != nil || v != 5*time.Second {
+		t.Fatalf("GetDuration(dval) = %v, %v; want 5s, nil", v, err)
+	}
+	if v, err := snap.GetStringList("lval"); err != nil || len(v) != 2 || v[0] != "x" || v[1] != "y" {
+		t.Fatalf("GetStringList(lval) = %v, %v; want [x y], nil", v, err)
+	}
+
+	for _, key := range []string{"sval", "bval", "ival", "i64val", "uval", "u64val", "fval", "dval", "lval"} {
+		if !snap.IsSet(key) {
+			t.Fatalf("IsSet(%q) = false, want true for default-valued key", key)
+		}
+	}
+}
+
+func TestQAConfigTypedGettersResolvedPresenceStates(t *testing.T) {
+	t.Parallel()
+
+	set, err := config.NewSet(
+		config.Define("absent", config.KindString, "no source"),
+		config.Int("default-zero", 0, "default zero"),
+		config.String("empty-default", "", "empty default"),
+		config.Int("explicit-zero", 99, "explicit zero"),
+		config.String("empty-env", "fallback", "empty env"),
+	)
+	if err != nil {
+		t.Fatalf("NewSet: %v", err)
+	}
+
+	explicitSnap, err := config.NewExplicitSnapshot(set, config.Assignment{Key: "explicit-zero", Value: 0})
+	if err != nil {
+		t.Fatalf("NewExplicitSnapshot: %v", err)
+	}
+	envSnap, err := config.NewEnvSnapshot(set,
+		mapLookup(map[string]string{"EMPTY_ENV": ""}),
+		[]config.EnvBinding{config.BindEnv("empty-env", "EMPTY_ENV")},
+	)
+	if err != nil {
+		t.Fatalf("NewEnvSnapshot: %v", err)
+	}
+
+	snap := config.Resolve(set, explicitSnap, config.Snapshot{}, envSnap, config.Snapshot{})
+
+	_, err = snap.GetString("absent")
+	if err == nil || !errors.Is(err, config.ErrKeyAbsent) {
+		t.Fatalf("GetString(absent): errors.Is(ErrKeyAbsent) = false; err=%v", err)
+	}
+	if snap.IsSet("absent") {
+		t.Fatal("IsSet(absent) = true, want false for registered key with no value")
+	}
+
+	if got, err := snap.GetInt("default-zero"); err != nil || got != 0 {
+		t.Fatalf("GetInt(default-zero) = %d, %v; want 0, nil", got, err)
+	}
+	if !snap.IsSet("default-zero") {
+		t.Fatal("IsSet(default-zero) = false, want true for zero default")
+	}
+
+	if got, err := snap.GetString("empty-default"); err != nil || got != "" {
+		t.Fatalf("GetString(empty-default) = %q, %v; want empty, nil", got, err)
+	}
+	if !snap.IsSet("empty-default") {
+		t.Fatal("IsSet(empty-default) = false, want true for empty default")
+	}
+
+	if got, err := snap.GetInt("explicit-zero"); err != nil || got != 0 {
+		t.Fatalf("GetInt(explicit-zero) = %d, %v; want 0, nil", got, err)
+	}
+	if !snap.IsSet("explicit-zero") {
+		t.Fatal("IsSet(explicit-zero) = false, want true for explicit zero")
+	}
+	explicitValue, _ := snap.Lookup("explicit-zero")
+	if got := explicitValue.Provenance(); got != config.SourceExplicit {
+		t.Fatalf("explicit-zero Provenance() = %q, want %q", got, config.SourceExplicit)
+	}
+
+	if got, err := snap.GetString("empty-env"); err != nil || got != "" {
+		t.Fatalf("GetString(empty-env) = %q, %v; want empty, nil", got, err)
+	}
+	if !snap.IsSet("empty-env") {
+		t.Fatal("IsSet(empty-env) = false, want true for empty env value")
+	}
+	envValue, _ := snap.Lookup("empty-env")
+	if got := envValue.Provenance(); got != config.SourceEnv {
+		t.Fatalf("empty-env Provenance() = %q, want %q", got, config.SourceEnv)
+	}
+
+	if snap.IsSet("unregistered") {
+		t.Fatal("IsSet(unregistered) = true, want false")
+	}
+	_, err = snap.GetString("unregistered")
+	if err == nil || !errors.Is(err, config.ErrKeyNotFound) {
+		t.Fatalf("GetString(unregistered): errors.Is(ErrKeyNotFound) = false; err=%v", err)
+	}
+}
+
+func TestQAConfigGetterDiagnosticsCoverAbsenceAndKindMismatch(t *testing.T) {
+	t.Parallel()
+
+	set, err := config.NewSet(
+		config.Bool("flag", true, "flag"),
+		config.Define("absent", config.KindString, "no default"),
+		config.Define("sensitive-absent", config.KindString, "sensitive", config.Sensitive()),
+	)
+	if err != nil {
+		t.Fatalf("NewSet: %v", err)
+	}
+
+	snap, _ := config.NewExplicitSnapshot(set, config.Assignment{Key: "flag", Value: true})
+
+	// ErrKeyNotFound
+	_, err = snap.GetString("nonexistent")
+	if err == nil || !errors.Is(err, config.ErrKeyNotFound) {
+		t.Fatalf("ErrKeyNotFound: errors.Is = false; err=%v", err)
+	}
+	var getErr *config.GetError
+	if !errors.As(err, &getErr) {
+		t.Fatalf("ErrKeyNotFound: error does not expose *config.GetError: %T", err)
+	}
+	if getErr.Key() != "nonexistent" {
+		t.Fatalf("ErrKeyNotFound: Key() = %q, want nonexistent", getErr.Key())
+	}
+
+	// ErrKeyAbsent
+	defaultSnap := set.DefaultSnapshot()
+	_, err = defaultSnap.GetString("absent")
+	if err == nil || !errors.Is(err, config.ErrKeyAbsent) {
+		t.Fatalf("ErrKeyAbsent: errors.Is = false; err=%v", err)
+	}
+	if !errors.As(err, &getErr) {
+		t.Fatalf("ErrKeyAbsent: error does not expose *config.GetError: %T", err)
+	}
+	if getErr.Key() != "absent" {
+		t.Fatalf("ErrKeyAbsent: Key() = %q, want absent", getErr.Key())
+	}
+
+	// ErrGetConversion (bool key, asked for string)
+	_, err = snap.GetString("flag")
+	if err == nil || !errors.Is(err, config.ErrGetConversion) {
+		t.Fatalf("ErrGetConversion: errors.Is = false; err=%v", err)
+	}
+	if !errors.As(err, &getErr) {
+		t.Fatalf("ErrGetConversion: error does not expose *config.GetError: %T", err)
+	}
+	if getErr.Kind() != config.KindBool {
+		t.Fatalf("ErrGetConversion: Kind() = %v, want KindBool", getErr.Kind())
+	}
+	if getErr.WantKind() != config.KindString {
+		t.Fatalf("ErrGetConversion: WantKind() = %v, want KindString", getErr.WantKind())
+	}
+
+	// Sensitive absent key: Redacted() true, corpus absent from error string
+	_, err = defaultSnap.GetString("sensitive-absent")
+	if err == nil || !errors.Is(err, config.ErrKeyAbsent) {
+		t.Fatalf("sensitive absent: errors.Is(ErrKeyAbsent) = false; err=%v", err)
+	}
+	if !errors.As(err, &getErr) {
+		t.Fatalf("sensitive absent: error does not expose *config.GetError: %T", err)
+	}
+	if !getErr.Redacted() {
+		t.Fatal("sensitive absent: Redacted() = false, want true")
+	}
+	corpus := []string{"dib_fake_secret_value", "dib_fake_password_value", "dib_fake_token_value"}
+	for _, raw := range corpus {
+		if strings.Contains(err.Error(), raw) {
+			t.Fatalf("sensitive absent error leaked corpus value %q: %v", raw, err)
+		}
+	}
+}
+
 func assertConfigValue(t *testing.T, snapshot config.Snapshot, key string, want any, wantSource string) {
 	t.Helper()
 

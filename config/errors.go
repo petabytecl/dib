@@ -16,6 +16,10 @@ var (
 	ErrSourceRead             = errors.New("config source read failure")
 	ErrJSONDecode             = errors.New("config JSON decode failure")
 	ErrSourceConversion       = errors.New("config source value conversion failure")
+
+	ErrKeyNotFound   = errors.New("config key not found")
+	ErrKeyAbsent     = errors.New("config key has no value")
+	ErrGetConversion = errors.New("config value type mismatch")
 )
 
 // DefinitionError reports an inspectable setup-time config definition failure.
@@ -280,4 +284,107 @@ func (e *SourceError) Cause() error {
 		return nil
 	}
 	return e.cause
+}
+
+// GetError reports an inspectable typed getter retrieval failure.
+type GetError struct {
+	key         string
+	kind        Kind
+	wantKind    Kind
+	sourceLabel string
+	redacted    bool
+	category    error
+}
+
+func newGetError(key string, kind Kind, wantKind Kind, sourceLabel string, redacted bool, category error) *GetError {
+	return &GetError{
+		key:         key,
+		kind:        kind,
+		wantKind:    wantKind,
+		sourceLabel: sourceLabel,
+		redacted:    redacted,
+		category:    category,
+	}
+}
+
+func (e *GetError) Error() string {
+	if e == nil {
+		return "config: get error"
+	}
+	message := fmt.Sprintf("config: %v for %q", e.category, e.key)
+	if e.category != ErrKeyNotFound && e.kind.String() != "unknown" {
+		message += fmt.Sprintf(" as %s", e.kind)
+	}
+	if e.sourceLabel != "" {
+		message += fmt.Sprintf(" from %s", e.sourceLabel)
+	}
+	if e.redacted {
+		message += " value redacted"
+	}
+	if e.category == ErrGetConversion {
+		message += fmt.Sprintf(": want %s", e.wantKind)
+	}
+	return message
+}
+
+func (e *GetError) Unwrap() error {
+	if e == nil {
+		return nil
+	}
+	return e.category
+}
+
+func (e *GetError) Is(target error) bool {
+	if e == nil {
+		return false
+	}
+	return target == e.category
+}
+
+// Key returns the config key that failed retrieval.
+func (e *GetError) Key() string {
+	if e == nil {
+		return ""
+	}
+	return e.key
+}
+
+// Kind returns the actual registered kind of the config key.
+func (e *GetError) Kind() Kind {
+	if e == nil {
+		return KindString
+	}
+	return e.kind
+}
+
+// WantKind returns the kind the caller's getter requested.
+func (e *GetError) WantKind() Kind {
+	if e == nil {
+		return KindString
+	}
+	return e.wantKind
+}
+
+// SourceLabel returns the provenance label when the value was present but wrong kind.
+func (e *GetError) SourceLabel() string {
+	if e == nil {
+		return ""
+	}
+	return e.sourceLabel
+}
+
+// Redacted reports whether the key's raw value is sensitive and omitted from diagnostics.
+func (e *GetError) Redacted() bool {
+	if e == nil {
+		return false
+	}
+	return e.redacted
+}
+
+// Category returns the sentinel error category for this retrieval failure.
+func (e *GetError) Category() error {
+	if e == nil {
+		return nil
+	}
+	return e.category
 }
