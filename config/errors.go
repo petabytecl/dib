@@ -134,6 +134,22 @@ func (e *DefinitionError) Provenance() string {
 	return e.provenance
 }
 
+// Redacted reports whether the raw definition value was omitted from diagnostics.
+func (e *DefinitionError) Redacted() bool {
+	if e == nil {
+		return false
+	}
+	return e.redacted
+}
+
+// Category returns the definition diagnostic category.
+func (e *DefinitionError) Category() error {
+	if e == nil {
+		return nil
+	}
+	return e.category
+}
+
 // SourceError reports an inspectable config source ingestion failure.
 type SourceError struct {
 	key             string

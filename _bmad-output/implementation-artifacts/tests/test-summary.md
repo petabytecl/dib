@@ -1,5 +1,80 @@
 # Test Automation Summary
 
+## Story 4.5 - Gap Analysis
+
+Story 4.5 is a Go package API story for config provenance reports and safe
+diagnostic rendering. There is no HTTP API endpoint or browser UI surface, so
+applicable automated coverage is package-level public API tests plus QA-style
+end-to-end consumer workflow tests using Go's standard `testing` package.
+
+The workflow found and auto-applied these test gaps:
+
+| Gap | Status |
+| --- | --- |
+| Source report tests asserted JSON reader-label metadata but did not assert JSON file-path metadata through `Snapshot.SourceReport()` | Fixed |
+| Diagnostic/report writer boundary tests covered controlled writer failures but not nil writer rejection | Fixed |
+| Unsupported non-config diagnostic rendering was implemented but not locked down by tests | Fixed |
+
+## Story 4.5 - Generated Tests
+
+### API Tests
+
+- [x] `config/report_test.go` - `TestSourceReportCoversWinningSourcesAndAbsentKeys` covers default, explicit setter, flag binding, env, JSON reader, absent registered keys, deterministic order, redaction status, and closed source-label vocabulary.
+- [x] `config/report_test.go` - `TestSourceReportIncludesJSONPathMetadata` covers JSON file-path metadata in structured source reports.
+- [x] `config/report_test.go` - `TestSourceReportRenderingIsDeterministicValueFreeAndWriterBound` covers deterministic rendered reports, value-free output, useful source metadata, and writer error propagation.
+- [x] `config/report_test.go` - `TestSourceReportPublicFormattingNeverLeaksRawValues` covers public report formatting redaction.
+- [x] `config/report_test.go` - `TestInspectDiagnosticClassifiesConfigErrors` covers source read, JSON decode, source conversion, duplicate flag binding, getter absent/not-found/conversion, invalid default, metadata, safe-cause flags, and `errors.Is`.
+- [x] `config/report_test.go` - `TestWriteDiagnosticIsDeterministicValueFreeAndWriterBound` covers deterministic rendered diagnostics, redaction, source/category separation, metadata, and writer error propagation.
+- [x] `config/report_test.go` - `TestDiagnosticFalsePositiveRedactionCoverage` covers non-sensitive conversion diagnostics without over-redaction while still avoiding raw rendered values.
+- [x] `config/report_test.go` - `TestReportAndDiagnosticNilWritersReturnErrors` covers nil writer rejection.
+- [x] `config/report_test.go` - `TestUnsupportedDiagnosticIsRenderedWithoutClassification` covers unsupported non-config errors and nil inspection.
+- [x] `config/report_test.go` - `ExampleSnapshot_SourceReport` provides a standard-library runnable package example.
+
+### E2E Tests
+
+- [x] `config/qa_e2e_test.go` - `TestQAConfigProvenanceReportsExplainWinningSourcesWithoutValues` covers a consumer workflow with explicit, flag, env, absent, and JSON winners without rendering raw values.
+- [x] `config/qa_e2e_test.go` - `TestQAConfigDiagnosticsDistinguishSourceAndCategory` covers attempted source label versus failure category in structured and rendered diagnostics.
+- [x] `config/qa_e2e_test.go` - `TestQAConfigProvenanceRenderingRedactsSensitiveCorpus` covers rendered report and diagnostic redaction across the fake sensitive corpus.
+- [x] Browser UI E2E tests are not applicable; this repository has no UI surface for Story 4.5.
+- [x] HTTP API E2E tests are not applicable; this repository exposes Go package APIs for Story 4.5.
+
+## Story 4.5 - Coverage
+
+- API endpoints: 0/0 applicable.
+- UI features: 0/0 applicable.
+- Story 4.5 QA gaps fixed: 3/3.
+- Source report winning labels: 5/5 covered (`default`, `explicit setter`, `flag binding`, `env`, `JSON`).
+- Source report metadata: env name, JSON reader label, and JSON file path covered.
+- Diagnostic categories: 8/8 covered (`ErrSourceConversion`, `ErrSourceRead`, `ErrJSONDecode`, `ErrUnknownSourceKey`, `ErrDuplicateBinding`, `ErrKeyAbsent`, `ErrKeyNotFound`, `ErrGetConversion`) plus `ErrInvalidDefault`.
+- Redaction corpus: 3/3 fake sensitive values covered against rendered reports, rendered diagnostics, source report formatting, diagnostic formatting, and representative error strings.
+
+## Story 4.5 - Validation
+
+- [x] `GOCACHE=/tmp/dib-go-build GOPATH=/tmp/dib-gopath go test ./config -run 'TestSourceReport|TestReportAndDiagnosticNilWriters|TestUnsupportedDiagnostic|TestInspectDiagnostic|TestWriteDiagnostic|TestDiagnosticFalsePositive|TestQAConfigProvenance|TestQAConfigDiagnostics' -count=1` - PASS
+- [x] `GOCACHE=/tmp/dib-go-build GOPATH=/tmp/dib-gopath go test ./config -count=1` - PASS
+- [x] `GOCACHE=/tmp/dib-go-build GOPATH=/tmp/dib-gopath go test ./...` - PASS
+- [x] `GOCACHE=/tmp/dib-go-build GOPATH=/tmp/dib-gopath go vet ./...` - PASS
+- [x] `GOCACHE=/tmp/dib-go-build GOPATH=/tmp/dib-gopath go run ./tools/depgate` - PASS
+- [x] `git diff --check` - PASS
+
+## Story 4.5 - Checklist
+
+- [x] API tests generated where applicable.
+- [x] E2E tests generated where applicable (QA-style package workflow tests).
+- [x] Tests use standard Go `testing` APIs.
+- [x] Tests cover happy paths.
+- [x] Tests cover critical error cases.
+- [x] All generated tests run successfully.
+- [x] Tests use public config APIs and semantic returned values/errors.
+- [x] Tests have clear descriptions.
+- [x] No hardcoded waits or sleeps.
+- [x] Tests are independent and do not depend on execution order.
+- [x] Test summary created.
+- [x] Tests saved to appropriate package-local directories.
+- [x] Summary includes coverage metrics.
+
+---
+
 ## Story 4.4 - Gap Analysis
 
 Story 4.4 is a Go package API story for typed config retrieval and absence-state

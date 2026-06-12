@@ -1,6 +1,7 @@
 package config_test
 
 import (
+	"bytes"
 	"errors"
 	"os"
 	"reflect"
@@ -816,6 +817,128 @@ func TestQAConfigGetterDiagnosticsCoverAbsenceAndKindMismatch(t *testing.T) {
 	for _, raw := range corpus {
 		if strings.Contains(err.Error(), raw) {
 			t.Fatalf("sensitive absent error leaked corpus value %q: %v", raw, err)
+		}
+	}
+}
+
+func TestQAConfigProvenanceReportsExplainWinningSourcesWithoutValues(t *testing.T) {
+	t.Parallel()
+
+	set, err := config.NewSet(
+		config.String("log-level", "info", "log level"),
+		config.Int("workers", 1, "workers"),
+		config.Bool("debug", false, "debug"),
+		config.Define("absent", config.KindString, "absent"),
+		config.Define("token", config.KindString, "token", config.Sensitive()),
+	)
+	if err != nil {
+		t.Fatalf("NewSet: %v", err)
+	}
+	explicit, _ := config.NewExplicitSnapshot(set, config.Assignment{Key: "log-level", Value: "explicit-level"})
+	flag, _ := config.NewFlagSnapshot(set, []config.FlagValue{{ConfigKey: "workers", ExplicitlySet: true, Value: 8}})
+	env, _ := config.NewEnvSnapshot(set, mapLookup(map[string]string{"DEBUG": "true"}), []config.EnvBinding{config.BindEnv("debug", "DEBUG")})
+	jsonSnap, _ := config.LoadJSON(set, strings.NewReader(`{"token":"dib_fake_token_value"}`), config.JSONReaderLabel("qa-inline"))
+
+	snapshot := config.Resolve(set, explicit, flag, env, jsonSnap)
+	report := snapshot.SourceReport()
+	if got, want := len(report), 5; got != want {
+		t.Fatalf("SourceReport length = %d, want %d", got, want)
+	}
+	wantSources := []string{config.SourceExplicit, config.SourceFlagBinding, config.SourceEnv, "", config.SourceJSON}
+	for i, want := range wantSources {
+		if got := report[i].SourceLabel(); got != want {
+			t.Fatalf("report[%d].SourceLabel() = %q, want %q", i, got, want)
+		}
+	}
+	if report[3].IsSet() {
+		t.Fatal("absent report entry IsSet() = true, want false")
+	}
+	if !report[4].Redacted() {
+		t.Fatal("token report entry Redacted() = false, want true")
+	}
+	var rendered bytes.Buffer
+	if err := snapshot.WriteSourceReport(&rendered); err != nil {
+		t.Fatalf("WriteSourceReport: %v", err)
+	}
+	for _, forbidden := range []string{"explicit-level", "dib_fake_token_value"} {
+		if strings.Contains(rendered.String(), forbidden) {
+			t.Fatalf("source report leaked raw value %q:\n%s", forbidden, rendered.String())
+		}
+	}
+}
+
+func TestQAConfigDiagnosticsDistinguishSourceAndCategory(t *testing.T) {
+	t.Parallel()
+
+	set, err := config.NewSet(config.Int("workers", 1, "workers"))
+	if err != nil {
+		t.Fatalf("NewSet: %v", err)
+	}
+	_, err = config.NewEnvSnapshot(set, mapLookup(map[string]string{"WORKERS": "many"}), []config.EnvBinding{config.BindEnv("workers", "WORKERS")})
+	if err == nil {
+		t.Fatal("NewEnvSnapshot returned nil error")
+	}
+	diag, ok := config.InspectDiagnostic(err)
+	if !ok {
+		t.Fatal("InspectDiagnostic returned ok=false")
+	}
+	if diag.Category() != config.ErrSourceConversion {
+		t.Fatalf("Category() = %v, want ErrSourceConversion", diag.Category())
+	}
+	if diag.SourceLabel() != config.SourceEnv {
+		t.Fatalf("SourceLabel() = %q, want env", diag.SourceLabel())
+	}
+	if diag.EnvName() != "WORKERS" {
+		t.Fatalf("EnvName() = %q, want WORKERS", diag.EnvName())
+	}
+	var rendered bytes.Buffer
+	if err := config.WriteDiagnostic(&rendered, err); err != nil {
+		t.Fatalf("WriteDiagnostic: %v", err)
+	}
+	if !strings.Contains(rendered.String(), `category="config source value conversion failure"`) ||
+		!strings.Contains(rendered.String(), `source="env"`) {
+		t.Fatalf("rendered diagnostic did not distinguish source and category:\n%s", rendered.String())
+	}
+}
+
+func TestQAConfigProvenanceRenderingRedactsSensitiveCorpus(t *testing.T) {
+	t.Parallel()
+
+	set, err := config.NewSet(
+		config.String("ordinary", "ordinary-default", "ordinary"),
+		config.Define("token", config.KindString, "token", config.Sensitive()),
+	)
+	if err != nil {
+		t.Fatalf("NewSet: %v", err)
+	}
+	explicit, _ := config.NewExplicitSnapshot(set,
+		config.Assignment{Key: "ordinary", Value: "ordinary-runtime-value"},
+		config.Assignment{Key: "token", Value: "dib_fake_secret_value"},
+	)
+	snapshot := config.Resolve(set, explicit, config.Snapshot{}, config.Snapshot{}, config.Snapshot{})
+
+	var report bytes.Buffer
+	if err := snapshot.WriteSourceReport(&report); err != nil {
+		t.Fatalf("WriteSourceReport: %v", err)
+	}
+	_, err = config.NewExplicitSnapshot(set, config.Assignment{Key: "token", Value: 42})
+	if err == nil {
+		t.Fatal("NewExplicitSnapshot returned nil error for sensitive mismatch")
+	}
+	var diagnostic bytes.Buffer
+	if err := config.WriteDiagnostic(&diagnostic, err); err != nil {
+		t.Fatalf("WriteDiagnostic: %v", err)
+	}
+	combined := report.String() + diagnostic.String()
+	for _, forbidden := range []string{
+		"ordinary-default",
+		"ordinary-runtime-value",
+		"dib_fake_secret_value",
+		"dib_fake_password_value",
+		"dib_fake_token_value",
+	} {
+		if strings.Contains(combined, forbidden) {
+			t.Fatalf("rendered provenance/diagnostic output leaked %q:\n%s", forbidden, combined)
 		}
 	}
 }

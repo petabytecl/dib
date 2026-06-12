@@ -36,6 +36,19 @@ A flag's configured default does **not** enter the flag binding tier. Only flags
 
 Source snapshots supplied to `Resolve` are never mutated. The returned snapshot is a new self-contained value. Callers may reuse the same source snapshots across multiple `Resolve` calls.
 
+## Source Reports
+
+`Snapshot.SourceReport` exposes the resolved winning source for every registered
+key in definition order, including absent keys with an empty source label and
+`IsSet() == false`. Report entries identify the canonical key, kind, source label,
+redaction status, env name, JSON path, and JSON reader label where applicable.
+
+`Snapshot.WriteSourceReport` renders the same report to a caller-supplied writer.
+Reports are value-free: they never include raw config values, including
+non-sensitive values. Use typed getters to retrieve values.
+
 ## Scope
 
-Story 4.3 implements `NewFlagSnapshot` and `Resolve`. Typed getters (Story 4.4), source reports, and rendered diagnostics (Story 4.5) are deferred.
+Story 4.3 implements `NewFlagSnapshot` and `Resolve`. Story 4.4 implements typed
+getters. Story 4.5 implements source reports and rendered diagnostics. Epic 5
+owns compatibility tables, migration examples, and release-readiness evidence.

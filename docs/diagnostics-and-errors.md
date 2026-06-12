@@ -256,6 +256,34 @@ to true; error strings do not expose raw sensitive values.
 `Snapshot.IsSet` is a presence check, not a retrieval failure: it returns false for
 unregistered and absent keys without returning an error.
 
+Story 4.5 adds value-free config provenance reports and rendered diagnostics.
+`Snapshot.SourceReport()` returns `[]config.SourceReportEntry` in definition order.
+Each entry exposes `Key()`, `Kind()`, `IsSet()`, `SourceLabel()`, `EnvName()`,
+`JSONPath()`, `JSONReaderLabel()`, and `Redacted()`. Reports include registered
+absent keys with `IsSet() == false` and an empty source label. Non-empty source
+labels are restricted to `default`, `explicit setter`, `flag binding`, `env`, and
+`JSON`. Source reports never expose raw config values, including non-sensitive
+values; typed getters remain the value retrieval API.
+
+`Snapshot.WriteSourceReport(io.Writer)` renders the same value-free state to a
+caller-supplied writer in report order. It does not write to stdout/stderr, inspect
+terminal width, read process state, or include raw values. Writer errors are returned
+directly.
+
+`InspectDiagnostic(error)` recognizes `*config.DefinitionError`,
+`*config.SourceError`, and `*config.GetError` through `errors.As` and returns a
+structured `config.Diagnostic`. The diagnostic exposes category, key, kind, wanted
+kind when applicable, attempted source label when applicable, env name, JSON path,
+JSON reader label, redaction status, and whether a safe cause exists. For
+`*config.SourceError`, source label and category are both present when available,
+so callers can distinguish, for example, attempted `env` input from
+`ErrSourceConversion`.
+
+`WriteDiagnostic(io.Writer, error)` renders deterministic human-facing diagnostics
+from the structured fields above. Rendered diagnostics do not include raw values or
+cause strings. Unknown non-config errors render as unsupported diagnostics rather
+than being misclassified.
+
 ## Current Scope
 
 Story 1.3 established the shared contract language. Stories 2.1 through 2.8
@@ -273,6 +301,6 @@ and flags error categories. Story 4.1 adds config definition setup diagnostics,
 default provenance, not-found lookup behavior, and sensitive default redaction.
 Story 4.2 adds config explicit setter, injected env lookup, and JSON reader/path
 source ingestion plus typed source diagnostics. Story 4.3 adds config flag
-binding and cross-source precedence resolution. Later stories own typed public
-getters, source reports, rendered config diagnostics, compatibility tables,
-migration examples, and release evidence.
+binding and cross-source precedence resolution. Story 4.4 adds typed public
+getters. Story 4.5 adds source reports and rendered config diagnostics. Later
+stories own compatibility tables, migration examples, and release evidence.
