@@ -71,14 +71,17 @@ organization were copied or adapted from them.
 
 ## Current Scope Boundaries
 
-This matrix tracks the Epic 2 flag parser surface and the initial Epic 3 command
-routing and rendering surface. The parser evidence map above is complete for the
-behavior areas implemented in Stories 2.1 through 2.8, and the command rows
-cover Story 3.1 root and nested routing, Story 3.2 alias routing and
-validation, Story 3.3 command local/inherited flag composition evidence, Story
-3.4 deterministic help/usage rendering, Story 3.5 caller-controlled
-execution-boundary metadata, and Story 4.1 config key definitions plus default
-snapshot evidence.
+This matrix tracks the implemented Epic 2 flag parser surface, Epic 3 command
+routing/rendering/boundary surface, and Epic 4 config resolution surface. The
+parser evidence map above is complete for the behavior areas implemented in
+Stories 2.1 through 2.8. The command rows cover Story 3.1 root and nested
+routing, Story 3.2 alias routing and validation, Story 3.3 command
+local/inherited flag composition evidence, Story 3.4 deterministic help/usage
+rendering, and Story 3.5 caller-controlled execution-boundary metadata. The
+config rows cover Story 4.1 config key definitions and default snapshots, Story
+4.2 explicit/env/JSON source ingestion, Story 4.3 flag binding and precedence
+resolution, Story 4.4 typed getters, and Story 4.5 provenance reports and
+diagnostics.
 
 The matrix does not claim that compatibility tables, migration examples, or
 release-candidate evidence are complete today. Epic 3 completed
