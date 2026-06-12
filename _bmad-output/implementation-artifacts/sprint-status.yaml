@@ -1,5 +1,5 @@
 # generated: 2026-06-11T12:01:02-04:00
-# last_updated: 2026-06-11T22:10:36-04:00
+# last_updated: 2026-06-11T22:38:12-04:00
 # project: dib
 # project_key: NOKEY
 # tracking_system: file-system
@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: "2026-06-11T12:01:02-04:00"
-last_updated: "2026-06-11T22:10:36-04:00"
+last_updated: "2026-06-11T22:38:12-04:00"
 project: dib
 project_key: NOKEY
 tracking_system: file-system
@@ -55,7 +55,7 @@ development_status:
   2-2-match-flag-names-safely-across-styles: done
   2-3-reject-invalid-long-flags-with-inspectable-errors: done
   2-4-parse-short-flags-and-boolean-presence: done
-  2-5-handle-short-flag-groups-and-optional-values-predictably: backlog
+  2-5-handle-short-flag-groups-and-optional-values-predictably: done
   2-6-accumulate-repeated-and-custom-values: backlog
   2-7-preserve-parse-boundaries-and-remaining-args: backlog
   2-8-prove-flag-parsing-across-matrices-and-fuzz-inputs: backlog

@@ -62,6 +62,23 @@ failing shorthand text, and `ParseError.NormalizedName` exposes the canonical
 definition name when a definition was resolved. Short flag diagnostics must not
 run through long-name normalization and must not echo sensitive raw values.
 
+Story 2.5 adds grouped shorthand diagnostics for single-dash tokens with
+multiple shorthand members and no `=`. Unknown group members reuse
+`flags.ErrUnknownFlag`; missing final values reuse `flags.ErrMissingValue`;
+conversion failures continue to satisfy `flags.ErrConversion` and expose
+`*flags.ValueError`; and duplicate values reuse `flags.ErrDuplicateValue`.
+Invalid non-final required-value members without no-option defaults use
+`flags.ErrInvalidGroup`. For grouped parse errors, `ParseError.Token` exposes
+the group prefix through the failing shorthand, omitting any attached value
+suffix, `ParseError.Name` exposes the failing one-rune shorthand, and
+`ParseError.Definition` is present when that shorthand resolved to a definition.
+Successful grouped occurrences record the matched shorthand member as the source
+spelling while keeping the canonical definition name as the occurrence lookup
+key. If a grouped value-taking shorthand has a no-option default and no explicit
+attached or separate value is available, the no-option value is recorded as
+explicit CLI input. Long-name normalization still does not create shorthand
+aliases.
+
 ## Source Labels
 
 Config provenance source labels are fixed to these exact spellings:
@@ -89,8 +106,8 @@ or validation failures.
 
 ## Current Scope
 
-Story 1.3 established the shared contract language. Stories 2.1 through 2.4
-add the initial `flags` definition, normalization, conversion, long-parse, and
-shorthand-parse categories. Later stories own source-report structures,
-rendered diagnostics, config provenance, shorthand-group diagnostics, and the
+Story 1.3 established the shared contract language. Stories 2.1 through 2.5
+add the initial `flags` definition, normalization, conversion, long-parse,
+shorthand-parse, and shorthand-group categories. Later stories own
+source-report structures, rendered diagnostics, config provenance, and the
 remaining concrete error categories for each package surface.
