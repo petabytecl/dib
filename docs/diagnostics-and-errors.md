@@ -163,6 +163,18 @@ into command or flags diagnostics. If a caller later invokes its own execution
 function, that function's ordinary Go error remains caller-owned unless a future
 approved API explicitly documents otherwise.
 
+Story 4.1 adds the first concrete config setup diagnostics. Invalid config
+definitions return `config.ErrInvalidDefinition` through
+`*config.DefinitionError`; duplicate exact keys return `config.ErrDuplicateKey`;
+duplicate normalized keys return `config.ErrDuplicateNormalizedKey`; and
+default/type mismatches return `config.ErrInvalidDefault`. Callers can inspect
+the config key, colliding key, normalized key, expected kind, and `default`
+provenance through `*config.DefinitionError` accessors. Error strings are still
+diagnostics only. Sensitive default setup failures identify the key and default
+source but redact raw sensitive values. Default lookup not-found behavior is a
+structured result: `Snapshot.Lookup(key)` returns `(_, false)` for unregistered
+keys rather than panicking or returning a diagnostic.
+
 ## Source Labels
 
 Config provenance source labels are fixed to these exact spellings:
@@ -201,6 +213,8 @@ flag-composition setup diagnostics and routes runtime flag parse failures
 through the existing `flags` parse diagnostics. Story 3.4 adds command
 help/usage rendering while preserving existing command and flags error
 categories. Story 3.5 adds boundary metadata while preserving existing command
-and flags error categories. Later stories own source-report structures,
-rendered diagnostics beyond command help/usage, config provenance, and the
-remaining concrete error categories for each package surface.
+and flags error categories. Story 4.1 adds config definition setup diagnostics,
+default provenance, not-found lookup behavior, and sensitive default redaction.
+Later stories own source-report structures, rendered diagnostics beyond command
+help/usage, config explicit setters, flag binding, env and JSON source
+diagnostics, and full precedence error categories.
