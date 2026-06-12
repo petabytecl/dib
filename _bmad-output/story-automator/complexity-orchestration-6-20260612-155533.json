@@ -1,0 +1,1 @@
+{"stories":[{"storyId":"6.1","title":"Add an Isolated Linter Gate","complexity":{"level":"Medium","score":4,"reasons":["Real-time communication","Complex test setup","Configuration/feature flags","Documentation/config only","High AC count (12)"]}}]}

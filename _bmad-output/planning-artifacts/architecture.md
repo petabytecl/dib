@@ -6,13 +6,14 @@ inputDocuments:
   - "_bmad-output/planning-artifacts/prds/prd-dib-2026-06-10/review-rubric.md"
   - "_bmad-output/planning-artifacts/prds/prd-dib-2026-06-10/reconcile-brief.md"
   - "_bmad-output/planning-artifacts/briefs/brief-dib-2026-06-10/brief.md"
+  - "_bmad-output/planning-artifacts/sprint-change-proposal-2026-06-12.md"
 workflowType: 'architecture'
 project_name: 'dib'
 user_name: 'Coto'
 date: '2026-06-11'
 lastStep: 8
 status: 'complete'
-completedAt: '2026-06-11'
+completedAt: '2026-06-12'
 ---
 
 # Architecture Decision Document
@@ -30,7 +31,7 @@ Primary users are Go developers building internal tools, platform CLIs, repo-loc
 **Functional Requirements:**
 Dib V1 is organized around three composable runtime library surfaces: command routing, flag parsing, and configuration resolution. Each surface must work independently before users compose them. Command requirements cover nested command trees, aliases, local and inherited flags, explicit execution with `context.Context`, deterministic help/usage rendering, and typed command errors. Flag requirements cover explicit `FlagSet` instances, long flags, shorthand flags, shorthand groups, no-option defaults, repeated/custom values, name normalization, `--`, interspersed positional args, and typed parse diagnostics. Config requirements cover registered keys, defaults, explicit setters, lazy flag bindings, env bindings, JSON files/readers, the exact PRD-defined precedence order, typed getters, source reporting, provenance, and sensitive diagnostic redaction.
 
-Documentation, validation, and release evidence are product requirements. Behavior matrices, dependency checks, migration examples, clean-room audit notes, compatibility documentation, and parser hardening evidence are trust features for adoption, not auxiliary prose. Every behavior matrix, validation artifact, and cross-cutting concern must carry PRD/addendum/rubric IDs where available; gaps must be marked as untraced assumptions.
+Documentation, validation, and release evidence are product requirements. Behavior matrices, dependency checks, lint evidence, coverage evidence, migration examples, public usage docs, clean-room audit notes, compatibility documentation, and parser hardening evidence are trust features for adoption, not auxiliary prose. Every behavior matrix, validation artifact, and cross-cutting concern must carry PRD/addendum/rubric IDs where available; gaps must be marked as untraced assumptions.
 
 **Non-Functional Requirements:**
 The dominant NFR is zero external runtime dependencies. This serves supply-chain trust, binary portability, auditability, and adoption in dependency-sensitive environments. Runtime packages must import only the Go standard library, while development/test tooling may differ only if isolated and enforcement proves it.
@@ -245,10 +246,14 @@ Core PR gates:
 ```bash
 go test ./...
 go vet ./...
-go list -deps -f '{{if and (not .Standard) (not .Module.Main)}}{{.ImportPath}}{{end}}' ./... | sed '/^$/d'
+go run ./tools/depgate
 ```
 
-The `go list` command is the runtime dependency gate. It must produce no output for runtime packages.
+The dependency gate is `go run ./tools/depgate`. It must fail on unapproved external imports for library, test, example, and tool packages unless this architecture is updated.
+
+Core gates also include a pinned lint command selected by Story 6.1 and a coverage validation command selected by Story 6.2. The lint command must be reproducible and isolated as development or CI tooling. External linter tooling may be downloaded or invoked by CI, but it must not enter Dib runtime package imports or the root module's checked package imports without an approved architecture update.
+
+Coverage validation must use standard Go coverage output where practical and apply package-aware thresholds. Public runtime packages (`command`, `config`, and `flags`) are release-surface packages and must report threshold evidence separately from tooling packages. Tooling packages may carry a documented threshold or exception when critical-path tests cover the tool behavior.
 
 Release-candidate gates additionally include:
 
@@ -258,7 +263,7 @@ go test -race ./...
 
 Dib releases are Go module releases, not binary deployments. v0 tags may include breaking changes, but those changes require release notes, migration guidance, updated examples, provenance notes, and passing CI evidence tied to the exact tagged commit.
 
-Release evidence must record test, vet, dependency-gate, race-test, docs/examples, runner/action version, provenance, and compatibility/migration status. CI failures block tagging. Waivers require an owner, reason, and expiry.
+Release evidence must record test, vet, dependency-gate, lint, coverage, race-test, docs/examples, runner/action version, provenance, and compatibility/migration status. CI failures block tagging. Waivers require an owner, reason, expiry, and impact.
 
 ### Decision Impact Analysis
 
@@ -648,12 +653,14 @@ Not applicable. Dib has no service runtime, server process, network API, deploym
 - `tools/depgate/` is approved repository tooling, but it must use only the Go standard library unless this architecture is updated.
 
 **Documentation Organization:**
+- `README.md` owns public onboarding: install/import guidance, package overview, minimal usage, release status, and links to deeper docs.
 - `docs/clean-room-policy.md` owns clean-room policy and evidence requirements.
 - `CONTRIBUTING.md` summarizes contributor obligations and links to the clean-room policy.
 - `docs/provenance-log.md` records provenance entries with source, access date, license/terms, artifact affected, and classification as copied, adapted, or inspiration-only.
 - `docs/behavior-matrices.md` summarizes cross-package expected behavior; package tests remain the executable contract.
 - `docs/config-precedence.md` is the canonical precedence authority and must define the exact order used by tests, examples, diagnostics, and source reports.
 - `docs/diagnostics-and-errors.md` owns diagnostic shape vocabulary: boundary, command/flag/key, provenance, typed category, and redacted value status.
+- `docs/testing.md` owns local verification, lint, coverage, fuzz, race, dependency-gate, and release-candidate validation guidance.
 - Migration docs may mention Go `flag`, pflag, Cobra, and Viper as semantic source concepts, but examples must not imply compatibility adapters.
 
 **Asset Organization:**
@@ -669,12 +676,14 @@ Not applicable. Dib has no development server.
 - `go vet ./...` verifies basic Go correctness.
 - `go run ./tools/depgate` is the intended local/CI dependency-gate entry point once implemented.
 - The dependency gate must inspect all non-tool Go packages included by `go test ./...`, including package tests and `examples/` packages, and fail on any non-standard-library import unless this architecture is updated. Tool packages such as `tools/depgate/` must also remain standard-library-only unless this architecture is updated.
+- The lint gate must be pinned, reproducible, and isolated from Dib runtime imports. Story 6.1 owns final linter selection and command wiring.
+- The coverage gate must generate package-level evidence and enforce package-aware thresholds. Story 6.2 owns final threshold policy and command wiring.
 - `go test -race ./...` is a release-candidate gate.
 
 **Deployment Structure:**
 - Dib releases are Go module tags, not binary deployments.
 - `.github/workflows/ci.yml` records release-gate checks.
-- `docs/release-checklist.md` records test, vet, dependency-gate coverage for runtime packages/tests/runnable examples, race-test, examples, provenance, compatibility, and migration evidence.
+- `docs/release-checklist.md` records test, vet, dependency-gate, lint, package-aware coverage, race-test, examples, public usage docs, provenance, compatibility, and migration evidence.
 
 ## Architecture Validation Results
 
@@ -718,6 +727,8 @@ None.
 
 **Important Deferred Decisions:**
 - Exact exported API identifiers and public error identities must be finalized during package story work.
+- Exact linter selection, pinning mechanism, and command name must be finalized by Story 6.1.
+- Exact coverage threshold values and any tooling-package exception policy must be finalized by Story 6.2.
 - Callback invocation behavior is deferred. The first implementation story must not add callback invocation behavior; command routing should start with definitions, route snapshots, validation, and typed errors only.
 - `tools/depgate/` must be implemented. The first tooling story must make `go run ./tools/depgate` verify all non-tool Go packages included by `go test ./...`, including package tests and `examples/` packages, and verify tool packages remain standard-library-only unless the architecture is updated.
 - Final CI action versions, SHA pinning strategy, license wording, and release-doc support policy remain follow-up decisions.
@@ -731,8 +742,9 @@ None.
 - Party Mode review tightened wording that overstated readiness.
 - Technology and performance checklist items were narrowed to match the actual architecture.
 - Dependency-gate scope was clarified to include tests and `examples/`.
-- Release evidence scope was validated: release checklist must record exact commit, test, vet, dependency-gate coverage for runtime packages/tests/examples, race-test, docs/examples, provenance, compatibility, and migration evidence.
+- Release evidence scope was validated: release checklist must record exact commit, test, vet, dependency-gate, lint, package-aware coverage, race-test, docs/examples, provenance, compatibility, and migration evidence.
 - `docs/provenance-log.md` must be created or updated when any copied, adapted, generated, or inspiration-only reference-derived artifact is introduced.
+- Correct-course update on 2026-06-12 added lint, package-aware coverage validation, public README/usage docs, and tracker reconciliation as release-hardening scope.
 
 ### Architecture Completeness Checklist
 

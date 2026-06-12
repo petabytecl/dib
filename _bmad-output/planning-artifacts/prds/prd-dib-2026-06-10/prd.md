@@ -2,7 +2,7 @@
 title: "PRD: dib"
 status: final
 created: "2026-06-10"
-updated: "2026-06-11"
+updated: "2026-06-12"
 ---
 
 # PRD: dib
@@ -305,6 +305,33 @@ Maintainers can harden parsers against edge cases without changing the runtime d
 - Fuzz failures produce minimal reproducible inputs stored in the repo's normal testdata flow.
 - Parser failures return errors rather than panics except where the public API explicitly documents programmer misuse.
 
+#### FR-23: Run an isolated lint gate
+
+Maintainers can run an automated linter gate in CI without adding runtime dependencies to Dib packages.
+
+**Consequences (testable):**
+- CI fails when the configured linter reports issues.
+- The linter tool is pinned, reproducible, and isolated as development or CI tooling.
+- `tools/depgate` still proves that Dib library, test, example, and approved tool packages do not import external modules unless this PRD and architecture are updated.
+
+#### FR-24: Validate test coverage
+
+Maintainers can validate release-candidate coverage with a documented, package-aware threshold policy.
+
+**Consequences (testable):**
+- CI generates coverage evidence with standard Go coverage output.
+- Public runtime packages report package-level coverage and fail below the approved release threshold.
+- Tooling packages either meet a separate threshold or document targeted exceptions with rationale and critical-path test evidence.
+
+#### FR-25: Provide public usage documentation
+
+Developers can use public documentation to install Dib, understand package roles, and build a small CLI without reading implementation internals.
+
+**Consequences (testable):**
+- The repository root includes a public README with import/install guidance, package overview, quickstart usage, release status, and links to deeper docs.
+- Usage docs cover command construction, flag parsing, config source precedence, diagnostics, clean-room compatibility boundaries, and release gates.
+- Documentation examples are independently written, clean-room compliant, and runnable through `go test ./...` where practical.
+
 ## 6. Cross-Cutting Non-Functional Requirements
 
 - **NFR-1 Runtime dependency ceiling:** Runtime packages must import only the Go standard library.
@@ -317,6 +344,8 @@ Maintainers can harden parsers against edge cases without changing the runtime d
 - **NFR-8 Security-sensitive diagnostics:** Error messages must identify bad keys, flags, and sources without dumping sensitive values when a Flag or Config key is marked sensitive.
 - **NFR-9 Go version policy:** Dib V1 requires Go 1.26 or newer.
 - **NFR-10 API stability:** Public API changes after V1 must follow semantic versioning and include deprecation guidance for at least one minor release before removal where practical.
+- **NFR-11 Quality gate reproducibility:** Lint and coverage gates must be deterministic enough to run locally and in CI with the same documented commands.
+- **NFR-12 Public onboarding clarity:** A new adopter must be able to start from public docs rather than BMAD planning artifacts.
 
 ## 7. API Contracts, Versioning, And Dependency Policy
 
@@ -325,7 +354,7 @@ Maintainers can harden parsers against edge cases without changing the runtime d
 - Dib must not promise source compatibility with Go `flag`, pflag, Cobra, or Viper in V1. It offers a native Dib API with familiar concepts and documented differences.
 - V1 does not include package-level global command, flag, or config helpers. The explicit instance API is the documented golden path.
 - The first usable release is labeled v0 experimental. V0 behavior is intentionally test-covered and documented, but API stability hardens through implementation feedback before a future stable v1.
-- Development dependencies are allowed only when they do not enter runtime package imports.
+- Development dependencies are allowed only when they do not enter runtime package imports. Linter and coverage tooling must remain isolated as development or CI concerns unless a future architecture update explicitly approves another model.
 
 ## 8. Non-Goals
 
@@ -349,7 +378,7 @@ Maintainers can harden parsers against edge cases without changing the runtime d
 - Clean-room source policy.
 - Compatibility table for Go `flag`, pflag, Cobra, and Viper inspired behavior.
 - Migration examples from standard `flag`, pflag-style flags, Cobra-style command trees, and Viper-style config resolution.
-- Table-driven behavior tests and a runtime dependency check.
+- Table-driven behavior tests, runtime dependency check, linter gate, coverage validation, and public usage documentation.
 
 ### 9.2 Out Of Scope For MVP
 
@@ -375,6 +404,8 @@ Maintainers can harden parsers against edge cases without changing the runtime d
 
 - **SM-4:** Migration examples cover the intended mental models. Target: examples exist for standard `flag`, pflag-style flags, Cobra-style command trees, and Viper-style config resolution. Validates FR-18 and FR-19.
 - **SM-5:** Public error handling is inspectable. Target: documented typed errors exist for every error family listed in FR-9, FR-15, and FR-16. Validates NFR-3.
+- **SM-6:** Release quality gates fail closed. Target: CI fails when lint or package-aware coverage validation fails. Validates FR-23, FR-24, and NFR-11.
+- **SM-7:** Public onboarding works without planning artifacts. Target: a new adopter can follow the README and usage docs to build a minimal multi-command CLI using Dib. Validates FR-25 and NFR-12.
 
 **Counter-Metrics**
 
@@ -389,6 +420,9 @@ Maintainers can harden parsers against edge cases without changing the runtime d
 - **Risk: Config resolver scope creep.** Config support can expand quickly into formats, watchers, remote stores, and struct decoding. **Mitigation:** keep V1 to defaults, explicit setters, flags, env, JSON, and reader loading.
 - **Risk: Hidden global state.** Convenience helpers could undermine the auditability thesis. **Mitigation:** exclude package-level global helpers from V1 and make explicit instances the only primary API surface.
 - **Risk: Parser edge cases dominate implementation time.** GNU/POSIX-style parsing has many corner cases. **Mitigation:** implement against the parser behavior matrix in section 12 and require table-driven tests before release.
+- **Risk: Linter tooling weakens dependency claims.** External lint tooling could be confused with runtime dependency policy. **Mitigation:** isolate the linter as development/CI tooling, document the isolation model, and keep `tools/depgate` authoritative for root module import policy.
+- **Risk: Coverage validation becomes a vanity metric.** A single aggregate threshold can hide weak public package coverage or unfairly penalize tooling packages. **Mitigation:** use package-aware thresholds and document any tooling-package exception with critical-path test evidence.
+- **Risk: Public docs overstate compatibility.** New onboarding docs could imply drop-in compatibility with familiar CLI libraries. **Mitigation:** reuse compatibility boundaries, keep claims behavior-scoped, and verify examples with `go test ./...`.
 
 ## 12. Closed Compatibility And Behavior Decisions
 
@@ -443,6 +477,7 @@ All phase-blocking PRD questions are resolved for V1. Dib is a native API that s
 | Minimum Go version | Go 1.26 or newer. The Go downloads page lists Go 1.26.4 as a stable release at the time of this PRD update. |
 | First release label | The first usable release is v0 experimental, not stable v1 and not only an internal milestone. |
 | Runtime dependency policy | Runtime packages import only the Go standard library. Development and test tooling may use external dependencies only when they do not enter runtime imports. |
+| Release quality gates | Release candidates must include test, vet, dependency, lint, coverage, race, docs/examples, provenance, compatibility, and migration evidence. Lint tooling remains isolated development/CI tooling, and coverage policy is package-aware. |
 
 ## 13. Deferred Questions
 

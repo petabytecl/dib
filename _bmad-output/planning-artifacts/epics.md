@@ -3,8 +3,9 @@ stepsCompleted: [1, 2, 3, 4]
 inputDocuments:
   - "_bmad-output/planning-artifacts/prds/prd-dib-2026-06-10/prd.md"
   - "_bmad-output/planning-artifacts/architecture.md"
+  - "_bmad-output/planning-artifacts/sprint-change-proposal-2026-06-12.md"
 status: complete
-completedAt: "2026-06-11"
+completedAt: "2026-06-12"
 ---
 
 # dib - Epic Breakdown
@@ -61,6 +62,12 @@ FR21: Enforce the runtime dependency rule. Maintainers can verify that runtime p
 
 FR22: Support fuzz or property-style parser hardening. Maintainers can harden parsers against edge cases without changing the runtime dependency contract.
 
+FR23: Run an isolated lint gate. Maintainers can run an automated linter gate in CI without adding runtime dependencies to Dib packages.
+
+FR24: Validate test coverage. Maintainers can validate release-candidate coverage with a documented, package-aware threshold policy.
+
+FR25: Provide public usage documentation. Developers can use public documentation to install Dib, understand package roles, and build a small CLI without reading implementation internals.
+
 ### NonFunctional Requirements
 
 NFR1: Runtime packages must import only the Go standard library.
@@ -82,6 +89,10 @@ NFR8: Error messages must identify bad keys, flags, and sources without dumping 
 NFR9: Dib V1 requires Go 1.26 or newer.
 
 NFR10: Public API changes after V1 must follow semantic versioning and include deprecation guidance for at least one minor release before removal where practical.
+
+NFR11: Lint and coverage gates must be deterministic enough to run locally and in CI with the same documented commands.
+
+NFR12: A new adopter must be able to start from public docs rather than BMAD planning artifacts.
 
 ### Additional Requirements
 
@@ -105,10 +116,12 @@ NFR10: Public API changes after V1 must follow semantic versioning and include d
 - Store tests beside the package under test. Keep fixtures small, local, deterministic, clean-room, and under package-specific `testdata/` directories.
 - Use standard-library-only tests and runnable examples unless the architecture is updated. Examples should be Go example tests under `examples/` where practical.
 - Add parser fuzzing with standard Go fuzzing support and clean-room deterministic seed corpus under `flags/testdata/fuzz/FuzzParse/`.
-- Create and maintain clean-room and provenance documentation: `docs/clean-room-policy.md`, `docs/provenance-log.md`, `CONTRIBUTING.md`, compatibility docs, behavior matrices, diagnostics/errors docs, config precedence docs, testing docs, and release checklist.
+- Create and maintain clean-room and provenance documentation: `README.md`, `docs/clean-room-policy.md`, `docs/provenance-log.md`, `CONTRIBUTING.md`, compatibility docs, behavior matrices, diagnostics/errors docs, config precedence docs, testing docs, and release checklist.
 - Record provenance for copied, generated, adapted, or inspiration-only reference-derived artifacts, including source, access date, license/terms, affected artifact, and classification.
 - Implement CI with GitHub Actions using an explicit runner image such as `ubuntu-24.04`, official actions, and Go version alignment across `go.mod`, docs, CI, and release notes.
-- Core PR gates must include `go test ./...`, `go vet ./...`, and the dependency gate. Release-candidate gates additionally include `go test -race ./...`.
+- Core PR gates must include `go test ./...`, `go vet ./...`, the dependency gate, lint gate, and package-aware coverage validation. Release-candidate gates additionally include `go test -race ./...`.
+- Keep linter tooling pinned, reproducible, and isolated as development or CI tooling. It must not enter Dib runtime package imports or the root module's checked package imports unless the PRD and architecture are updated.
+- Validate coverage with standard Go coverage output where practical. Public runtime packages (`command`, `config`, and `flags`) must have package-level threshold evidence; tooling packages may use a separate threshold or documented exception.
 - Implement `tools/depgate/` as isolated repository tooling. Once it exists, dependency verification must use `go run ./tools/depgate`.
 - The dependency gate must verify zero external imports for all library, test, and example packages, and zero external imports for tool packages unless the architecture is updated.
 - Until `tools/depgate/` exists, the temporary architecture-approved `go list` dependency check may be used only for the initial scaffold story and not as release-candidate evidence.
@@ -166,6 +179,12 @@ FR21: Epics 1 and 5 - Dependency rule enforcement and release evidence.
 
 FR22: Epic 2 - Parser fuzz/property hardening.
 
+FR23: Epic 6 - Isolated lint gate.
+
+FR24: Epic 6 - Package-aware coverage validation.
+
+FR25: Epic 6 - Public usage documentation.
+
 ## Epic List
 
 ### Epic 1: Auditable Toolkit Foundation
@@ -197,6 +216,12 @@ Developers can register Config keys, resolve values by documented precedence, bi
 Developers and reviewers can understand Dib's compatibility boundaries, follow migration examples, and verify release readiness with behavior matrices, dependency checks, docs, examples, and provenance evidence.
 
 **FRs covered:** FR18, FR19, FR20, FR21
+
+### Epic 6: Release Hardening And Public Usage Onboarding
+
+Developers and reviewers can trust Dib's final release gates and start from public usage documentation without reading planning artifacts.
+
+**FRs covered:** FR23, FR24, FR25
 
 ## Epic 1: Auditable Toolkit Foundation
 
@@ -1111,3 +1136,112 @@ So that Dib's v0 module tag is backed by tests, dependency checks, compatibility
 **When** a reviewer reruns the documented commands
 **Then** `go test ./...`, `go vet ./...`, `go run ./tools/depgate`, and `go test -race ./...` pass for the tagged commit
 **And** no release process assumes binary deployment, Docker, Kubernetes, generated shell completion, or generated man pages.
+
+## Epic 6: Release Hardening And Public Usage Onboarding
+
+Developers and reviewers can trust Dib's final release gates and start from public usage documentation without reading planning artifacts.
+
+### Story 6.1: Add an Isolated Linter Gate
+
+**Requirements:** FR23, FR21
+
+As a release reviewer,
+I want a deterministic linter gate that is isolated from Dib runtime imports,
+So that CI catches maintainability issues without weakening the standard-library dependency promise.
+
+**Acceptance Criteria:**
+
+**Given** Dib must remain standard-library-only at runtime
+**When** the linter approach is selected
+**Then** the selected tool, version/pinning mechanism, invocation command, and isolation model are documented
+**And** no external linter package enters Dib library, test, example, or approved tool imports unless the PRD and architecture are updated.
+
+**Given** maintainers need local and CI parity
+**When** linting is configured
+**Then** there is a deterministic local command for running the lint gate
+**And** `.github/workflows/ci.yml` runs the same effective lint gate on push and pull request events.
+
+**Given** dependency evidence remains authoritative
+**When** release checks run
+**Then** `go run ./tools/depgate` still passes
+**And** `docs/release-checklist.md` records the lint command, result, and isolation evidence.
+
+### Story 6.2: Add Coverage Validation
+
+**Requirements:** FR24, FR20
+
+As a release reviewer,
+I want package-aware coverage validation in CI,
+So that Dib release candidates prove meaningful test coverage instead of only proving that tests execute.
+
+**Acceptance Criteria:**
+
+**Given** public runtime packages are the release surface
+**When** coverage validation runs
+**Then** `command`, `config`, and `flags` report package-level coverage
+**And** each public runtime package fails below the approved threshold.
+
+**Given** tooling packages have different risk profiles
+**When** coverage policy is documented
+**Then** tooling packages either have a separate threshold or a documented exception
+**And** any exception names the critical-path tests that preserve confidence.
+
+**Given** maintainers need reproducible evidence
+**When** CI runs
+**Then** coverage is generated from standard Go coverage output where practical
+**And** `docs/release-checklist.md` records the coverage command, package results, thresholds, and any accepted exception.
+
+### Story 6.3: Publish Public Usage Documentation
+
+**Requirements:** FR25, FR18, FR19
+
+As a Go developer evaluating Dib,
+I want public usage documentation that starts from installation and a minimal CLI,
+So that I can adopt the library without reading BMAD planning artifacts or implementation internals.
+
+**Acceptance Criteria:**
+
+**Given** a new adopter opens the repository
+**When** they read `README.md`
+**Then** it explains Dib's status, package roles, import/install guidance, a minimal command/flag/config quickstart, and links to deeper docs
+**And** it does not imply source compatibility with Go `flag`, pflag, Cobra, or Viper.
+
+**Given** usage docs are part of the product contract
+**When** public docs are updated
+**Then** command construction, flag parsing, config precedence, diagnostics, clean-room compatibility boundaries, and release gates are documented from the adopter's point of view
+**And** the docs link to existing compatibility, behavior matrix, diagnostics, config precedence, and release evidence docs.
+
+**Given** examples are trust artifacts
+**When** verification runs
+**Then** documented examples are independently written, clean-room compliant, and compile through `go test ./...` where practical
+**And** provenance entries are added when documentation uses reference-derived material beyond inspiration-only context.
+
+### Story 6.4: Reconcile Release Evidence And Tracker State
+
+**Requirements:** FR23, FR24, FR25
+
+As a project maintainer,
+I want release evidence and the GitHub tracker synchronized with the added release-hardening scope,
+So that the final sprint state matches the gates users and reviewers will rely on.
+
+**Acceptance Criteria:**
+
+**Given** lint, coverage, and usage documentation are release gates
+**When** `docs/release-checklist.md` is updated
+**Then** it includes lint, package-aware coverage, public usage docs, and any waiver sections
+**And** unresolved lint, coverage, or docs evidence blocks release readiness.
+
+**Given** public release notes explain the release status
+**When** release docs are updated
+**Then** they mention the added lint, coverage, and public usage documentation expectations
+**And** they preserve v0 experimental API language, clean-room expectations, redaction expectations, and zero-runtime-dependency claims.
+
+**Given** BMAD and GitHub tracking must align
+**When** Epic 6 is added
+**Then** `_bmad-output/implementation-artifacts/sprint-status.yaml` includes Epic 6 and its stories
+**And** GitHub board/issues/labels are updated or explicitly annotated to match the local sprint status.
+
+**Given** waivers weaken release confidence
+**When** any gate waiver is accepted
+**Then** the waiver records owner, reason, expiry, and impact
+**And** open-ended waivers block release readiness.
