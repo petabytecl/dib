@@ -45,3 +45,27 @@
 - For Story 6.2, reuse the Story 6.1 pattern: executable local command, CI wiring, release evidence, and docs tests that prevent drift.
 - Continue excluding agent/runtime metadata directories from repository-local developer tools unless a story explicitly needs to inspect them.
 - Keep final release exact-commit reconciliation in Story 6.4 so intermediate hardening stories do not overclaim tag readiness.
+
+## Run: 2026-06-12T17:53:00Z
+
+**Epic:** dib - Epic Breakdown
+**Stories:** 6.2
+
+### Patterns Observed
+- The local standard-library gate pattern from Story 6.1 transferred cleanly to coverage validation: tool implementation, CI wiring, release evidence, and docs tests stayed cohesive.
+- QA automation found useful test hardening after the dev implementation was already green, especially boundary/output/error coverage for `tools/coverage`.
+- Review caught prose drift after table/docs tests passed, showing that narrative summary sections need either explicit tests or careful review attention.
+
+### Code Review Insights
+- Common issues: generated artifacts missing from story File List, stale coverage gate prose in `docs/behavior-matrices.md`, and incomplete release-candidate command lists in `docs/testing.md`.
+- Average cycles to clean: one review cycle; all findings were medium or low and auto-fixed.
+
+### Timing Estimates
+- create-story: minutes, mostly source grounding and story artifact creation.
+- dev-story: minutes, covering coverage tool implementation, CI/docs updates, and full local validation.
+- code-review: one cycle with targeted documentation/file-list fixes and revalidation.
+
+### Recommendations for Future Runs
+- For Story 6.3, treat docs prose and examples as first-class test targets so public usage documentation cannot drift from the implemented library API.
+- Keep posting GitHub issue milestones after create, dev, QA, review, and push so tracker state stays aligned with automator state.
+- Continue amending final automator metadata into the story commit to avoid leaving dirty state artifacts after commit-story runs.

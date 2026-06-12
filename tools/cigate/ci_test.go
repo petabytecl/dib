@@ -24,6 +24,7 @@ func TestCIWorkflowRunsTrustGates(t *testing.T) {
 		"go test gate":         "run: go test ./...",
 		"go vet gate":          "run: go vet ./...",
 		"dependency gate":      "run: go run ./tools/depgate",
+		"coverage gate":        "run: go run ./tools/coverage",
 	})
 
 	if !triggersMainBranch(workflow) {
@@ -69,6 +70,16 @@ func TestCIWorkflowRunsLintAfterGoSetupAndBeforeReleaseGates(t *testing.T) {
 	})
 }
 
+func TestCIWorkflowRunsCoverageAfterVetAndBeforeDependencyGate(t *testing.T) {
+	workflow := readRepoFile(t, ".github/workflows/ci.yml")
+
+	assertOrderedMarkers(t, workflow, []string{
+		"run: go vet ./...",
+		"run: go run ./tools/coverage",
+		"run: go run ./tools/depgate",
+	})
+}
+
 func TestReleaseChecklistCapturesRequiredEvidence(t *testing.T) {
 	checklist := readRepoFile(t, "docs/release-checklist.md")
 	lowerChecklist := strings.ToLower(checklist)
@@ -99,6 +110,7 @@ func TestReleaseChecklistCapturesRequiredEvidence(t *testing.T) {
 		"expiry":                 "expiry",
 		"tagging block":          "ci failures block tagging",
 		"go module release":      "go module tag",
+		"coverage evidence":      "go run ./tools/coverage",
 	})
 }
 

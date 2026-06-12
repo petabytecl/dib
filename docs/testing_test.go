@@ -6,6 +6,44 @@ import (
 	"testing"
 )
 
+func TestTestingGuideDocumentsCoverageGate(t *testing.T) {
+	content, err := os.ReadFile("testing.md")
+	if err != nil {
+		t.Fatalf("read testing guide: %v", err)
+	}
+	text := string(content)
+	lower := strings.ToLower(text)
+
+	for _, phrase := range []string{
+		"## Coverage Gate",
+		"GOCACHE=/tmp/dib-go-build go run ./tools/coverage",
+		"go run ./tools/coverage",
+		"tools/coverage",
+	} {
+		if !strings.Contains(text, phrase) {
+			t.Fatalf("testing guide missing coverage gate phrase %q", phrase)
+		}
+	}
+	for _, phrase := range []string{
+		"command",
+		"config",
+		"flags",
+		"threshold",
+		"tools/depgate",
+		"tools/lint",
+		"tools/coverage",
+		"tooling package",
+		"exception granted",
+		"testcoveragepassespackagesmeetingthreshold",
+		"testcoveragefailspackagesbelowthreshold",
+		"testcoveragecommandruns",
+	} {
+		if !strings.Contains(lower, phrase) {
+			t.Fatalf("testing guide missing coverage gate phrase %q", phrase)
+		}
+	}
+}
+
 func TestTestingGuideDocumentsLintGateIsolationAndPinning(t *testing.T) {
 	content, err := os.ReadFile("testing.md")
 	if err != nil {

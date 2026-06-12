@@ -37,6 +37,8 @@ func TestReleaseChecklistRecordsReleaseCandidateEvidence(t *testing.T) {
 		"date: 2026-06-12",
 		"reviewer: release reviewer",
 		"story 6.1 evidence scope:",
+		"story 6.2 evidence scope:",
+		"go run ./tools/coverage",
 		"`go.mod` version: `go 1.26`",
 		"ci `actions/setup-go` source: `go-version-file: go.mod`",
 		"release guidance version: `docs/release-notes-v0.md` states go 1.26+",
@@ -89,6 +91,8 @@ func TestReleaseChecklistRecordsReleaseCandidateEvidence(t *testing.T) {
 		"Lint gate reviewed",
 		"Lint isolation evidence",
 		"Lint pinning evidence",
+		"Coverage gate reviewed",
+		"Coverage isolation evidence",
 		"Any fixture-local dependency exceptions",
 		"All required evidence captured",
 		"All waivers approved with expiry",
@@ -168,6 +172,7 @@ func TestReleaseChecklistRecordsPassingRequiredGates(t *testing.T) {
 		"go test -fuzz='^FuzzParse$' -fuzztime=5s ./flags",
 		"go test -fuzz='^FuzzParseBoundary$' -fuzztime=5s ./flags",
 		"go test -fuzz='^FuzzParseShortGroups$' -fuzztime=5s ./flags",
+		"go run ./tools/coverage",
 	} {
 		pattern := regexp.MustCompile(`(?m)^\s*-\s*` + "`" + regexp.QuoteMeta(command) + "`" + `: PASS on \d{4}-\d{2}-\d{2} with ` + "`" + `GOCACHE=/tmp/dib-go-build ` + regexp.QuoteMeta(command) + "`")
 		if !pattern.MatchString(text) {
@@ -241,6 +246,7 @@ func TestReleaseNotesV0ExistAndPreserveBoundaries(t *testing.T) {
 		"`go test ./...`",
 		"`go run ./tools/lint`",
 		"`go vet ./...`",
+		"`go run ./tools/coverage`",
 		"`go run ./tools/depgate`",
 		"`go test -race ./...`",
 	} {

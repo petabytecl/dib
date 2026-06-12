@@ -20,6 +20,7 @@ Release review for a v0 module tag records these local gates in
 - `go test ./...`
 - `go run ./tools/lint`
 - `go vet ./...`
+- `go run ./tools/coverage`
 - `go run ./tools/depgate`
 - `go test -race ./...`
 

@@ -1,5 +1,87 @@
 # Test Automation Summary
 
+---
+
+## Story 6.2 - Gap Analysis
+
+Story 6.2 adds a stdlib-only `tools/coverage` gate and wires it into CI. There is no HTTP API or browser UI, so coverage is package-level unit tests for `tools/coverage`, CI and doc guard tests for the coverage gate integration, and release-evidence doc tests.
+
+The workflow found and auto-applied these test gaps:
+
+| Gap | Status |
+| --- | --- |
+| `TestReleaseNotesV0ExistAndPreserveBoundaries` checked `go run ./tools/lint` and `go run ./tools/depgate` but not `go run ./tools/coverage`, leaving the Release Gates list in `release-notes-v0.md` unguarded | Fixed |
+| No test verified that a package at exactly the threshold (85.0%) PASSes — only well-above (90%) or well-below (50%) values were tested | Fixed |
+| No test verified all three packages failing simultaneously — only the first package was tested in the below-threshold case | Fixed |
+| No test verified the exact output format string `coverage: <pkg>: X.X% (threshold Y%) PASS/FAIL` | Fixed |
+| No test verified execution failure when a mid-list or end-list package's coverage data is absent (only command missing was tested) | Fixed |
+| `TestTestingGuideDocumentsCoverageGate` verified section heading and command presence but not the tooling exception list (exception grants, critical-path test names) | Fixed |
+
+## Story 6.2 - Generated Tests
+
+### Unit Tests (new — `tools/coverage/main_test.go`)
+
+- [x] `TestCoveragePassesAtExactThreshold` — package at exactly 85.0% returns exit 0 and PASS (boundary: `pct < minPct` is false when equal).
+- [x] `TestCoverageFailsAllPackagesBelowThreshold` — all 3 packages below threshold each show FAIL, exit 1; no PASS markers.
+- [x] `TestCoverageOutputFormatVerifiesAllFields` — verifies exact format `coverage: <pkg>: X.X% (threshold Y%) PASS` for every threshold entry.
+- [x] `TestCoverageExecutionFailureWhenConfigMissing` — only command data present; config and flags absent → exit 2, coverage execution error to stderr, no stdout.
+
+### Test Strengthening (existing tests updated)
+
+- [x] `docs/release_checklist_test.go:TestReleaseNotesV0ExistAndPreserveBoundaries` — added `` "`go run ./tools/coverage`" `` to required release gate phrases.
+- [x] `docs/testing_test.go:TestTestingGuideDocumentsCoverageGate` — added checks for "tooling package", "exception granted", and named critical-path test functions (`TestCoveragePassesPackagesMeetingThreshold`, `TestCoverageFailsPackagesBelowThreshold`, `TestCoverageCommandRunsFromRepositoryRoot`).
+
+### Previously Implemented Tests (Story 6.2 dev agent — all pass)
+
+- [x] `tools/coverage/main_test.go:TestCoveragePassesPackagesMeetingThreshold`
+- [x] `tools/coverage/main_test.go:TestCoverageFailsPackagesBelowThreshold`
+- [x] `tools/coverage/main_test.go:TestCoverageSeparatesExecutionFailuresFromThresholdViolations`
+- [x] `tools/coverage/main_test.go:TestCoverageReportsDeterministicOutput`
+- [x] `tools/coverage/main_test.go:TestCoverageCommandRunsFromRepositoryRoot`
+- [x] `tools/cigate/ci_test.go:TestCIWorkflowRunsTrustGates` (coverage gate entry)
+- [x] `tools/cigate/ci_test.go:TestCIWorkflowRunsCoverageAfterVetAndBeforeDependencyGate`
+- [x] `tools/cigate/ci_test.go:TestReleaseChecklistCapturesRequiredEvidence` (coverage evidence entry)
+- [x] `docs/testing_test.go:TestTestingGuideDocumentsCoverageGate`
+- [x] `docs/release_checklist_test.go:TestReleaseChecklistRecordsReleaseCandidateEvidence`
+- [x] `docs/release_checklist_test.go:TestReleaseChecklistRecordsPassingRequiredGates`
+- [x] `docs/behavior_matrices_test.go:TestBehaviorMatricesCoverAdoptionEvidenceRows` (story 6.2 / fr24 / go run ./tools/coverage)
+
+## Story 6.2 - Coverage
+
+| Package | Statement Coverage | Notes |
+|---------|-------------------|-------|
+| `tools/coverage` | 76.7% | `main()` and `run()` at 0% (subprocess wrappers); `check()` at 100%. Tooling exception applies — see `docs/testing.md`. |
+| `command` | ≥85% | Enforced by the coverage gate itself (`TestCoverageCommandRunsFromRepositoryRoot`). |
+| `config` | ≥85% | Enforced by the coverage gate itself. |
+| `flags` | ≥85% | Enforced by the coverage gate itself. |
+
+## Story 6.2 - Validation
+
+- [x] `GOCACHE=/tmp/dib-go-build-qa6 go test ./tools/coverage` — PASS (9 tests)
+- [x] `GOCACHE=/tmp/dib-go-build-qa6 go test ./docs` — PASS (20 tests)
+- [x] `GOCACHE=/tmp/dib-go-build-qa6 go test ./tools/cigate` — PASS
+- [x] `GOCACHE=/tmp/dib-go-build-qa6 go test ./...` — PASS (9 packages)
+- [x] `GOCACHE=/tmp/dib-go-build-qa6 go vet ./...` — PASS
+- [x] `GOCACHE=/tmp/dib-go-build-qa6 go run ./tools/depgate` — PASS (zero external imports)
+
+## Story 6.2 - Checklist
+
+- [x] API tests generated (applicable — Go package unit tests for `tools/coverage`).
+- [x] E2E tests generated (CI gate ordering, doc evidence guards, release checklist guards).
+- [x] Tests use standard Go `testing` APIs.
+- [x] Tests cover happy path.
+- [x] Tests cover 1-2 critical error cases (execution failure, threshold violation, boundary).
+- [x] All generated tests run successfully.
+- [x] Tests use semantic command, CI, and documentation evidence locators.
+- [x] Tests have clear descriptions.
+- [x] No hardcoded waits or sleeps.
+- [x] Tests are independent (no order dependency).
+- [x] Test summary created.
+- [x] Tests saved to appropriate package-local directories.
+- [x] Summary includes coverage metrics.
+
+---
+
 ## Story 6.1 - Generated Tests
 
 ### API Tests

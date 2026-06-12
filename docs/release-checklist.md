@@ -10,6 +10,7 @@ Use this checklist for each Dib Go module tag. It records release-candidate evid
 - Date: 2026-06-12
 - Reviewer: Release reviewer
 - Story 6.1 evidence scope: lint evidence below was collected from the Story 6.1 working tree based on `7cfdfcaf62b9f344eb4258eb03fc95f6e4783ac6`; final tag commit reconciliation remains a later release-review step.
+- Story 6.2 evidence scope: coverage evidence below was collected from the Story 6.2 working tree; final tag commit reconciliation remains a later release-review step.
 
 ## Go Version Alignment
 
@@ -29,10 +30,19 @@ CI failures block tagging. Record the exact command outcome for each required ga
 - `go run ./tools/lint`: PASS on 2026-06-12 with `GOCACHE=/tmp/dib-go-build go run ./tools/lint`; output was empty and exit code was 0.
 - `go vet ./...`: PASS on 2026-06-12 with `GOCACHE=/tmp/dib-go-build go vet ./...`.
 - `go run ./tools/depgate`: PASS on 2026-06-12 with `GOCACHE=/tmp/dib-go-build go run ./tools/depgate`; output was empty and exit code was 0.
+- `go run ./tools/coverage`: PASS on 2026-06-12 with `GOCACHE=/tmp/dib-go-build go run ./tools/coverage`; per-package results recorded below.
 - Workflow file: `.github/workflows/ci.yml`
 - Runner image: `ubuntu-24.04`
 - `actions/checkout` version: `actions/checkout@v6`
 - `actions/setup-go` version: `actions/setup-go@v6` with `go-version-file: go.mod`
+
+### Coverage Validation Evidence
+
+Per-package results from `GOCACHE=/tmp/dib-go-build go run ./tools/coverage` on 2026-06-12:
+
+- `command`: observed 85.2%, threshold 85% — PASS
+- `config`: observed 89.6%, threshold 85% — PASS
+- `flags`: observed 85.0%, threshold 85% — PASS
 
 ## Release-Candidate Gates
 
@@ -59,6 +69,8 @@ CI failures block tagging. Record the exact command outcome for each required ga
 - Lint gate reviewed: PASS; `go run ./tools/lint` enforces deterministic Go formatting as a standard-library-only repository-local lint tool.
 - Lint isolation evidence: PASS; `tools/lint` imports only the Go standard library, CI invokes it with `go run ./tools/lint`, root `go.mod` remains dependency-free, and no external linter import appears under library, test, example, or tool packages.
 - Lint pinning evidence: PASS; `docs/testing.md` records the local command and isolation model, and the lint implementation is versioned in the repository with the Go version selected from `go.mod`; no floating linter version, shell installer, or external action is used.
+- Coverage gate reviewed: PASS; `go run ./tools/coverage` proves package-aware coverage for `command`, `config`, and `flags` public runtime packages against 85% per-package thresholds using a standard-library-only tool.
+- Coverage isolation evidence: PASS; `tools/coverage` imports only the Go standard library, uses `os/exec` (stdlib) to invoke `go test -cover`, no external coverage tool package enters the module graph, and CI invokes it with `go run ./tools/coverage`.
 - Any fixture-local dependency exceptions: Fixture-local external modules are isolated under `tools/depgate/testdata/` as intentional negative fixtures for `tools/depgate/main_test.go`.
 
 ## Waivers
