@@ -28,6 +28,21 @@ func TestRouteRootAndNestedCommands(t *testing.T) {
 			name:      "nested deploy apply",
 			args:      []string{"deploy", "apply"},
 			wantPath:  []string{"dib", "deploy", "apply"},
+			wantRem:   nil,
+			wantChild: "apply",
+		},
+		{
+			name:      "root alias resolves to canonical child",
+			args:      []string{"ship", "apply"},
+			wantPath:  []string{"dib", "deploy", "apply"},
+			wantRem:   nil,
+			wantChild: "apply",
+		},
+		{
+			name:      "nested alias resolves to canonical child",
+			args:      []string{"deploy", "push"},
+			wantPath:  []string{"dib", "deploy", "apply"},
+			wantRem:   nil,
 			wantChild: "apply",
 		},
 		{
@@ -130,12 +145,6 @@ func TestRouteUnknownCommandErrorsAreInspectable(t *testing.T) {
 			wantToken:  "--dry-run",
 			wantParent: []string{"dib", "deploy"},
 		},
-		{
-			name:       "alias metadata is not routed in story 3.1",
-			args:       []string{"ship"},
-			wantToken:  "ship",
-			wantParent: []string{"dib"},
-		},
 	}
 
 	for _, tt := range tests {
@@ -162,6 +171,116 @@ func TestRouteUnknownCommandErrorsAreInspectable(t *testing.T) {
 			}
 			if got := result.RemainingArgs(); len(got) != 0 {
 				t.Fatalf("failed Route returned non-zero remaining args: %q", got)
+			}
+		})
+	}
+}
+
+func TestRouteAliasesExposeCanonicalPathAndRawMatchTokens(t *testing.T) {
+	root := mustRoutingTree(t)
+
+	tests := []struct {
+		name            string
+		args            []string
+		wantPath        []string
+		wantMatchTokens []string
+	}{
+		{
+			name:            "canonical path",
+			args:            []string{"deploy", "apply"},
+			wantPath:        []string{"dib", "deploy", "apply"},
+			wantMatchTokens: []string{"dib", "deploy", "apply"},
+		},
+		{
+			name:            "root level alias",
+			args:            []string{"ship", "apply"},
+			wantPath:        []string{"dib", "deploy", "apply"},
+			wantMatchTokens: []string{"dib", "ship", "apply"},
+		},
+		{
+			name:            "nested alias",
+			args:            []string{"ship", "push"},
+			wantPath:        []string{"dib", "deploy", "apply"},
+			wantMatchTokens: []string{"dib", "ship", "push"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := root.Route(tt.args)
+			if err != nil {
+				t.Fatalf("Route returned unexpected error: %v", err)
+			}
+			if got := result.PathNames(); !reflect.DeepEqual(got, tt.wantPath) {
+				t.Fatalf("PathNames() = %q, want %q", got, tt.wantPath)
+			}
+			if got := result.MatchTokens(); !reflect.DeepEqual(got, tt.wantMatchTokens) {
+				t.Fatalf("MatchTokens() = %q, want %q", got, tt.wantMatchTokens)
+			}
+			command, ok := result.Command()
+			if !ok {
+				t.Fatal("Command() returned ok=false")
+			}
+			if got := command.Name(); got != "apply" {
+				t.Fatalf("Command().Name() = %q, want %q", got, "apply")
+			}
+		})
+	}
+}
+
+func TestRouteUnknownCommandNearAliasesIsInspectable(t *testing.T) {
+	root := mustRoutingTree(t)
+
+	tests := []struct {
+		name       string
+		args       []string
+		wantToken  string
+		wantParent []string
+	}{
+		{
+			name:       "typo of root alias",
+			args:       []string{"shpi"},
+			wantToken:  "shpi",
+			wantParent: []string{"dib"},
+		},
+		{
+			name:       "typo under alias matched parent",
+			args:       []string{"ship", "pus"},
+			wantToken:  "pus",
+			wantParent: []string{"dib", "deploy"},
+		},
+		{
+			name:       "alias in different sibling scope",
+			args:       []string{"status", "push"},
+			wantToken:  "push",
+			wantParent: []string{"dib", "status"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := root.Route(tt.args)
+			if err == nil {
+				t.Fatal("Route returned nil error")
+			}
+			if !errors.Is(err, command.ErrUnknownCommand) {
+				t.Fatalf("error does not satisfy ErrUnknownCommand: %v", err)
+			}
+			var unknown *command.UnknownCommandError
+			if !errors.As(err, &unknown) {
+				t.Fatalf("error does not expose UnknownCommandError: %T", err)
+			}
+			if got := unknown.Token(); got != tt.wantToken {
+				t.Fatalf("Token() = %q, want %q", got, tt.wantToken)
+			}
+			if got := unknown.ParentPath(); !reflect.DeepEqual(got, tt.wantParent) {
+				t.Fatalf("ParentPath() = %q, want %q", got, tt.wantParent)
+			}
+			if got := result.PathNames(); len(got) != 0 {
+				t.Fatalf("failed Route returned non-zero path: %q", got)
+			}
+			if got := result.MatchTokens(); len(got) != 0 {
+				t.Fatalf("failed Route returned non-zero match tokens: %q", got)
 			}
 		})
 	}
@@ -202,6 +321,9 @@ func TestRouteSnapshotsAreDefensiveAndDeterministic(t *testing.T) {
 	if got := result.RemainingArgs(); !reflect.DeepEqual(got, []string{"manifest.yaml"}) {
 		t.Fatalf("RemainingArgs() changed after caller args mutation: %q", got)
 	}
+	if got := result.MatchTokens(); !reflect.DeepEqual(got, []string{"dib", "deploy", "apply"}) {
+		t.Fatalf("MatchTokens() changed after caller args mutation: %q", got)
+	}
 
 	names := result.PathNames()
 	names[0] = "mutated"
@@ -215,6 +337,12 @@ func TestRouteSnapshotsAreDefensiveAndDeterministic(t *testing.T) {
 		t.Fatalf("RemainingArgs() leaked mutable slice: %q", got)
 	}
 
+	matchTokens := result.MatchTokens()
+	matchTokens[0] = "mutated"
+	if got := result.MatchTokens(); !reflect.DeepEqual(got, []string{"dib", "deploy", "apply"}) {
+		t.Fatalf("MatchTokens() leaked mutable slice: %q", got)
+	}
+
 	const runs = 32
 	var wg sync.WaitGroup
 	errs := make(chan string, runs)
@@ -222,13 +350,17 @@ func TestRouteSnapshotsAreDefensiveAndDeterministic(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			got, err := root.Route([]string{"deploy", "apply", "manifest.yaml"})
+			got, err := root.Route([]string{"ship", "push", "manifest.yaml"})
 			if err != nil {
 				errs <- err.Error()
 				return
 			}
 			if !reflect.DeepEqual(got.PathNames(), []string{"dib", "deploy", "apply"}) {
 				errs <- "unexpected path"
+				return
+			}
+			if !reflect.DeepEqual(got.MatchTokens(), []string{"dib", "ship", "push"}) {
+				errs <- "unexpected match tokens"
 				return
 			}
 			if !reflect.DeepEqual(got.RemainingArgs(), []string{"manifest.yaml"}) {
@@ -246,7 +378,7 @@ func TestRouteSnapshotsAreDefensiveAndDeterministic(t *testing.T) {
 func mustRoutingTree(t *testing.T) command.Definition {
 	t.Helper()
 
-	apply, err := command.NewDefinition("apply", command.Description("apply a deployment"))
+	apply, err := command.NewDefinition("apply", command.Description("apply a deployment"), command.Aliases("push"))
 	if err != nil {
 		t.Fatalf("NewDefinition(apply) returned unexpected error: %v", err)
 	}
@@ -264,7 +396,11 @@ func mustRoutingTree(t *testing.T) command.Definition {
 	if err != nil {
 		t.Fatalf("NewDefinition(deploy) returned unexpected error: %v", err)
 	}
-	status, err := command.NewDefinition("status")
+	statusChild, err := command.NewDefinition("show")
+	if err != nil {
+		t.Fatalf("NewDefinition(show) returned unexpected error: %v", err)
+	}
+	status, err := command.NewDefinition("status", command.Children(statusChild))
 	if err != nil {
 		t.Fatalf("NewDefinition(status) returned unexpected error: %v", err)
 	}

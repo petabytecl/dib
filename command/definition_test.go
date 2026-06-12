@@ -71,10 +71,13 @@ func TestDefinitionDerivationDoesNotMutateOriginalsOrLeakAliases(t *testing.T) {
 		t.Fatalf("NewDefinition(deploy) returned unexpected error: %v", err)
 	}
 
-	derived := deploy.
+	derived, err := deploy.
 		WithDescription("deploy workloads").
-		WithAliases("dep", "release").
-		WithUsage("deploy <command>")
+		WithAliases("dep", "release")
+	if err != nil {
+		t.Fatalf("WithAliases returned unexpected error: %v", err)
+	}
+	derived = derived.WithUsage("deploy <command>")
 	derived, err = derived.WithChildren(apply)
 	if err != nil {
 		t.Fatalf("WithChildren returned unexpected error: %v", err)
@@ -119,6 +122,168 @@ func TestDefinitionRejectsBlankChildNames(t *testing.T) {
 	}
 }
 
+func TestDefinitionRejectsInvalidAliases(t *testing.T) {
+	tests := []struct {
+		name    string
+		command string
+		aliases []string
+	}{
+		{name: "blank alias", command: "deploy", aliases: []string{" "}},
+		{name: "self alias", command: "deploy", aliases: []string{"deploy"}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := command.NewDefinition(tt.command, command.Aliases(tt.aliases...))
+			if err == nil {
+				t.Fatal("NewDefinition returned nil error")
+			}
+			if !errors.Is(err, command.ErrInvalidCommandAlias) {
+				t.Fatalf("error does not satisfy ErrInvalidCommandAlias: %v", err)
+			}
+			var aliasErr *command.AliasError
+			if !errors.As(err, &aliasErr) {
+				t.Fatalf("error does not expose AliasError: %T", err)
+			}
+			if got := aliasErr.Command(); got != tt.command {
+				t.Fatalf("Command() = %q, want %q", got, tt.command)
+			}
+		})
+	}
+}
+
+func TestDefinitionRejectsAliasTokenCollisions(t *testing.T) {
+	t.Run("duplicate aliases on one command", func(t *testing.T) {
+		_, err := command.NewDefinition("deploy", command.Aliases("ship", "ship"))
+		if err == nil {
+			t.Fatal("NewDefinition returned nil error")
+		}
+		if !errors.Is(err, command.ErrDuplicateCommandToken) {
+			t.Fatalf("error does not satisfy ErrDuplicateCommandToken: %v", err)
+		}
+		var conflict *command.TokenConflictError
+		if !errors.As(err, &conflict) {
+			t.Fatalf("error does not expose TokenConflictError: %T", err)
+		}
+		if got := conflict.Token(); got != "ship" {
+			t.Fatalf("Token() = %q, want %q", got, "ship")
+		}
+		if got := conflict.FirstCommand(); got != "deploy" {
+			t.Fatalf("FirstCommand() = %q, want %q", got, "deploy")
+		}
+		if got := conflict.CollidingCommand(); got != "deploy" {
+			t.Fatalf("CollidingCommand() = %q, want %q", got, "deploy")
+		}
+	})
+
+	tests := []struct {
+		name          string
+		children      func(t *testing.T) []command.Definition
+		wantToken     string
+		wantFirst     string
+		wantColliding string
+	}{
+		{
+			name: "duplicate child names",
+			children: func(t *testing.T) []command.Definition {
+				return []command.Definition{
+					mustDefinition(t, "deploy"),
+					mustDefinition(t, "deploy"),
+				}
+			},
+			wantToken:     "deploy",
+			wantFirst:     "deploy",
+			wantColliding: "deploy",
+		},
+		{
+			name: "alias matches sibling child name",
+			children: func(t *testing.T) []command.Definition {
+				deploy := mustDefinition(t, "deploy", command.Aliases("status"))
+				status := mustDefinition(t, "status")
+				return []command.Definition{deploy, status}
+			},
+			wantToken:     "status",
+			wantFirst:     "status",
+			wantColliding: "deploy",
+		},
+		{
+			name: "alias matches sibling alias",
+			children: func(t *testing.T) []command.Definition {
+				deploy := mustDefinition(t, "deploy", command.Aliases("run"))
+				status := mustDefinition(t, "status", command.Aliases("run"))
+				return []command.Definition{deploy, status}
+			},
+			wantToken:     "run",
+			wantFirst:     "deploy",
+			wantColliding: "status",
+		},
+		{
+			name: "cross alias cycle",
+			children: func(t *testing.T) []command.Definition {
+				apply := mustDefinition(t, "apply", command.Aliases("plan"))
+				plan := mustDefinition(t, "plan", command.Aliases("apply"))
+				return []command.Definition{apply, plan}
+			},
+			wantToken:     "plan",
+			wantFirst:     "plan",
+			wantColliding: "apply",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			root := mustDefinition(t, "dib")
+			_, err := root.WithChildren(tt.children(t)...)
+			if err == nil {
+				t.Fatal("WithChildren returned nil error")
+			}
+			if !errors.Is(err, command.ErrDuplicateCommandToken) {
+				t.Fatalf("error does not satisfy ErrDuplicateCommandToken: %v", err)
+			}
+			var conflict *command.TokenConflictError
+			if !errors.As(err, &conflict) {
+				t.Fatalf("error does not expose TokenConflictError: %T", err)
+			}
+			if got := conflict.ParentPath(); !reflect.DeepEqual(got, []string{"dib"}) {
+				t.Fatalf("ParentPath() = %q, want %q", got, []string{"dib"})
+			}
+			if got := conflict.Token(); got != tt.wantToken {
+				t.Fatalf("Token() = %q, want %q", got, tt.wantToken)
+			}
+			if got := conflict.FirstCommand(); got != tt.wantFirst {
+				t.Fatalf("FirstCommand() = %q, want %q", got, tt.wantFirst)
+			}
+			if got := conflict.CollidingCommand(); got != tt.wantColliding {
+				t.Fatalf("CollidingCommand() = %q, want %q", got, tt.wantColliding)
+			}
+		})
+	}
+}
+
+func TestDefinitionDerivationValidationDoesNotMutateOriginals(t *testing.T) {
+	apply := mustDefinition(t, "apply")
+	plan := mustDefinition(t, "plan")
+	deploy := mustDefinition(t, "deploy", command.Aliases("ship"))
+
+	if _, err := deploy.WithAliases("deploy"); err == nil {
+		t.Fatal("WithAliases returned nil error")
+	}
+	if got := deploy.Aliases(); !reflect.DeepEqual(got, []string{"ship"}) {
+		t.Fatalf("failed WithAliases mutated original aliases: %q", got)
+	}
+
+	derived, err := deploy.WithChildren(apply)
+	if err != nil {
+		t.Fatalf("WithChildren(apply) returned unexpected error: %v", err)
+	}
+	if _, err := derived.WithChildren(apply, mustWithAliases(t, plan, "apply")); err == nil {
+		t.Fatal("WithChildren returned nil error")
+	}
+	if got := derived.Children(); len(got) != 1 || got[0].Name() != "apply" {
+		t.Fatalf("failed WithChildren mutated previous derived children: %v", got)
+	}
+}
+
 func ExampleNewDefinition() {
 	definition, err := command.NewDefinition("serve")
 	if err != nil {
@@ -128,4 +293,24 @@ func ExampleNewDefinition() {
 
 	fmt.Println(definition.Name())
 	// Output: serve
+}
+
+func mustDefinition(t *testing.T, name string, options ...command.Option) command.Definition {
+	t.Helper()
+
+	definition, err := command.NewDefinition(name, options...)
+	if err != nil {
+		t.Fatalf("NewDefinition(%q) returned unexpected error: %v", name, err)
+	}
+	return definition
+}
+
+func mustWithAliases(t *testing.T, d command.Definition, aliases ...string) command.Definition {
+	t.Helper()
+
+	derived, err := d.WithAliases(aliases...)
+	if err != nil {
+		t.Fatalf("WithAliases returned unexpected error: %v", err)
+	}
+	return derived
 }

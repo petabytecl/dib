@@ -62,11 +62,11 @@ func TestRoutingUsesExplicitInputsAndReturnedValues(t *testing.T) {
 	os.Args = []string{"dib", "ambient", "command"}
 	t.Setenv("DIB_COMMAND_NAME", "ambient-command")
 
-	apply, err := command.NewDefinition("apply")
+	apply, err := command.NewDefinition("apply", command.Aliases("push"))
 	if err != nil {
 		t.Fatalf("NewDefinition(apply) returned unexpected error: %v", err)
 	}
-	deploy, err := command.NewDefinition("deploy", command.Children(apply))
+	deploy, err := command.NewDefinition("deploy", command.Aliases("ship"), command.Children(apply))
 	if err != nil {
 		t.Fatalf("NewDefinition(deploy) returned unexpected error: %v", err)
 	}
@@ -75,12 +75,15 @@ func TestRoutingUsesExplicitInputsAndReturnedValues(t *testing.T) {
 		t.Fatalf("NewDefinition(dib) returned unexpected error: %v", err)
 	}
 
-	result, err := root.Route([]string{"deploy", "apply", "manifest.yaml"})
+	result, err := root.Route([]string{"ship", "push", "manifest.yaml"})
 	if err != nil {
 		t.Fatalf("Route returned unexpected error: %v", err)
 	}
 	if got := result.PathNames(); !reflect.DeepEqual(got, []string{"dib", "deploy", "apply"}) {
 		t.Fatalf("PathNames() = %q, want %q", got, []string{"dib", "deploy", "apply"})
+	}
+	if got := result.MatchTokens(); !reflect.DeepEqual(got, []string{"dib", "ship", "push"}) {
+		t.Fatalf("MatchTokens() = %q, want %q", got, []string{"dib", "ship", "push"})
 	}
 	if got := result.RemainingArgs(); !reflect.DeepEqual(got, []string{"manifest.yaml"}) {
 		t.Fatalf("RemainingArgs() = %q, want %q", got, []string{"manifest.yaml"})

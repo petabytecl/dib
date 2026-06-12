@@ -1,38 +1,41 @@
 # Test Automation Summary
 
-## Story 3.1 - Gap Analysis
+## Story 3.2 - Gap Analysis
 
-Story 3.1 is a Go package command-routing story. There is no HTTP API endpoint
+Story 3.2 is a Go package command-routing story. There is no HTTP API endpoint
 or UI/browser surface, so the applicable automated coverage is package-level
-API and end-to-end routing workflow tests using Go's standard `testing`
+public API and end-to-end routing workflow tests using Go's standard `testing`
 package.
 
 The workflow found and fixed these test gaps:
 
 | Gap | Status |
 | --- | --- |
-| Unknown-command coverage did not prove flag-like tokens before a leaf remain command-routing failures instead of being parsed as flags | Fixed |
-| Unknown-command coverage did not prove alias metadata is not routed in Story 3.1 | Fixed |
-| Routing did not have an explicit test for the zero-value root definition failing through the `NameError` contract with a zero-value result | Fixed |
+| Alias routing coverage was spread across focused unit tests but did not include one public API workflow spanning setup, alias routing, canonical snapshots, raw match tokens, and remaining args | Fixed |
+| Typed unknown-command failure coverage did not have a workflow-level alias typo case asserting zero-value result snapshots and inspectable parent path together | Fixed |
+| Setup-time alias collision coverage existed through derivation paths but did not directly cover constructor option validation for ambiguous child aliases | Fixed |
 
 ## Generated Tests
 
 ### API Tests
 
-- [x] `command/route_test.go` - `TestRouteRejectsInvalidRootDefinition` validates invalid root routing fails through `*command.NameError` and returns a zero-value result.
-- [x] `command/route_test.go` - `TestRouteUnknownCommandErrorsAreInspectable` now covers flag-like unknown tokens and alias metadata tokens in addition to root and nested unknown commands.
+- [x] `command/alias_workflow_test.go` - `TestAliasRoutingPublicAPIWorkflow` validates command construction, root and nested alias routing, canonical paths, raw match tokens, remaining args, and canonical-vs-alias parity through public APIs.
+- [x] `command/alias_workflow_test.go` - `TestAliasRoutingPublicAPIWorkflowTypedFailures` validates alias typo failures through `ErrUnknownCommand`, `*command.UnknownCommandError`, parent path accessors, and zero-value failed results.
+- [x] `command/alias_workflow_test.go` - `TestAliasSetupValidationThroughConstructorOptions` validates constructor-time alias token collision diagnostics through `ErrDuplicateCommandToken` and `*command.TokenConflictError`.
 
 ### E2E Tests
 
-- [x] `command/route_test.go` - `TestRouteRootAndNestedCommands` covers root, nested, remaining-args, flag-like leaf args, and `--` routing workflows.
-- [x] `command/contract_test.go` - `TestRoutingUsesExplicitInputsAndReturnedValues` covers routing end to end with misleading process args, environment, stdout, and stderr.
+- [x] `command/alias_workflow_test.go` - `TestAliasRoutingPublicAPIWorkflow` covers the end-to-end command routing workflow for Story 3.2's non-UI command API surface.
+- [x] Browser UI E2E tests are not applicable; this repository has no UI surface for Story 3.2.
 
 ## Coverage
 
 - API endpoints: 0/0 applicable.
 - UI features: 0/0 applicable.
-- Command routing behavior areas covered: root routing, nested routing, remaining args, `--` boundary behavior, unknown command diagnostics, alias metadata non-routing, invalid root diagnostics, immutable snapshots, defensive copies, deterministic concurrent route calls, and process-state isolation.
-- Story 3.1 command package test functions covered: 13/13.
+- Command public API workflow gaps fixed: 3/3.
+- Story 3.2 generated command test functions: 3.
+- Command package test functions after generation: 24 tests plus 1 example.
+- Story 3.2 behavior areas covered by command tests: alias setup validation, duplicate lookup token diagnostics, root and nested alias routing, canonical route snapshots, raw match-token snapshots, remaining args, unknown commands near aliases, defensive copies, repeatable/concurrent route calls, and process-state isolation.
 
 ## Validation
 

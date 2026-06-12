@@ -45,6 +45,9 @@ func NewDefinition(name string, options ...Option) (Definition, error) {
 			return Definition{}, err
 		}
 	}
+	if err := validateAliases(nil, definition.name, definition.aliases); err != nil {
+		return Definition{}, err
+	}
 
 	return definition, nil
 }
@@ -85,6 +88,9 @@ func Description(description string) Option {
 // Aliases records command alias metadata.
 func Aliases(aliases ...string) Option {
 	return func(d *Definition) error {
+		if err := validateAliases(nil, d.name, aliases); err != nil {
+			return err
+		}
 		d.aliases = append([]string(nil), aliases...)
 		return nil
 	}
@@ -101,7 +107,7 @@ func Usage(usage string) Option {
 // Children records nested child command definitions.
 func Children(children ...Definition) Option {
 	return func(d *Definition) error {
-		if err := validateChildren(children); err != nil {
+		if err := validateChildren([]string{d.name}, children); err != nil {
 			return err
 		}
 		d.children = cloneDefinitions(children)
@@ -116,9 +122,12 @@ func (d Definition) WithDescription(description string) Definition {
 }
 
 // WithAliases returns a definition derived with new alias metadata.
-func (d Definition) WithAliases(aliases ...string) Definition {
+func (d Definition) WithAliases(aliases ...string) (Definition, error) {
+	if err := validateAliases(nil, d.name, aliases); err != nil {
+		return Definition{}, err
+	}
 	d.aliases = append([]string(nil), aliases...)
-	return d
+	return d, nil
 }
 
 // WithUsage returns a definition derived with new usage metadata.
@@ -129,20 +138,64 @@ func (d Definition) WithUsage(usage string) Definition {
 
 // WithChildren returns a definition derived with new child command definitions.
 func (d Definition) WithChildren(children ...Definition) (Definition, error) {
-	if err := validateChildren(children); err != nil {
+	if err := validateChildren([]string{d.name}, children); err != nil {
 		return Definition{}, err
 	}
 	d.children = cloneDefinitions(children)
 	return d, nil
 }
 
-func validateChildren(children []Definition) error {
+func validateAliases(parentPath []string, command string, aliases []string) error {
+	seen := make(map[string]struct{}, len(aliases))
+	for _, alias := range aliases {
+		if strings.TrimSpace(alias) == "" {
+			return newAliasError(parentPath, command, alias)
+		}
+		if alias == command {
+			return newAliasError(parentPath, command, alias)
+		}
+		if _, ok := seen[alias]; ok {
+			return newTokenConflictError(parentPath, alias, command, command)
+		}
+		seen[alias] = struct{}{}
+	}
+	return nil
+}
+
+func validateChildren(parentPath []string, children []Definition) error {
 	for _, child := range children {
 		if strings.TrimSpace(child.name) == "" {
 			return &NameError{}
 		}
+		if err := validateAliases(parentPath, child.name, child.aliases); err != nil {
+			return err
+		}
+		if err := validateChildren(appendPath(parentPath, child.name), child.children); err != nil {
+			return err
+		}
+	}
+
+	owners := make(map[string]string, len(children))
+	for _, child := range children {
+		if first, ok := owners[child.name]; ok {
+			return newTokenConflictError(parentPath, child.name, first, child.name)
+		}
+		owners[child.name] = child.name
+	}
+	for _, child := range children {
+		for _, alias := range child.aliases {
+			if first, ok := owners[alias]; ok {
+				return newTokenConflictError(parentPath, alias, first, child.name)
+			}
+			owners[alias] = child.name
+		}
 	}
 	return nil
+}
+
+func appendPath(path []string, name string) []string {
+	next := append([]string(nil), path...)
+	return append(next, name)
 }
 
 func cloneDefinitions(definitions []Definition) []Definition {

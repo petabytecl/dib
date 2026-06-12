@@ -2,14 +2,16 @@ package command
 
 // Result is a self-contained snapshot of one command routing run.
 type Result struct {
-	path      []Definition
-	remaining []string
+	path        []Definition
+	matchTokens []string
+	remaining   []string
 }
 
-func newResult(path []Definition, remaining []string) Result {
+func newResult(path []Definition, matchTokens []string, remaining []string) Result {
 	return Result{
-		path:      cloneDefinitions(path),
-		remaining: append([]string(nil), remaining...),
+		path:        cloneDefinitions(path),
+		matchTokens: append([]string(nil), matchTokens...),
+		remaining:   append([]string(nil), remaining...),
 	}
 }
 
@@ -21,6 +23,11 @@ func (r Result) Path() []Definition {
 // PathNames returns the canonical matched command name path.
 func (r Result) PathNames() []string {
 	return pathNames(r.path)
+}
+
+// MatchTokens returns the raw input tokens that matched the canonical path.
+func (r Result) MatchTokens() []string {
+	return append([]string(nil), r.matchTokens...)
 }
 
 // Command returns the final matched command definition.

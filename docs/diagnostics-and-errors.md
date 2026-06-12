@@ -120,6 +120,17 @@ result so callers cannot accidentally use partial routing state. Routing
 diagnostics do not render help, call `os.Exit`, read `os.Args`, or write to
 stdout or stderr.
 
+Story 3.2 adds command alias setup diagnostics. Blank aliases and aliases that
+match their own command name return `command.ErrInvalidCommandAlias` through
+`*command.AliasError`; callers can inspect the command name, alias token, and
+parent path when one is available. Ambiguous lookup tokens return
+`command.ErrDuplicateCommandToken` through `*command.TokenConflictError`;
+callers can inspect the parent path, conflicting token, first canonical child
+command, and colliding canonical child command. This category covers duplicate
+child names, duplicate aliases, alias-vs-child-name collisions, and cross-alias
+cycles. Diagnostic strings remain non-contractual; callers should use
+`errors.Is`, `errors.As`, and accessors.
+
 ## Source Labels
 
 Config provenance source labels are fixed to these exact spellings:
@@ -152,6 +163,7 @@ add the initial `flags` definition, normalization, conversion, long-parse,
 shorthand-parse, shorthand-group, repeated-value, custom-parser, and
 help-request categories, plus parser fuzz evidence that those categories remain
 inspectable under arbitrary input. Story 3.1 adds the first `command` routing
-diagnostic for unknown commands. Later stories own source-report structures,
-rendered diagnostics, config provenance, and the remaining concrete error
-categories for each package surface.
+diagnostic for unknown commands. Story 3.2 adds command alias setup diagnostics
+for invalid aliases and duplicate lookup tokens. Later stories own
+source-report structures, rendered diagnostics, config provenance, and the
+remaining concrete error categories for each package surface.

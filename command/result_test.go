@@ -31,6 +31,24 @@ func TestRouteResultExposesDefensivePathDefinitions(t *testing.T) {
 	}
 }
 
+func TestRouteResultExposesDefensiveMatchTokens(t *testing.T) {
+	root := mustRoutingTree(t)
+
+	result, err := root.Route([]string{"ship", "push"})
+	if err != nil {
+		t.Fatalf("Route returned unexpected error: %v", err)
+	}
+
+	tokens := result.MatchTokens()
+	if !reflect.DeepEqual(tokens, []string{"dib", "ship", "push"}) {
+		t.Fatalf("MatchTokens() = %q, want %q", tokens, []string{"dib", "ship", "push"})
+	}
+	tokens[0] = "mutated"
+	if got := result.MatchTokens(); !reflect.DeepEqual(got, []string{"dib", "ship", "push"}) {
+		t.Fatalf("MatchTokens() leaked mutable slice: %q", got)
+	}
+}
+
 func pathNames(path []command.Definition) []string {
 	names := make([]string, len(path))
 	for i, def := range path {
