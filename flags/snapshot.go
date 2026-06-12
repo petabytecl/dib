@@ -107,7 +107,7 @@ func (o ValueOccurrence) Spelling() string {
 	return o.spelling
 }
 
-// NormalizedName returns the lookup key used for this occurrence.
+// NormalizedName returns the stable lookup key used for this occurrence.
 func (o ValueOccurrence) NormalizedName() string {
 	return o.normalizedName
 }

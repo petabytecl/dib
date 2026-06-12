@@ -13,6 +13,16 @@ func (s Set) Parse(args []string) (Snapshot, error) {
 			break
 		}
 		if !isLongFlagToken(arg) {
+			if isShortFlagToken(arg) {
+				next, consumed, err := s.parseShort(args, i, &snapshot)
+				if err != nil {
+					return Snapshot{}, err
+				}
+				if consumed {
+					i = next
+				}
+				continue
+			}
 			snapshot.remaining = append(snapshot.remaining, arg)
 			continue
 		}
@@ -29,6 +39,17 @@ func (s Set) Parse(args []string) (Snapshot, error) {
 	return snapshot, nil
 }
 
+func (s Set) parseShort(args []string, index int, snapshot *Snapshot) (int, bool, error) {
+	arg := args[index]
+	token, shorthand, rawValue, hasAttachedValue := splitShortFlag(arg)
+
+	def, ok := s.lookupShorthand(shorthand)
+	if !ok {
+		return index, false, newParseError(ErrUnknownFlag, token, shorthand, "", Definition{}, false, nil)
+	}
+	return parseResolvedFlag(args, index, snapshot, def, token, shorthand, def.name, rawValue, hasAttachedValue, false)
+}
+
 func (s Set) parseLong(args []string, index int, snapshot *Snapshot) (int, bool, error) {
 	arg := args[index]
 	token, name, rawValue, hasAttachedValue := splitLongFlag(arg)
@@ -38,8 +59,23 @@ func (s Set) parseLong(args []string, index int, snapshot *Snapshot) (int, bool,
 	if !ok {
 		return index, false, newParseError(ErrUnknownFlag, token, name, normalizedName, Definition{}, false, nil)
 	}
+	return parseResolvedFlag(args, index, snapshot, def, token, name, normalizedName, rawValue, hasAttachedValue, true)
+}
+
+func parseResolvedFlag(
+	args []string,
+	index int,
+	snapshot *Snapshot,
+	def Definition,
+	token string,
+	name string,
+	lookupKey string,
+	rawValue string,
+	hasAttachedValue bool,
+	stopBeforeLong bool,
+) (int, bool, error) {
 	if state, ok := snapshot.values[def.name]; ok && state.explicit && def.repeatPolicy != RepeatAccumulated {
-		return index, false, newParseError(ErrDuplicateValue, token, name, normalizedName, def, true, nil)
+		return index, false, newParseError(ErrDuplicateValue, token, name, lookupKey, def, true, nil)
 	}
 
 	valueRaw := rawValue
@@ -49,15 +85,15 @@ func (s Set) parseLong(args []string, index int, snapshot *Snapshot) (int, bool,
 		case ArityOptional:
 			value, err := noOptionValue(def)
 			if err != nil {
-				return index, false, newParseError(ErrConversion, token, name, normalizedName, def, true, err)
+				return index, false, newParseError(ErrConversion, token, name, lookupKey, def, true, err)
 			}
-			if err := applyParsedValue(snapshot, def, token, name, normalizedName, value); err != nil {
+			if err := applyParsedValue(snapshot, def, token, name, lookupKey, value); err != nil {
 				return index, false, err
 			}
 			return index, false, nil
 		case ArityRequired:
-			if index+1 >= len(args) || args[index+1] == "--" || isLongFlagToken(args[index+1]) {
-				return index, false, newParseError(ErrMissingValue, token, name, normalizedName, def, true, nil)
+			if index+1 >= len(args) || args[index+1] == "--" || (stopBeforeLong && isLongFlagToken(args[index+1])) {
+				return index, false, newParseError(ErrMissingValue, token, name, lookupKey, def, true, nil)
 			}
 			valueRaw = args[index+1]
 			consumedNext = true
@@ -68,9 +104,9 @@ func (s Set) parseLong(args []string, index int, snapshot *Snapshot) (int, bool,
 
 	value, err := def.Parse(valueRaw)
 	if err != nil {
-		return index, false, newParseError(ErrConversion, token, name, normalizedName, def, true, err)
+		return index, false, newParseError(ErrConversion, token, name, lookupKey, def, true, err)
 	}
-	if err := applyParsedValue(snapshot, def, token, name, normalizedName, value); err != nil {
+	if err := applyParsedValue(snapshot, def, token, name, lookupKey, value); err != nil {
 		return index, false, err
 	}
 	if consumedNext {
@@ -85,8 +121,26 @@ func splitLongFlag(arg string) (token string, name string, rawValue string, hasA
 	return "--" + namePart, namePart, value, found
 }
 
+func splitShortFlag(arg string) (token string, shorthand string, rawValue string, hasAttachedValue bool) {
+	body := strings.TrimPrefix(arg, "-")
+	namePart, value, found := strings.Cut(body, "=")
+	return "-" + namePart, namePart, value, found
+}
+
 func isLongFlagToken(arg string) bool {
 	return strings.HasPrefix(arg, "--") && arg != "--"
+}
+
+func isShortFlagToken(arg string) bool {
+	return strings.HasPrefix(arg, "-") && arg != "-" && !strings.HasPrefix(arg, "--")
+}
+
+func (s Set) lookupShorthand(shorthand string) (Definition, bool) {
+	index, ok := s.byShort[shorthand]
+	if !ok {
+		return Definition{}, false
+	}
+	return s.definitions[index], true
 }
 
 func noOptionValue(def Definition) (any, error) {

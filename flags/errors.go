@@ -216,7 +216,7 @@ func (e *ParseError) Token() string {
 	return e.token
 }
 
-// Name returns the raw long flag name from the source token.
+// Name returns the raw source flag identifier: the long flag name or shorthand.
 func (e *ParseError) Name() string {
 	if e == nil {
 		return ""
@@ -224,7 +224,7 @@ func (e *ParseError) Name() string {
 	return e.name
 }
 
-// NormalizedName returns the lookup key produced by the set normalizer.
+// NormalizedName returns the stable lookup key for the matched source spelling.
 func (e *ParseError) NormalizedName() string {
 	if e == nil {
 		return ""

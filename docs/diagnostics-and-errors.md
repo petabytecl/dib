@@ -51,6 +51,17 @@ Unknown long flags use `flags.ErrUnknownFlag`, omitted required values use
 source token without attached raw values, the raw long name, the normalized
 lookup key, and the canonical definition when one was resolved.
 
+Story 2.4 widens the same parse diagnostic contract to one-rune shorthand
+tokens. Unknown shorthand uses `flags.ErrUnknownFlag`; omitted required
+shorthand values use `flags.ErrMissingValue`; duplicate values across long and
+short spellings reuse `flags.ErrDuplicateValue`; and shorthand conversion
+failures continue to satisfy `flags.ErrConversion` and expose
+`*flags.ValueError`. For shorthand parse errors, `ParseError.Token` exposes the
+source token without any attached raw value, `ParseError.Name` exposes the
+failing shorthand text, and `ParseError.NormalizedName` exposes the canonical
+definition name when a definition was resolved. Short flag diagnostics must not
+run through long-name normalization and must not echo sensitive raw values.
+
 ## Source Labels
 
 Config provenance source labels are fixed to these exact spellings:
@@ -78,7 +89,8 @@ or validation failures.
 
 ## Current Scope
 
-Story 1.3 established the shared contract language. Story 2.1 adds initial
-`flags` definition and conversion categories. Later stories own source-report
-structures, rendered diagnostics, config provenance, and the remaining concrete
-error categories for each package surface.
+Story 1.3 established the shared contract language. Stories 2.1 through 2.4
+add the initial `flags` definition, normalization, conversion, long-parse, and
+shorthand-parse categories. Later stories own source-report structures,
+rendered diagnostics, config provenance, shorthand-group diagnostics, and the
+remaining concrete error categories for each package surface.
