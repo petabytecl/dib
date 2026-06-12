@@ -17,6 +17,7 @@ var (
 	ErrDuplicateValue          = errors.New("duplicate flag value")
 	ErrConversion              = errors.New("flag value conversion failed")
 	ErrInvalidGroup            = errors.New("invalid shorthand group")
+	ErrHelpRequest             = errors.New("flag help request")
 )
 
 // DefinitionError reports an inspectable setup-time definition failure.

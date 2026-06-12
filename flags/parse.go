@@ -48,6 +48,9 @@ func (s Set) parseShort(args []string, index int, snapshot *Snapshot) (int, bool
 
 	def, ok := s.lookupShorthand(shorthand)
 	if !ok {
+		if shorthand == "h" {
+			return index, false, newParseError(ErrHelpRequest, "--help", "help", "", Definition{}, false, nil)
+		}
 		return index, false, newParseError(ErrUnknownFlag, token, shorthand, "", Definition{}, false, nil)
 	}
 	return parseResolvedFlag(args, index, snapshot, def, token, shorthand, def.name, rawValue, hasAttachedValue, false)
@@ -60,6 +63,9 @@ func (s Set) parseLong(args []string, index int, snapshot *Snapshot) (int, bool,
 
 	def, ok := s.Lookup(name)
 	if !ok {
+		if name == "help" {
+			return index, false, newParseError(ErrHelpRequest, token, name, normalizedName, Definition{}, false, nil)
+		}
 		return index, false, newParseError(ErrUnknownFlag, token, name, normalizedName, Definition{}, false, nil)
 	}
 	return parseResolvedFlag(args, index, snapshot, def, token, name, normalizedName, rawValue, hasAttachedValue, true)

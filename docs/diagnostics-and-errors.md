@@ -89,6 +89,19 @@ parser cause through Go error inspection. Sensitive custom parser failures keep
 the typed Dib context but do not expose raw sensitive values or the caller cause
 that may contain them.
 
+Story 2.7 adds `flags.ErrHelpRequest` as a new parse diagnostic category. When
+`--help` is parsed and no `help` long flag is registered, or when `-h` is parsed
+and no `h` shorthand is registered, `flags.Set.Parse` returns a `*flags.ParseError`
+whose category is `flags.ErrHelpRequest`. The error is not an unknown-flag
+error: `errors.Is(err, flags.ErrUnknownFlag)` returns false, and
+`errors.Is(err, flags.ErrHelpRequest)` returns true. `ParseError.Token()` returns
+`--help` regardless of whether `-h` or `--help` was the source token; this
+gives callers a consistent token for rendering. When `--help` or `-h` ARE
+registered as definitions by the caller, they parse through the normal flag path
+and do not produce `ErrHelpRequest`. Help-request detection never calls
+`os.Exit`, writes to stdout or stderr, or renders usage text; all of that
+remains the caller's responsibility.
+
 ## Source Labels
 
 Config provenance source labels are fixed to these exact spellings:
@@ -116,9 +129,9 @@ or validation failures.
 
 ## Current Scope
 
-Story 1.3 established the shared contract language. Stories 2.1 through 2.6
+Story 1.3 established the shared contract language. Stories 2.1 through 2.7
 add the initial `flags` definition, normalization, conversion, long-parse,
-shorthand-parse, shorthand-group, repeated-value, and custom-parser categories.
-Later stories own source-report structures, rendered diagnostics, config
-provenance, and the remaining concrete error categories for each package
-surface.
+shorthand-parse, shorthand-group, repeated-value, custom-parser, and
+help-request categories. Later stories own source-report structures, rendered
+diagnostics, config provenance, and the remaining concrete error categories for
+each package surface.
