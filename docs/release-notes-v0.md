@@ -27,6 +27,8 @@ Release review for a v0 module tag records these local gates in
 Parser fuzz targets are release-candidate hardening evidence when parser
 behavior changes or when release-candidate fuzz evidence is requested.
 
+Epic 6: Release Hardening and Public Usage Onboarding added three formal release gates: the isolated lint gate (`go run ./tools/lint`), package-aware coverage validation for public runtime packages (`go run ./tools/coverage`), and public usage documentation (`README.md`).
+
 ## Compatibility And Migration
 
 Dib is a clean-room native Go API. It is not a source-compatible clone, not a drop-in replacement, and not a framework compatibility layer for Go `flag`, pflag, Cobra, Viper, or comparable projects.

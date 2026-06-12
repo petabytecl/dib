@@ -46,6 +46,7 @@ documented as supported, narrowed, omitted, or intentionally different in
 | Dependency gate evidence | Story 5.3, Story 6.1, Story 6.2 | FR21, FR23, FR24, NFR1 | Dependency, lint, and coverage behavior are adoption evidence. Runtime packages, tests, examples, and tools stay standard-library-only unless architecture changes. The local dependency gate checks package imports, CI runs the same dependency gate after tests and vet, Story 6.1 adds a repository-local standard-library lint gate for deterministic Go formatting, and Story 6.2 adds a package-aware coverage gate for the three public runtime packages (`command`, `config`, `flags`). The root module has no `require`, `replace`, or `toolchain` directive and no root go sum file. | `go.mod`; `.github/workflows/ci.yml`; `docs/testing.md`; `tools/depgate/main_test.go` `TestDepgateFixtures`; `tools/depgate/main_test.go` `TestDepgateReportsEveryViolationDeterministically`; `tools/depgate/main_test.go` `TestDepgateDisablesWorkspaceMode`; `tools/coverage/main_test.go` `TestCoveragePassesPackagesMeetingThreshold`; `tools/coverage/main_test.go` `TestCoverageFailsPackagesBelowThreshold`; `tools/coverage/main_test.go` `TestCoverageCommandRunsFromRepositoryRoot`; `go run ./tools/depgate`; `go run ./tools/lint`; `go run ./tools/coverage`; `docs/release-checklist.md` | current |
 | Release-candidate evidence | Story 5.4 | FR21, NFR1, NFR4 | The v0 evidence package records exact commit, tag candidate, Go version alignment, CI runner/action versions, test/vet/dependency-gate/race outcomes, parser mutation-fuzz outcomes, docs/examples evidence, final provenance review, compatibility review, migration review, dependency evidence, and waiver status. It is evidence for human release review, not tag approval. | `docs/release-checklist.md`; `docs/release-notes-v0.md`; `docs/release_checklist_test.go` | current |
 | Public usage documentation | Story 6.3 | FR25, NFR12 | `README.md` provides install/import guidance, package roles, quickstart flag/command/config usage, v0 experimental API status, and links to compatibility, behavior matrix, diagnostics, config precedence, testing, and release evidence docs. Does not imply source compatibility with Go `flag`, pflag, Cobra, or Viper. | `docs/readme_test.go` `TestREADMEExistsAndCoversAdoptionOnboarding`; `docs/readme_test.go` `TestREADMEDoesNotImplySourceCompatibility`; `README.md` | current |
+| Release hardening reconciliation | Story 6.4 | FR23, FR24, FR25, NFR11 | Epic 6 scope (lint gate, coverage validation, public usage documentation) is reconciled as formal release gates in `docs/release-notes-v0.md` and `docs/release-checklist.md`. Sprint-status.yaml records all Epic 6 stories. GitHub issues for Epic 6 align with local sprint status. Any accepted gate waiver records owner, reason, expiry, and impact. | `docs/release-checklist.md`; `docs/release_checklist_test.go` `TestReleaseChecklistRecordsReleaseCandidateEvidence` | current |
 
 ## Flag Parser Evidence Map
 
@@ -93,7 +94,8 @@ artifacts; the fake sensitive corpus is named only for redaction auditing.
 
 ## Dependency And Release Evidence
 
-Adoption evidence for dependency behavior is current in Story 5.3:
+Adoption evidence for dependency behavior started in Story 5.3 and is current
+through the Epic 6 release-hardening evidence:
 
 - `go.mod` contains only `module github.com/petabytecl/dib` and `go 1.26`.
 - The root repository has no go sum file.
@@ -116,10 +118,11 @@ decision.
 
 ## Current Scope Boundaries
 
-This matrix covers implemented behavior from Epics 2 through 4 and adoption
-evidence from Stories 5.1 through 5.4. It does not add runtime APIs, adapters,
-package-global helpers, `/cmd` scaffolding, generated assets, new config
-formats, callback invocation, or release-ready claims.
+This matrix covers implemented behavior from Epics 2 through 4 and adoption,
+release, and public-onboarding evidence from Stories 5.1 through 6.4. It does
+not add runtime APIs, adapters, package-global helpers, `/cmd` scaffolding,
+generated assets, new config formats, callback invocation, or release-ready
+claims.
 
 Callback invocation, shell completion, manpages, scaffolding, generated command
 assets, additional config formats, remote stores, live reload, config aliases,

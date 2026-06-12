@@ -93,3 +93,27 @@
 - For Story 6.4, reconcile final release evidence and tracker state after all hardening stories have landed.
 - Keep asserting public documentation links and examples in docs tests so README drift fails locally and in CI.
 - Continue amending final automator state into the story commit so the branch stays clean after each run.
+
+## Run: 2026-06-12T19:53:44Z
+
+**Epic:** dib - Epic Breakdown
+**Stories:** 6.4
+
+### Patterns Observed
+- Final reconciliation stories are mostly evidence and tracker work, but still benefit from the full create/dev/QA/review loop.
+- The retrospective caught stale summary prose after all story tests had passed, so epic closure needs a final documentation scope sweep.
+- GitHub issue comments during create, dev, QA, and review kept the external tracker aligned with local BMAD state.
+
+### Code Review Insights
+- Common issues: story bookkeeping omissions around generated QA summaries and guard-test completion notes.
+- Average cycles to clean: one review cycle; the reviewer found no critical or high issues and auto-fixed the bookkeeping items.
+
+### Timing Estimates
+- create-story: minutes, mostly final story synthesis and sprint-status alignment.
+- dev-story: minutes, focused on release checklist, behavior matrix, release notes, story record, and tracker comments.
+- code-review: one cycle with targeted story-record fixes and full gate revalidation.
+
+### Recommendations for Future Runs
+- Before a tag action, refresh `docs/release-checklist.md` exact commit against the reviewed tag candidate and rerun the documented gates.
+- Keep Epic 6 lint, coverage, dependency, README, release-note, and sprint-status assertions in CI-facing tests.
+- Continue amending final automator and retrospective metadata into the story commit so each automator run ends with a clean tree.

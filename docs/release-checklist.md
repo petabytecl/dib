@@ -12,6 +12,7 @@ Use this checklist for each Dib Go module tag. It records release-candidate evid
 - Story 6.1 evidence scope: lint evidence below was collected from the Story 6.1 working tree based on `7cfdfcaf62b9f344eb4258eb03fc95f6e4783ac6`; final tag commit reconciliation remains a later release-review step.
 - Story 6.2 evidence scope: coverage evidence below was collected from the Story 6.2 working tree; final tag commit reconciliation remains a later release-review step.
 - Story 6.3 evidence scope: public usage documentation was published in the Story 6.3 working tree; final tag commit reconciliation remains a later release-review step.
+- Story 6.4 evidence scope: release evidence, sprint tracker, and GitHub issue alignment reconciled in the Story 6.4 working tree; Epic 6 lint gate, package-aware coverage validation, and public usage documentation are confirmed as formal release gates in `docs/release-notes-v0.md`; sprint-status.yaml updated; GitHub issues for Epic 6 are annotated to match local sprint status; final tag commit reconciliation remains a human release-review step.
 
 ## Go Version Alignment
 
@@ -84,6 +85,6 @@ Waivers require owner, reason, expiry, and impact tracking. Open-ended waivers b
 
 ## Final Review
 
-- All required evidence captured: Yes; exact commit, lint, test, vet, dependency-gate, race-test, docs/examples, fuzz, provenance, compatibility, migration, CI runner/action, Go version, and dependency evidence are recorded above.
+- All required evidence captured: Yes; exact commit, lint, test, vet, coverage, dependency-gate, race-test, docs/examples (including `README.md` public onboarding), fuzz, provenance, compatibility, migration, CI runner/action, Go version, dependency, lint-isolation, and coverage-isolation evidence are recorded above; Epic 6 lint gate, package-aware coverage validation, and public usage documentation are formally confirmed as release gates.
 - All waivers approved with expiry: No waivers requested; any future waiver must include owner, reason, expiry, and impact before release review continues.
 - Tagging decision: Evidence is captured for human release review of `v0.1.0`; this checklist does not approve or perform the tag action.

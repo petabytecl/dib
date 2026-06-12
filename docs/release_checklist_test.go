@@ -39,6 +39,7 @@ func TestReleaseChecklistRecordsReleaseCandidateEvidence(t *testing.T) {
 		"story 6.1 evidence scope:",
 		"story 6.2 evidence scope:",
 		"story 6.3 evidence scope:",
+		"story 6.4 evidence scope:",
 		"go run ./tools/coverage",
 		"`go.mod` version: `go 1.26`",
 		"ci `actions/setup-go` source: `go-version-file: go.mod`",
@@ -277,6 +278,76 @@ func TestReleaseNotesV0AvoidReleaseScopeAssumptions(t *testing.T) {
 	} {
 		if strings.Contains(lower, prohibited) {
 			t.Fatalf("release notes contain prohibited release-scope claim %q", prohibited)
+		}
+	}
+}
+
+func TestReleaseNotesV0RecordsEpic6FormalGates(t *testing.T) {
+	content, err := os.ReadFile("release-notes-v0.md")
+	if err != nil {
+		t.Fatalf("read v0 release notes: %v", err)
+	}
+	lower := strings.ToLower(string(content))
+
+	for _, phrase := range []string{
+		"epic 6",
+		"formal release gates",
+		"isolated lint gate",
+		"package-aware coverage validation",
+		"public usage documentation",
+	} {
+		if !strings.Contains(lower, phrase) {
+			t.Fatalf("release notes missing Epic 6 formal gates phrase %q", phrase)
+		}
+	}
+}
+
+func TestReleaseChecklistFinalReviewConfirmsEpic6Gates(t *testing.T) {
+	content, err := os.ReadFile("release-checklist.md")
+	if err != nil {
+		t.Fatalf("read release checklist: %v", err)
+	}
+	lower := strings.ToLower(string(content))
+
+	for _, phrase := range []string{
+		"epic 6 lint gate",
+		"package-aware coverage validation",
+		"formally confirmed as release gates",
+	} {
+		if !strings.Contains(lower, phrase) {
+			t.Fatalf("release checklist Final Review missing Epic 6 confirmation phrase %q", phrase)
+		}
+	}
+}
+
+func TestSprintStatusYAMLRecordsEpic6TrackerState(t *testing.T) {
+	content, err := os.ReadFile("../_bmad-output/implementation-artifacts/sprint-status.yaml")
+	if err != nil {
+		t.Fatalf("read sprint-status.yaml: %v", err)
+	}
+	lower := strings.ToLower(string(content))
+
+	for _, phrase := range []string{
+		"6-1-add-an-isolated-linter-gate: done",
+		"6-2-add-coverage-validation: done",
+		"6-3-publish-public-usage-documentation: done",
+		"6-4-reconcile-release-evidence-and-tracker-state: done",
+		"epic-6: done",
+		"epic-6-retrospective: done",
+	} {
+		if !strings.Contains(lower, phrase) {
+			t.Fatalf("sprint-status.yaml missing Epic 6 tracker phrase %q", phrase)
+		}
+	}
+
+	for _, prohibited := range []string{
+		"epic-6: in-progress",
+		"6-4-reconcile-release-evidence-and-tracker-state: backlog",
+		"6-4-reconcile-release-evidence-and-tracker-state: ready-for-dev",
+		"epic-6-retrospective: optional",
+	} {
+		if strings.Contains(lower, prohibited) {
+			t.Fatalf("sprint-status.yaml records 6-4 in pre-implementation state: %q", prohibited)
 		}
 	}
 }

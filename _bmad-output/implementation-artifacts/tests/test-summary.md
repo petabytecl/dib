@@ -2,6 +2,58 @@
 
 ---
 
+## Story 6.4 - Gap Analysis
+
+Story 6.4 is a documentation-and-tracking-only story with no API endpoints and no browser UI. The test framework is the Go standard `testing` package; all existing tests live in `docs/` as `package docs`.
+
+Three acceptance-criteria coverage gaps were identified and auto-applied:
+
+| Gap | AC | Root Cause |
+| --- | -- | ---------- |
+| No test guards the Epic 6 formal gates sentence in `release-notes-v0.md` | AC2 | `TestReleaseNotesV0ExistAndPreserveBoundaries` checks v0 language preservation but not the new Epic 6 sentence |
+| No test guards that the Final Review field *names* Epic 6 gates | AC1 | `assertChecklistFieldFilled` only verifies the field is non-empty, not its content |
+| No test guards `sprint-status.yaml` tracker state | AC3 | Sprint-status.yaml was entirely unguarded by tests |
+
+## Story 6.4 - Generated Tests
+
+### Documentation Guard Tests (added to `docs/release_checklist_test.go`)
+
+- [x] `TestReleaseNotesV0RecordsEpic6FormalGates` — verifies `release-notes-v0.md` contains "epic 6", "formal release gates", "isolated lint gate", "package-aware coverage validation", "public usage documentation" (AC2)
+- [x] `TestReleaseChecklistFinalReviewConfirmsEpic6Gates` — verifies Final Review field in `release-checklist.md` contains "epic 6 lint gate", "package-aware coverage validation", "formally confirmed as release gates" (AC1)
+- [x] `TestSprintStatusYAMLRecordsEpic6TrackerState` — verifies `sprint-status.yaml` records stories 6-1 through 6-3 as done, epic-6 as in-progress, and 6-4 is not in a pre-implementation state (AC3)
+
+## Story 6.4 - Coverage
+
+| AC | Covered by | Status |
+| -- | ---------- | ------ |
+| AC1: release-checklist.md Final Review confirms Epic 6 gates | `TestReleaseChecklistRecordsReleaseCandidateEvidence` + `TestReleaseChecklistFinalReviewConfirmsEpic6Gates` (new) | ✅ |
+| AC2: release-notes-v0.md names Epic 6 formal gates | `TestReleaseNotesV0ExistAndPreserveBoundaries` + `TestReleaseNotesV0RecordsEpic6FormalGates` (new) | ✅ |
+| AC3: sprint-status.yaml tracker state | `TestSprintStatusYAMLRecordsEpic6TrackerState` (new) | ✅ |
+| AC4: waiver table shape | `TestReleaseChecklistRequiresCompleteWaiverShape` (pre-existing) | ✅ |
+
+## Story 6.4 - Validation
+
+- [x] `GOCACHE=/tmp/dib-go-build go test ./docs` — PASS
+- [x] `GOCACHE=/tmp/dib-go-build go test ./...` — PASS (9 packages)
+- [x] `GOCACHE=/tmp/dib-go-build go vet ./...` — PASS
+
+## Story 6.4 - Checklist
+
+- [x] API tests generated (applicable — docs evidence guard tests for Go docs package).
+- [x] E2E tests generated where applicable.
+- [x] Tests use standard Go `testing` APIs.
+- [x] Tests cover happy path.
+- [x] Tests cover 1-2 critical error cases (prohibited pre-implementation tracker states).
+- [x] All generated tests run successfully.
+- [x] Tests have clear descriptions.
+- [x] No hardcoded waits or sleeps.
+- [x] Tests are independent (no order dependency).
+- [x] Test summary created.
+- [x] Tests saved to `docs/release_checklist_test.go`.
+- [x] Summary includes coverage metrics.
+
+---
+
 ## Story 6.3 - Gap Analysis
 
 Story 6.3 is a documentation story that publishes `README.md` and `docs/readme_test.go`. There is no HTTP API or browser UI surface. All applicable automated coverage is docs-package test guards using Go's standard `testing` package.
