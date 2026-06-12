@@ -79,6 +79,16 @@ attached or separate value is available, the no-option value is recorded as
 explicit CLI input. Long-name normalization still does not create shorthand
 aliases.
 
+Story 2.6 locks repeated and custom value diagnostics into the same parse
+contract. Single-value duplicates are detected before converting the duplicate
+token, so invalid duplicate values reuse `flags.ErrDuplicateValue` and do not
+also expose `flags.ErrConversion`. Custom parser failures reuse
+`flags.ErrConversion`, expose `*flags.ParseError`, and expose
+`*flags.ValueError`. Non-sensitive custom parser failures preserve the caller's
+parser cause through Go error inspection. Sensitive custom parser failures keep
+the typed Dib context but do not expose raw sensitive values or the caller cause
+that may contain them.
+
 ## Source Labels
 
 Config provenance source labels are fixed to these exact spellings:
@@ -106,8 +116,9 @@ or validation failures.
 
 ## Current Scope
 
-Story 1.3 established the shared contract language. Stories 2.1 through 2.5
+Story 1.3 established the shared contract language. Stories 2.1 through 2.6
 add the initial `flags` definition, normalization, conversion, long-parse,
-shorthand-parse, and shorthand-group categories. Later stories own
-source-report structures, rendered diagnostics, config provenance, and the
-remaining concrete error categories for each package surface.
+shorthand-parse, shorthand-group, repeated-value, and custom-parser categories.
+Later stories own source-report structures, rendered diagnostics, config
+provenance, and the remaining concrete error categories for each package
+surface.

@@ -3,26 +3,33 @@
 ## Generated Tests
 
 ### API Tests
-- [x] `flags/parse_group_test.go` - Added Story 2.5 package-level parser coverage for grouped shorthand behavior.
-- [x] `flags/parse_group_test.go` - Added QA gap coverage for repeatable grouped values, long-name normalization independence, and failed grouped parses returning no partial snapshot state.
+- [x] Not applicable - Story 2.6 is a Go package parser contract with no HTTP/API endpoint surface.
 
 ### E2E Tests
-- [x] Not applicable - Story 2.5 is a Go package parser story with no browser UI, HTTP endpoint, service boundary, or user-interface journey.
+- [x] `flags/repeated_test.go` - Public `flags.Set.Parse` workflows for repeated built-in values, repeated custom values, duplicate single-value diagnostics, custom parser failures, sensitive redaction, and reusable parse runs.
 
 ## Coverage
-- Story 2.5 acceptance criteria: 5/5 covered by focused package tests and grouped-input fuzz/property checks.
-- Grouped shorthand success scenarios: boolean groups, final attached values, final separate values, non-final and final no-option defaults, repeatable grouped values, positional preservation, and canonical occurrence metadata.
-- Grouped shorthand error scenarios: invalid non-final required values, unknown group members, missing final values, invalid conversions, duplicate values within a group, duplicate values across long/grouped spellings, redaction-safe diagnostics, and failed parse snapshot behavior.
-- Boundary and compatibility checks: `--` protection, long-name normalization independence, and deterministic diagnostics for grouped inputs.
+- API endpoints: 0/0 applicable.
+- UI features: 0/0 applicable.
+- Parser workflows: 7/7 Story 2.6 acceptance areas covered: valid accumulation, duplicate rejection, custom parser success, custom parser failure, redaction, immutable/reusable definition behavior, and built-in repeatable value kinds.
 
 ## Validation
-- [x] `GOCACHE=/tmp/dib-go-build GOPATH=/tmp/dib-gopath go test ./flags -run 'TestParseShortGroup|FuzzParseShortGroups' -count=1`
-- [x] `GOCACHE=/tmp/dib-go-build GOPATH=/tmp/dib-gopath go test ./flags -run 'TestParseShort|TestParseShorthand|TestParseGroup|TestFuzz|FuzzParse' -count=1`
+
+- [x] `GOCACHE=/tmp/dib-go-build GOPATH=/tmp/dib-gopath go test ./flags -run 'TestParse.*Repeat|TestParse.*Custom|Test.*Custom.*Value|TestParseDuplicateSingleValuePrecedesSecondConversion' -count=1`
 - [x] `GOCACHE=/tmp/dib-go-build GOPATH=/tmp/dib-gopath go test ./...`
 - [x] `GOCACHE=/tmp/dib-go-build GOPATH=/tmp/dib-gopath go vet ./...`
 - [x] `GOCACHE=/tmp/dib-go-build GOPATH=/tmp/dib-gopath go run ./tools/depgate`
 - [x] `git diff --check`
 - [x] `GOCACHE=/tmp/dib-go-build GOPATH=/tmp/dib-gopath go test -race ./...`
 
-## Next Steps
-- Run the same package and repository validation in CI.
+## Checklist
+
+- [x] API tests generated if applicable.
+- [x] E2E tests generated for the public parser workflow.
+- [x] Tests use standard Go `testing` APIs.
+- [x] Tests cover happy paths.
+- [x] Tests cover critical duplicate, conversion, mismatch, and redaction errors.
+- [x] Tests use public semantic parser APIs instead of internal state.
+- [x] Tests have clear descriptions.
+- [x] Tests have no hardcoded waits or sleeps.
+- [x] Tests are independent.
