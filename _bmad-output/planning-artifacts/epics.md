@@ -4,6 +4,7 @@ inputDocuments:
   - "_bmad-output/planning-artifacts/prds/prd-dib-2026-06-10/prd.md"
   - "_bmad-output/planning-artifacts/architecture.md"
   - "_bmad-output/planning-artifacts/sprint-change-proposal-2026-06-12.md"
+  - "_bmad-output/planning-artifacts/sprint-change-proposal-2026-06-12-cli-composition.md"
 status: complete
 completedAt: "2026-06-12"
 ---
@@ -68,11 +69,13 @@ FR24: Validate test coverage. Maintainers can validate release-candidate coverag
 
 FR25: Provide public usage documentation. Developers can use public documentation to install Dib, understand package roles, and build a small CLI without reading implementation internals.
 
+FR26: Compose CLI invocation, command routing, flag parsing, and config resolution. Developers can use an optional `cli` package to carry a full process invocation, route commands, translate explicitly-set flags into config bindings, and return typed command, flag, config, and remaining-argument results without handing Dib process lifecycle control.
+
 ### NonFunctional Requirements
 
 NFR1: Runtime packages must import only the Go standard library.
 
-NFR2: Primary APIs must operate on explicit instances and caller-supplied inputs/outputs. V1 does not include package-level global command, flag, or config helpers.
+NFR2: Primary APIs must operate on explicit instances and caller-supplied inputs/outputs. V1 does not include package-level global command, flag, or config helpers. The optional `cli` package may provide explicit composition helpers only when all process inputs are caller-supplied and no hidden singleton state is introduced.
 
 NFR3: Public error cases needed by callers must be inspectable without string matching.
 
@@ -98,8 +101,10 @@ NFR12: A new adopter must be able to start from public docs rather than BMAD pla
 
 - Use no external starter template. The implementation foundation is a standard Go module bootstrap for `github.com/petabytecl/dib` with `go 1.26`; do not add a `toolchain` directive unless a later architecture decision chooses patch-level toolchain pinning.
 - Initialize the module and repository scaffold before feature work, including Go package documentation, at least one real package behavior, tests, examples where practical, dependency-gate evidence, clean-room policy, and provenance docs.
-- Organize runtime library code around three public capability packages: `command/`, `flags/`, and `config/`. Do not introduce a broad root facade, default singleton API, package-global helpers, or `/cmd` application scaffold in V1.
+- Organize runtime library code around three independent public capability packages (`command/`, `flags/`, and `config/`) plus an optional public composition package (`cli/`). Do not introduce a broad root facade, default singleton API, package-global helpers, process-owning CLI framework, callback runner, source-compatible adapter, or `/cmd` application scaffold in V1.
 - Keep command routing, flag parsing, and config resolution independently usable. `flags/` must work without `command/` or `config/`; `command/` must not depend on `config/`; callers compose the three surfaces explicitly.
+- Keep `cli/` optional. It may depend on `command/`, `flags/`, and `config/` to compose their exported contracts, but those packages must not depend on `cli/`.
+- `cli/` must not call `os.Args`, `os.Exit`, mutate process streams, execute callbacks, read env implicitly, load files implicitly, or hide errors behind rendered text. Full argv, env-derived snapshots, JSON-derived snapshots, readers, writers, and contexts must be caller-supplied.
 - Treat definitions as caller-observably immutable reusable values. Derived definitions must return new values, avoid exported mutable internals or shallow-copy aliasing, and remain safe to reuse across repeated or concurrent runs.
 - Return per-run snapshots for command routing, flag parsing, and config resolution. Snapshots must not mutate definitions and must not depend on live process state, environment variables, readers, or lookup functions after creation.
 - Validate invalid definitions, duplicate names, binding collisions, normalization collisions, invalid relationships, and unsupported config combinations at setup boundaries where possible.
@@ -185,6 +190,8 @@ FR24: Epic 6 - Package-aware coverage validation.
 
 FR25: Epic 6 - Public usage documentation.
 
+FR26: Epic 7 - CLI composition ergonomics.
+
 ## Epic List
 
 ### Epic 1: Auditable Toolkit Foundation
@@ -222,6 +229,12 @@ Developers and reviewers can understand Dib's compatibility boundaries, follow m
 Developers and reviewers can trust Dib's final release gates and start from public usage documentation without reading planning artifacts.
 
 **FRs covered:** FR23, FR24, FR25
+
+### Epic 7: CLI Composition Ergonomics
+
+Developers can use `command`, `flags`, and `config` together through an explicit `cli` composition package that removes repetitive invocation and flag-binding glue without making Dib a process-owning framework.
+
+**FRs covered:** FR26, FR20, FR21, FR25
 
 ## Epic 1: Auditable Toolkit Foundation
 
@@ -1245,3 +1258,150 @@ So that the final sprint state matches the gates users and reviewers will rely o
 **When** any gate waiver is accepted
 **Then** the waiver records owner, reason, expiry, and impact
 **And** open-ended waivers block release readiness.
+
+## Epic 7: CLI Composition Ergonomics
+
+Developers can use `command`, `flags`, and `config` together through an explicit `cli` composition package that removes repetitive invocation and flag-binding glue without making Dib a process-owning framework.
+
+### Story 7.1: Add Explicit CLI Invocation Boundaries
+
+**Requirements:** FR26, FR20
+
+As a Go CLI developer,
+I want a `cli.Invocation` value that carries the program name and user arguments from caller-supplied argv,
+So that I do not repeat `os.Args[1:]` slicing or lose testability at the process boundary.
+
+**Acceptance Criteria:**
+
+**Given** a caller passes full argv
+**When** `cli.FromOSArgs(argv)` is called
+**Then** the result exposes `Program()` as argv[0] and `Args()` as argv[1:]
+**And** the package never reads `os.Args` itself.
+
+**Given** a caller already has stripped args
+**When** `cli.FromArgs(program, args)` is called
+**Then** the result exposes the caller-supplied program and args
+**And** all slices are defensively copied.
+
+**Given** invalid full argv is supplied
+**When** the invocation cannot be constructed
+**Then** a typed error is returned
+**And** no partial mutable state is exposed.
+
+**Given** invocation values are reusable
+**When** callers mutate the original argv or returned args slice
+**Then** the invocation's observable state does not change.
+
+**Verification:**
+- `go test ./cli ./...`
+- `go vet ./...`
+- `go run ./tools/lint`
+- `go run ./tools/coverage`
+- `go run ./tools/depgate`
+
+### Story 7.2: Compose Command Routing With Config Flag Bindings
+
+**Requirements:** FR26, FR13, FR20
+
+As a Go CLI developer,
+I want `cli` to translate explicitly-set route flags into config flag bindings,
+So that command flags and config precedence work together without manual `config.FlagValue` glue.
+
+**Acceptance Criteria:**
+
+**Given** a command route result has a flag snapshot
+**When** `cli` applies explicit flag bindings
+**Then** only explicitly-set flags enter the config `flag binding` tier
+**And** default flag values do not override env, JSON, or defaults.
+
+**Given** a binding maps a flag name to a config key
+**When** the flag is absent or not explicitly set
+**Then** the resulting config flag source leaves that key absent for the flag tier.
+
+**Given** a binding references an unknown flag or config key
+**When** composition runs
+**Then** a typed `cli` error preserves enough context for `errors.Is` or `errors.As` inspection.
+
+**Given** the bridge composes exported package contracts
+**When** implementation is reviewed
+**Then** `cli/` may import `command`, `flags`, and `config`
+**And** `command/`, `flags/`, and `config/` do not import `cli`.
+
+**Verification:**
+- `go test ./cli ./config ./command ./flags`
+- `go vet ./...`
+- `go run ./tools/lint`
+- `go run ./tools/coverage`
+- `go run ./tools/depgate`
+
+### Story 7.3: Resolve A CLI Composition Plan Without Owning Execution
+
+**Requirements:** FR26, FR1, FR12, FR16, FR20
+
+As a Go CLI developer,
+I want a `cli.Resolve` or equivalent composition call that returns route, flags, config, and remaining args,
+So that application code can make execution decisions without Dib invoking callbacks or exiting the process.
+
+**Acceptance Criteria:**
+
+**Given** a plan contains a root command, config set, source snapshots, and flag bindings
+**When** `cli.Resolve(invocation, plan)` succeeds
+**Then** the result exposes the route result, flag snapshot when present, resolved config snapshot, invocation, and remaining args.
+
+**Given** routing fails
+**When** `cli.Resolve` returns an error
+**Then** the error remains inspectable as the underlying command or flag error where applicable
+**And** no config resolution occurs from partial route state.
+
+**Given** config source construction fails
+**When** a binding or source error occurs
+**Then** a typed config or cli error is returned
+**And** sensitive values remain redacted.
+
+**Given** Dib does not own application execution
+**When** `cli.Resolve` succeeds or fails
+**Then** it does not invoke callbacks, call `os.Exit`, write to stdout/stderr, read env, or load files implicitly.
+
+**Verification:**
+- `go test ./cli ./...`
+- `go vet ./...`
+- `go run ./tools/lint`
+- `go run ./tools/coverage`
+- `go run ./tools/depgate`
+
+### Story 7.4: Document And Reconcile CLI Composition Evidence
+
+**Requirements:** FR25, FR26, FR20, FR21
+
+As a new adopter,
+I want docs and examples that show the three packages working together through `cli`,
+So that I can start from public documentation without learning internal glue.
+
+**Acceptance Criteria:**
+
+**Given** `cli` is added as a public package
+**When** README is updated
+**Then** it includes a "Using command, flags, and config together" quickstart
+**And** it names the invocation boundary as `os.Args`, `os.Args[0]`, and `os.Args[1:]`.
+
+**Given** examples are executable evidence
+**When** a composition example is added
+**Then** it compiles through `go test ./...`
+**And** it does not imply Cobra, pflag, Viper, or Go `flag` source compatibility.
+
+**Given** release evidence must stay accurate
+**When** docs are updated
+**Then** `docs/behavior-matrices.md`, `docs/release-notes-v0.md`, `docs/release-checklist.md`, and `docs/testing.md` record the `cli` package scope and gate evidence.
+
+**Given** BMAD and GitHub tracking must align
+**When** Epic 7 is approved
+**Then** sprint status and GitHub issues are updated for Epic 7 and its stories
+**And** stale older GitHub issue state is either reconciled or explicitly annotated.
+
+**Verification:**
+- `go test ./docs ./examples/migration ./...`
+- `go vet ./...`
+- `go run ./tools/lint`
+- `go run ./tools/coverage`
+- `go run ./tools/depgate`
+- `git diff --check`

@@ -29,7 +29,7 @@ Dib's value is not "more CLI features." It is lower supply-chain risk, predictab
 Primary users are Go developers building internal tools, platform CLIs, repo-local tools, and distributed binaries. Secondary stakeholders include maintainers reviewing API behavior, security/compliance reviewers validating dependency and clean-room claims, test authors, and downstream users reading help, usage, diagnostics, and source reports.
 
 **Functional Requirements:**
-Dib V1 is organized around three composable runtime library surfaces: command routing, flag parsing, and configuration resolution. Each surface must work independently before users compose them. Command requirements cover nested command trees, aliases, local and inherited flags, explicit execution with `context.Context`, deterministic help/usage rendering, and typed command errors. Flag requirements cover explicit `FlagSet` instances, long flags, shorthand flags, shorthand groups, no-option defaults, repeated/custom values, name normalization, `--`, interspersed positional args, and typed parse diagnostics. Config requirements cover registered keys, defaults, explicit setters, lazy flag bindings, env bindings, JSON files/readers, the exact PRD-defined precedence order, typed getters, source reporting, provenance, and sensitive diagnostic redaction.
+Dib V1 is organized around three independent runtime library surfaces: command routing, flag parsing, and configuration resolution. It also includes an optional `cli` composition surface for carrying caller-supplied invocation values and orchestrating the explicit handoff across those packages. Each independent surface must work before users compose them. Command requirements cover nested command trees, aliases, local and inherited flags, explicit execution with `context.Context`, deterministic help/usage rendering, and typed command errors. Flag requirements cover explicit `FlagSet` instances, long flags, shorthand flags, shorthand groups, no-option defaults, repeated/custom values, name normalization, `--`, interspersed positional args, and typed parse diagnostics. Config requirements cover registered keys, defaults, explicit setters, lazy flag bindings, env bindings, JSON files/readers, the exact PRD-defined precedence order, typed getters, source reporting, provenance, and sensitive diagnostic redaction. CLI composition requirements cover explicit invocation boundaries, route/config handoff, flag-binding translation, and transparent returned results without process lifecycle ownership.
 
 Documentation, validation, and release evidence are product requirements. Behavior matrices, dependency checks, lint evidence, coverage evidence, migration examples, public usage docs, clean-room audit notes, compatibility documentation, and parser hardening evidence are trust features for adoption, not auxiliary prose. Every behavior matrix, validation artifact, and cross-cutting concern must carry PRD/addendum/rubric IDs where available; gaps must be marked as untraced assumptions.
 
@@ -225,7 +225,7 @@ Sensitivity markers and provenance metadata may guide diagnostics, but they do n
 
 **Decision:** Capability-scoped public API plus standard Go error inspection.
 
-Dib will expose public surfaces for command routing, flag parsing, and config resolution rather than a broad root framework facade. Each surface must be independently usable and composable through explicit values and snapshots.
+Dib will expose public surfaces for command routing, flag parsing, config resolution, and optional CLI composition rather than a broad root framework facade. `command/`, `flags/`, and `config/` must remain independently usable and composable through explicit values and snapshots; `cli/` exists only to make their explicit composition less repetitive.
 
 Public APIs use standard Go conventions: explicit inputs, returned values/errors, `context.Context` where execution crosses a boundary, and `io.Reader` / `io.Writer` where callers provide input/output. Primary APIs must not depend on package globals, hidden process IO, implicit environment reads, or root singletons.
 
@@ -253,7 +253,7 @@ The dependency gate is `go run ./tools/depgate`. It must fail on unapproved exte
 
 Core gates also include a pinned lint command selected by Story 6.1 and a coverage validation command selected by Story 6.2. The lint command must be reproducible and isolated as development or CI tooling. External linter tooling may be downloaded or invoked by CI, but it must not enter Dib runtime package imports or the root module's checked package imports without an approved architecture update.
 
-Coverage validation must use standard Go coverage output where practical and apply package-aware thresholds. Public runtime packages (`command`, `config`, and `flags`) are release-surface packages and must report threshold evidence separately from tooling packages. Tooling packages may carry a documented threshold or exception when critical-path tests cover the tool behavior.
+Coverage validation must use standard Go coverage output where practical and apply package-aware thresholds. Public runtime packages (`cli`, `command`, `config`, and `flags`) are release-surface packages and must report threshold evidence separately from tooling packages. Tooling packages may carry a documented threshold or exception when critical-path tests cover the tool behavior.
 
 Release-candidate gates additionally include:
 
@@ -345,7 +345,7 @@ New domain terms require an architecture-document update before implementation u
 - Runnable examples live in Go example tests where practical so `go test ./...` verifies them.
 - Runtime implementation must stay importable as library code and must not introduce a `/cmd` scaffold in V1.
 - Shared helpers should stay unexported until at least two concrete call sites prove the abstraction is needed.
-- Any internal package boundaries must preserve the three capability surfaces: command routing, flag parsing, and config resolution.
+- Any internal package boundaries must preserve the three independent capability surfaces: command routing, flag parsing, and config resolution. Shared internals must not make those packages depend on the optional `cli/` composition package.
 
 **File Structure Patterns:**
 - Keep source files focused and small; split by cohesive behavior instead of broad utility buckets.
@@ -473,6 +473,16 @@ dib/
 ├── .github/
 │   └── workflows/
 │       └── ci.yml
+├── cli/
+│   ├── doc.go
+│   ├── invocation.go
+│   ├── resolve.go
+│   ├── result.go
+│   ├── bindings.go
+│   ├── errors.go
+│   ├── invocation_test.go
+│   ├── resolve_test.go
+│   └── result_test.go
 ├── command/
 │   ├── doc.go
 │   ├── command.go
@@ -566,16 +576,19 @@ dib/
 - Callback handling is deferred. `command/` may model caller-owned callbacks as definition metadata and may return a matched callback in route/result snapshots only if a later architecture/API decision explicitly adds that surface. Dib does not invoke callbacks unless that future invocation surface is explicitly approved.
 - `flags/` is the public flag parsing package. It owns explicit flag sets, long/shorthand parsing, shorthand groups, repeated/custom values, no-option defaults, normalization, parse diagnostics, usage metadata, and flag-specific typed errors.
 - `config/` is the public config resolution package. It owns caller-owned reusable key definitions, defaults, explicit setters, flag binding inputs, env bindings, JSON readers/files, precedence, typed getters, provenance, redaction, and config-specific typed errors.
+- `cli/` is the optional public composition package. It owns explicit invocation values and the golden-path handoff between `command`, `flags`, and `config`.
+- `cli/` may depend on `command`, `flags`, and `config`; those packages must not depend on `cli`.
 - The module root does not provide a broad public facade, package-global helpers, or default singleton API.
 
 **Component Boundaries:**
 - `command/` may attach or accept `flags/` definitions and snapshots for command-local and inherited flags.
 - Shared flag metadata and flag parsing semantics live in `flags/`, not `command/`.
-- `config/` accepts explicit flag binding inputs from callers. A direct `config -> flags` package import is deferred unless API design proves it necessary; if introduced, it must depend only on exported snapshot/value contracts.
+- `config/` accepts explicit flag binding inputs from callers. A direct `config -> flags` package import remains unnecessary for the CLI composition path because `cli/` owns translation from exported `flags.Snapshot` values into `config.FlagValue` entries.
 - `flags/` must remain fully usable without `command/` or `config/`.
 - `command/` must not depend on `config/`; callers compose command, flag, and config behavior explicitly.
+- `cli/` must not duplicate command routing, flag parsing, or config resolution behavior that belongs in the independent packages.
 - `internal/` is provisional shared support. Internal packages such as `internal/text`, `internal/diagnostic`, or `internal/ordered` may be introduced only after at least two concrete call sites prove the need.
-- `tools/depgate/` is repository tooling, not an importable library package. It must remain isolated from `command/`, `flags/`, and `config/`.
+- `tools/depgate/` is repository tooling, not an importable library package. It must remain isolated from `cli/`, `command/`, `flags/`, and `config/`.
 
 **Service Boundaries:**
 Not applicable. Dib has no service runtime, server process, network API, deployment service, or app lifecycle owner in V1.
@@ -599,6 +612,7 @@ Not applicable. Dib has no service runtime, server process, network API, deploym
 - FR-20 behavior matrices: co-located package tests plus `docs/behavior-matrices.md`.
 - FR-21 dependency rule: `.github/workflows/ci.yml`, `tools/depgate/`, `docs/release-checklist.md`.
 - FR-22 parser hardening: `flags/fuzz_test.go`, `flags/testdata/fuzz/FuzzParse/`.
+- FR-26 CLI composition ergonomics: `cli/`, `examples/multicommand/`, README quickstart, `docs/behavior-matrices.md`, and package tests.
 
 **Cross-Cutting Concerns:**
 - Typed errors: `command/errors.go`, `flags/errors.go`, `config/errors.go`, `docs/diagnostics-and-errors.md`.
@@ -625,10 +639,11 @@ Not applicable. Dib has no service runtime, server process, network API, deploym
 **Data Flow:**
 1. Callers define reusable command, flag, and config definitions.
 2. Callers provide args/readers/writers/env lookup/context explicitly.
-3. `flags/` returns parse snapshots.
-4. `command/` returns route/result snapshots and typed errors.
-5. `config/` resolves values using the canonical precedence defined in `docs/config-precedence.md`; the PRD order is explicit setter, parsed flag, environment variable, JSON file, default.
-6. Diagnostics and source reports use the shared provenance/source-label vocabulary and redaction rules.
+3. `cli/` may accept a caller-supplied invocation and composition plan, then delegate to `command/`, `flags/`, and `config/` through exported contracts.
+4. `flags/` returns parse snapshots.
+5. `command/` returns route/result snapshots and typed errors.
+6. `config/` resolves values using the canonical precedence defined in `docs/config-precedence.md`; the PRD order is explicit setter, parsed flag, environment variable, JSON file, default.
+7. Diagnostics and source reports use the shared provenance/source-label vocabulary and redaction rules.
 
 ### File Organization Patterns
 
@@ -638,10 +653,11 @@ Not applicable. Dib has no service runtime, server process, network API, deploym
 - No `.env`, Docker, Kubernetes, or app deployment config belongs in V1.
 
 **Source Organization:**
-- Public source is organized by capability package: `command/`, `flags/`, `config/`.
+- Public source is organized by independent capability packages (`command/`, `flags/`, `config/`) plus optional composition package (`cli/`).
 - Shared code lives under `internal/` only when needed by multiple packages.
-- No root facade package is introduced.
+- No root facade package is introduced; `cli/` is a named optional composition package, not the module root.
 - Config definitions are caller-owned reusable values, never package-global state.
+- `cli/` must not call `os.Args`, `os.Exit`, mutate process streams, execute callbacks, read env implicitly, or load files implicitly. It may accept full argv, env-derived snapshots, JSON-derived snapshots, readers, writers, and contexts only when callers pass them explicitly.
 
 **Test Organization:**
 - Unit and behavior tests are co-located beside package code.
@@ -677,7 +693,7 @@ Not applicable. Dib has no development server.
 - `go run ./tools/depgate` is the intended local/CI dependency-gate entry point once implemented.
 - The dependency gate must inspect all non-tool Go packages included by `go test ./...`, including package tests and `examples/` packages, and fail on any non-standard-library import unless this architecture is updated. Tool packages such as `tools/depgate/` must also remain standard-library-only unless this architecture is updated.
 - The lint gate must be pinned, reproducible, and isolated from Dib runtime imports. Story 6.1 owns final linter selection and command wiring.
-- The coverage gate must generate package-level evidence and enforce package-aware thresholds. Story 6.2 owns final threshold policy and command wiring.
+- The coverage gate must generate package-level evidence and enforce package-aware thresholds for public runtime packages, including `cli/` once it is added. Story 6.2 owns the initial threshold policy and command wiring; Epic 7 must update that evidence for the new package.
 - `go test -race ./...` is a release-candidate gate.
 
 **Deployment Structure:**
@@ -696,12 +712,12 @@ The architecture is coherent. Go 1.26, standard-library-only runtime packages, e
 The implementation patterns support the architectural decisions. Reusable definitions with per-run snapshots, source/provenance labels, redaction rules, typed errors, and package-local tests give implementation agents consistent rules without requiring hidden shared state.
 
 **Structure Alignment:**
-The structure supports the architecture through three public capability packages: `command/`, `flags/`, and `config/`. `internal/` is provisional, `tools/depgate/` is isolated tooling, and docs/examples/testdata are mapped to the PRD requirements.
+The structure supports the architecture through three independent public capability packages (`command/`, `flags/`, and `config/`) plus the optional public composition package (`cli/`). `internal/` is provisional, `tools/depgate/` is isolated tooling, and docs/examples/testdata are mapped to the PRD requirements.
 
 ### Requirements Coverage Validation
 
 **Epic/Feature Coverage:**
-No epics were provided, so validation used the PRD functional requirements. Command routing, flag parsing, config resolution, clean-room evidence, compatibility positioning, behavior matrices, dependency enforcement, and parser hardening all have architectural homes.
+No epics were provided during the original architecture pass, so validation used the PRD functional requirements. Command routing, flag parsing, config resolution, CLI composition ergonomics, clean-room evidence, compatibility positioning, behavior matrices, dependency enforcement, and parser hardening all have architectural homes.
 
 **Functional Requirements Coverage:**
 All FR groups are covered by package boundaries, docs, examples, tests, or release evidence paths.

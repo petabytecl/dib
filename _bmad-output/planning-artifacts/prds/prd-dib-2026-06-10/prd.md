@@ -9,7 +9,7 @@ updated: "2026-06-12"
 
 ## 0. Document Purpose
 
-This PRD defines the first-version product requirements for Dib, a Go standard-library-only toolkit for command routing, flag parsing, and configuration resolution. It is written for downstream architecture, epics, stories, implementation, and review. Functional requirements use stable FR IDs, user journeys use UJ IDs, and resolved compatibility, parser, config, versioning, and public error decisions are captured in section 12.
+This PRD defines the first-version product requirements for Dib, a Go standard-library-only toolkit for command routing, flag parsing, configuration resolution, and explicit composition of those surfaces through an optional CLI invocation package. It is written for downstream architecture, epics, stories, implementation, and review. Functional requirements use stable FR IDs, user journeys use UJ IDs, and resolved compatibility, parser, config, versioning, and public error decisions are captured in section 12.
 
 Primary source input: `_bmad-output/planning-artifacts/briefs/brief-dib-2026-06-10/brief.md`. Supporting rationale lives in `addendum.md`.
 
@@ -17,7 +17,7 @@ Primary source input: `_bmad-output/planning-artifacts/briefs/brief-dib-2026-06-
 
 Dib is the dependency-free CLI foundation for Go projects that need modern command, flag, and configuration ergonomics without adopting a broad framework or transitive runtime dependency graph. It gives infrastructure CLIs, repo-local tools, admin utilities, and security-sensitive build or deployment helpers a small library they can read, audit, test, and keep stable.
 
-The product thesis is constraint discipline: Dib should feel familiar to developers who know the public behavior of Go `flag`, pflag, Cobra, and Viper, while remaining a clean-room, native Go API rather than a source-compatible clone. V1 wins when a team can build a realistic multi-command CLI with long flags, shorthand flags, inherited command flags, help text, environment variables, JSON config, documented precedence, and typed errors using only the Go standard library at runtime.
+The product thesis is constraint discipline: Dib should feel familiar to developers who know the public behavior of Go `flag`, pflag, Cobra, and Viper, while remaining a clean-room, native Go API rather than a source-compatible clone. V1 wins when a team can build a realistic multi-command CLI with long flags, shorthand flags, inherited command flags, help text, environment variables, JSON config, documented precedence, typed errors, and an optional explicit composition path using only the Go standard library at runtime.
 
 This PRD is final for architecture, epic/story creation, and V1 implementation planning. Section 12 closes the compatibility, parser, config, versioning, and public error decisions that previously blocked implementation readiness.
 
@@ -332,10 +332,21 @@ Developers can use public documentation to install Dib, understand package roles
 - Usage docs cover command construction, flag parsing, config source precedence, diagnostics, clean-room compatibility boundaries, and release gates.
 - Documentation examples are independently written, clean-room compliant, and runnable through `go test ./...` where practical.
 
+#### FR-26: Compose CLI invocation, command routing, flag parsing, and config resolution
+
+Developers can use an optional `cli` package to carry a full process invocation, route commands, translate explicitly-set flags into config bindings, and return typed command, flag, config, and remaining-argument results without handing Dib process lifecycle control.
+
+**Consequences (testable):**
+- Callers pass full argv explicitly, for example `cli.FromOSArgs(os.Args)`, and Dib never reads `os.Args` itself.
+- `cli.Invocation` exposes program name and user arguments through defensive accessors.
+- `cli.Resolve` or equivalent routes command input, composes exported flag/config snapshots, and returns a result containing route, flag, config, and remaining-argument state.
+- The composition package does not execute callbacks, call `os.Exit`, mutate streams, read env implicitly, or hide errors behind rendered text.
+- The original `command`, `flags`, and `config` packages remain independently usable.
+
 ## 6. Cross-Cutting Non-Functional Requirements
 
 - **NFR-1 Runtime dependency ceiling:** Runtime packages must import only the Go standard library.
-- **NFR-2 Explicit-instance API:** Primary APIs must operate on explicit instances and caller-supplied inputs/outputs. V1 does not include package-level global command, flag, or config helpers.
+- **NFR-2 Explicit-instance API:** Primary APIs must operate on explicit instances and caller-supplied inputs/outputs. V1 does not include package-level global command, flag, or config helpers. The optional `cli` package may provide explicit composition helpers only when all process inputs are caller-supplied and no hidden singleton state is introduced.
 - **NFR-3 Typed errors:** Public error cases needed by callers must be inspectable without string matching.
 - **NFR-4 Deterministic output:** Help, usage, and diagnostics must be deterministic enough for stable golden or snapshot tests.
 - **NFR-5 No process control by default:** Library APIs must not call `os.Exit`, mutate process-wide streams, or read `os.Args` unless the caller chooses a convenience path documented to do so.
@@ -349,7 +360,7 @@ Developers can use public documentation to install Dib, understand package roles
 
 ## 7. API Contracts, Versioning, And Dependency Policy
 
-- Runtime packages should be organized around cohesive capabilities: command routing, flag parsing, and configuration resolution. Candidate package boundaries are recorded in `addendum.md`.
+- Runtime packages should be organized around cohesive capabilities: command routing, flag parsing, configuration resolution, and optional explicit CLI composition. Candidate package boundaries are recorded in `addendum.md` and architecture updates.
 - Public APIs should prefer small interfaces, explicit constructors, ordinary `io.Reader` and `io.Writer` values, and `context.Context` only where execution crosses a boundary.
 - Dib must not promise source compatibility with Go `flag`, pflag, Cobra, or Viper in V1. It offers a native Dib API with familiar concepts and documented differences.
 - V1 does not include package-level global command, flag, or config helpers. The explicit instance API is the documented golden path.
@@ -365,6 +376,7 @@ Developers can use public documentation to install Dib, understand package roles
 - Generated shell completion, generated man pages, or project scaffolding in core V1.
 - Reflection-heavy struct decoding in V1.
 - A global singleton as the default configuration or command pattern.
+- A process-owning CLI framework, callback runner, source-compatible adapter, or root module facade.
 - Shell execution, terminal UI rendering, logging framework integration, or application lifecycle management.
 
 ## 9. MVP Scope
@@ -379,6 +391,7 @@ Developers can use public documentation to install Dib, understand package roles
 - Compatibility table for Go `flag`, pflag, Cobra, and Viper inspired behavior.
 - Migration examples from standard `flag`, pflag-style flags, Cobra-style command trees, and Viper-style config resolution.
 - Table-driven behavior tests, runtime dependency check, linter gate, coverage validation, and public usage documentation.
+- Optional explicit `cli` composition package for carrying caller-supplied invocations and composing command, flag, and config results.
 
 ### 9.2 Out Of Scope For MVP
 
@@ -387,6 +400,7 @@ Developers can use public documentation to install Dib, understand package roles
 - Shell completion generation.
 - Man page generation.
 - CLI project scaffolding generators.
+- Process-owning CLI frameworks, callback runners, source-compatible adapters, and root module facades.
 - Remote configuration systems.
 - Live config watching or reload.
 - Reflection-based struct decoding.
@@ -406,6 +420,7 @@ Developers can use public documentation to install Dib, understand package roles
 - **SM-5:** Public error handling is inspectable. Target: documented typed errors exist for every error family listed in FR-9, FR-15, and FR-16. Validates NFR-3.
 - **SM-6:** Release quality gates fail closed. Target: CI fails when lint or package-aware coverage validation fails. Validates FR-23, FR-24, and NFR-11.
 - **SM-7:** Public onboarding works without planning artifacts. Target: a new adopter can follow the README and usage docs to build a minimal multi-command CLI using Dib. Validates FR-25 and NFR-12.
+- **SM-8:** Three-package composition is ergonomic without hidden behavior. Target: a new adopter can use `cli` to compose `command`, `flags`, and `config` without manually slicing `os.Args[1:]` or manually converting `flags.Snapshot` values into `config.FlagValue` entries. Validates FR-26, NFR-2, NFR-5, and NFR-6.
 
 **Counter-Metrics**
 
@@ -423,6 +438,7 @@ Developers can use public documentation to install Dib, understand package roles
 - **Risk: Linter tooling weakens dependency claims.** External lint tooling could be confused with runtime dependency policy. **Mitigation:** isolate the linter as development/CI tooling, document the isolation model, and keep `tools/depgate` authoritative for root module import policy.
 - **Risk: Coverage validation becomes a vanity metric.** A single aggregate threshold can hide weak public package coverage or unfairly penalize tooling packages. **Mitigation:** use package-aware thresholds and document any tooling-package exception with critical-path test evidence.
 - **Risk: Public docs overstate compatibility.** New onboarding docs could imply drop-in compatibility with familiar CLI libraries. **Mitigation:** reuse compatibility boundaries, keep claims behavior-scoped, and verify examples with `go test ./...`.
+- **Risk: CLI composition drifts into a framework.** The optional `cli` package could start owning process lifecycle, callbacks, streams, env reads, or file loading. **Mitigation:** require caller-supplied inputs, preserve returned typed results, keep callbacks/application execution caller-owned, and verify no hidden process reads or exits in tests.
 
 ## 12. Closed Compatibility And Behavior Decisions
 
