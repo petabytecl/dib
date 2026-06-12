@@ -1,10 +1,16 @@
 package command
 
+import "github.com/petabytecl/dib/flags"
+
 // Result is a self-contained snapshot of one command routing run.
 type Result struct {
-	path        []Definition
-	matchTokens []string
-	remaining   []string
+	path            []Definition
+	matchTokens     []string
+	remaining       []string
+	flags           flags.Set
+	hasFlags        bool
+	flagSnapshot    flags.Snapshot
+	hasFlagSnapshot bool
 }
 
 func newResult(path []Definition, matchTokens []string, remaining []string) Result {
@@ -12,6 +18,18 @@ func newResult(path []Definition, matchTokens []string, remaining []string) Resu
 		path:        cloneDefinitions(path),
 		matchTokens: append([]string(nil), matchTokens...),
 		remaining:   append([]string(nil), remaining...),
+	}
+}
+
+func newFlagResult(path []Definition, matchTokens []string, remaining []string, set flags.Set, snapshot flags.Snapshot) Result {
+	return Result{
+		path:            cloneDefinitions(path),
+		matchTokens:     append([]string(nil), matchTokens...),
+		remaining:       append([]string(nil), remaining...),
+		flags:           set,
+		hasFlags:        true,
+		flagSnapshot:    snapshot,
+		hasFlagSnapshot: true,
 	}
 }
 
@@ -41,6 +59,22 @@ func (r Result) Command() (Definition, bool) {
 // RemainingArgs returns the caller arguments left after routing.
 func (r Result) RemainingArgs() []string {
 	return append([]string(nil), r.remaining...)
+}
+
+// Flags returns the composed flag definitions available to the matched command.
+func (r Result) Flags() (flags.Set, bool) {
+	if !r.hasFlags {
+		return flags.Set{}, false
+	}
+	return r.flags, true
+}
+
+// FlagSnapshot returns the parsed flag snapshot for this route.
+func (r Result) FlagSnapshot() (flags.Snapshot, bool) {
+	if !r.hasFlagSnapshot {
+		return flags.Snapshot{}, false
+	}
+	return r.flagSnapshot, true
 }
 
 func pathNames(path []Definition) []string {

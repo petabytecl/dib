@@ -2,6 +2,8 @@ package command
 
 import (
 	"strings"
+
+	"github.com/petabytecl/dib/flags"
 )
 
 // NameError reports command name validation failure.
@@ -17,11 +19,14 @@ func (*NameError) Error() string {
 // Use NewDefinition to create validated command definitions. The zero value is
 // not a validated command definition.
 type Definition struct {
-	name        string
-	description string
-	aliases     []string
-	usage       string
-	children    []Definition
+	name           string
+	description    string
+	aliases        []string
+	usage          string
+	children       []Definition
+	localFlags     []flags.Definition
+	inheritedFlags []flags.Definition
+	flagNormalizer flags.NameNormalizer
 }
 
 // Option configures a command definition during construction.
@@ -46,6 +51,9 @@ func NewDefinition(name string, options ...Option) (Definition, error) {
 		}
 	}
 	if err := validateAliases(nil, definition.name, definition.aliases); err != nil {
+		return Definition{}, err
+	}
+	if err := validateFlagCompositionTree(definition); err != nil {
 		return Definition{}, err
 	}
 
@@ -75,6 +83,18 @@ func (d Definition) Usage() string {
 // Children returns the nested child command definitions.
 func (d Definition) Children() []Definition {
 	return cloneDefinitions(d.children)
+}
+
+// LocalFlags returns flag definitions available only when this command is the
+// final matched command.
+func (d Definition) LocalFlags() []flags.Definition {
+	return append([]flags.Definition(nil), d.localFlags...)
+}
+
+// InheritedFlags returns flag definitions available to this command path and
+// descendant command paths.
+func (d Definition) InheritedFlags() []flags.Definition {
+	return append([]flags.Definition(nil), d.inheritedFlags...)
 }
 
 // Description records command description metadata.
@@ -115,6 +135,30 @@ func Children(children ...Definition) Option {
 	}
 }
 
+// LocalFlags records flag definitions scoped to this command as the final match.
+func LocalFlags(definitions ...flags.Definition) Option {
+	return func(d *Definition) error {
+		d.localFlags = append([]flags.Definition(nil), definitions...)
+		return nil
+	}
+}
+
+// InheritedFlags records flag definitions inherited by descendant routes.
+func InheritedFlags(definitions ...flags.Definition) Option {
+	return func(d *Definition) error {
+		d.inheritedFlags = append([]flags.Definition(nil), definitions...)
+		return nil
+	}
+}
+
+// FlagNormalizer records the long-name normalizer used when composing command flags.
+func FlagNormalizer(normalizer flags.NameNormalizer) Option {
+	return func(d *Definition) error {
+		d.flagNormalizer = normalizer
+		return nil
+	}
+}
+
 // WithDescription returns a definition derived with new description metadata.
 func (d Definition) WithDescription(description string) Definition {
 	d.description = description
@@ -142,6 +186,36 @@ func (d Definition) WithChildren(children ...Definition) (Definition, error) {
 		return Definition{}, err
 	}
 	d.children = cloneDefinitions(children)
+	if err := validateFlagCompositionTree(d); err != nil {
+		return Definition{}, err
+	}
+	return d, nil
+}
+
+// WithLocalFlags returns a definition derived with new local flag definitions.
+func (d Definition) WithLocalFlags(definitions ...flags.Definition) (Definition, error) {
+	d.localFlags = append([]flags.Definition(nil), definitions...)
+	if err := validateFlagCompositionTree(d); err != nil {
+		return Definition{}, err
+	}
+	return d, nil
+}
+
+// WithInheritedFlags returns a definition derived with new inherited flag definitions.
+func (d Definition) WithInheritedFlags(definitions ...flags.Definition) (Definition, error) {
+	d.inheritedFlags = append([]flags.Definition(nil), definitions...)
+	if err := validateFlagCompositionTree(d); err != nil {
+		return Definition{}, err
+	}
+	return d, nil
+}
+
+// WithFlagNormalizer returns a definition derived with a new command flag normalizer.
+func (d Definition) WithFlagNormalizer(normalizer flags.NameNormalizer) (Definition, error) {
+	d.flagNormalizer = normalizer
+	if err := validateFlagCompositionTree(d); err != nil {
+		return Definition{}, err
+	}
 	return d, nil
 }
 
@@ -211,6 +285,8 @@ func cloneDefinitions(definitions []Definition) []Definition {
 
 func cloneDefinition(definition Definition) Definition {
 	definition.aliases = append([]string(nil), definition.aliases...)
+	definition.localFlags = append([]flags.Definition(nil), definition.localFlags...)
+	definition.inheritedFlags = append([]flags.Definition(nil), definition.inheritedFlags...)
 	definition.children = cloneDefinitions(definition.children)
 	return definition
 }

@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/petabytecl/dib/command"
+	"github.com/petabytecl/dib/flags"
 )
 
 func TestUnknownCommandErrorParentPathIsDefensive(t *testing.T) {
@@ -67,5 +68,31 @@ func TestAliasErrorParentPathIsDefensive(t *testing.T) {
 	}
 	if got := aliasErr.ParentPath(); len(got) != 0 {
 		t.Fatalf("ParentPath() leaked mutable slice: %q", got)
+	}
+}
+
+func TestFlagCompositionErrorAccessorsAreDefensive(t *testing.T) {
+	apply := mustDefinition(t, "apply", command.LocalFlags(flags.Bool("verbose", false, "")))
+
+	_, err := command.NewDefinition(
+		"dib",
+		command.InheritedFlags(flags.Bool("verbose", false, "")),
+		command.Children(apply),
+	)
+	if err == nil {
+		t.Fatal("NewDefinition returned nil error")
+	}
+
+	var composition *command.FlagCompositionError
+	if !errors.As(err, &composition) {
+		t.Fatalf("error does not expose *command.FlagCompositionError: %T", err)
+	}
+	if got := composition.Scope(); got != "available" {
+		t.Fatalf("Scope() = %q, want %q", got, "available")
+	}
+	path := composition.Path()
+	path[0] = "mutated"
+	if got := composition.Path(); !reflect.DeepEqual(got, []string{"dib", "apply"}) {
+		t.Fatalf("Path() leaked mutable slice: %q", got)
 	}
 }

@@ -55,8 +55,9 @@ organization were copied or adapted from them.
 | Command route snapshots | FR1, FR20 | `Definition.Route(args)` accepts explicit caller args, matches canonical root and nested child names, resolves direct child aliases, returns deterministic route snapshots with canonical path names, raw match tokens, and remaining args, and preserves `--` boundary behavior by omitting the marker and returning post-terminator tokens. | `TestRouteRootAndNestedCommands`, `TestRouteRootWithoutChildrenPreservesRemainingArgs`, `TestRouteAliasesExposeCanonicalPathAndRawMatchTokens`, `TestRouteSnapshotsAreDefensiveAndDeterministic`, `TestRouteResultExposesDefensivePathDefinitions`, `TestRouteResultExposesDefensiveMatchTokens` | current |
 | Command alias validation | FR1, FR20 | Command setup rejects ambiguous lookup tokens before routing. Blank aliases and self-aliases return `command.ErrInvalidCommandAlias` through `*command.AliasError`; duplicate child names, duplicate aliases, alias-vs-child-name collisions, and cross-alias cycles return `command.ErrDuplicateCommandToken` through `*command.TokenConflictError`. | `TestDefinitionRejectsInvalidAliases`, `TestDefinitionRejectsAliasTokenCollisions`, `TestDefinitionDerivationValidationDoesNotMutateOriginals`, `TestTokenConflictErrorParentPathIsDefensive`, `TestAliasErrorParentPathIsDefensive` | current |
 | Command unknown diagnostics | FR1, FR20 | Unknown command tokens return a zero-value route result plus an inspectable `*command.UnknownCommandError` satisfying `errors.Is(err, command.ErrUnknownCommand)`. The error exposes the failing token and matched parent path without requiring string matching, including failures near aliases and under alias-matched parents. | `TestRouteUnknownCommandErrorsAreInspectable`, `TestRouteUnknownCommandNearAliasesIsInspectable`, `TestUnknownCommandErrorParentPathIsDefensive` | current |
-| Command process boundaries | FR1, FR20 | Command routing never reads `os.Args` or environment state, writes to stdout/stderr, calls `os.Exit`, invokes callbacks, or takes process lifecycle ownership, including alias routing paths. | `TestRoutingUsesExplicitInputsAndReturnedValues` | current |
-| Command routing integration | — | Command routing must parse registered flags from argument slices and pass remaining args to the matched command handler. | — | later: Epic 3 command routing stories |
+| Command local and inherited flag composition | FR3, FR20 | Command definitions attach local and inherited `flags.Definition` values without global state. Route results expose the final composed flag set and parsed snapshot. Inherited flags compose root-to-leaf, final-command local flags compose last, sibling local flags and ancestor local flags remain isolated, and conflicts in long names, shorthands, or normalized names return typed setup diagnostics. | `TestRouteComposesInheritedAndLocalFlags`, `TestRouteKeepsSiblingAndAncestorLocalFlagsIsolated`, `TestRouteFlagCompositionConflictsAreInspectable`, `TestRouteFlagSnapshotsAreDefensiveAndReusable` | current |
+| Command flag parser boundaries | FR3, FR20 | Command routing consumes `flags.Set.Parse` behavior for registered flags while preserving canonical command path and raw match-token behavior. Interspersed flags and command tokens route deterministically; `--` stops flag parsing and passes subsequent tokens through as remaining args; help, unknown flag, missing value, conversion, and duplicate-value failures remain typed `flags.ParseError` diagnostics with zero-value route results. | `TestRoutePreservesParserBoundariesAndTypedFlagFailures`, `TestRouteComposesInheritedAndLocalFlags`, `TestAliasRoutingPublicAPIWorkflow` | current |
+| Command process boundaries | FR1, FR3, FR20 | Command routing never reads `os.Args` or environment state, writes to stdout/stderr, calls `os.Exit`, invokes callbacks, or takes process lifecycle ownership, including alias routing and flag-aware routing paths. | `TestRoutingUsesExplicitInputsAndReturnedValues`, `TestFlagRoutingUsesExplicitInputsAndReturnedValues` | current |
 | Config binding | — | Config resolution must bind flag values into config keys when a config surface exists. | — | later: Epic 4 config stories |
 | Compatibility familiarity | — | Behavior-scoped familiarity with Go `flag`, pflag, Cobra, and Viper differences is documented. Dib does not claim source compatibility with those APIs. | — | later: Epic 5 story 5.1 |
 | Release-candidate evidence | — | Release readiness is validated with end-to-end dependency and provenance evidence. | — | later: Epic 5 story 5.4 |
@@ -66,11 +67,11 @@ organization were copied or adapted from them.
 This matrix tracks the Epic 2 flag parser surface and the initial Epic 3 command
 routing surface. The parser evidence map above is complete for the behavior
 areas implemented in Stories 2.1 through 2.8, and the command rows cover Story
-3.1 root and nested routing plus Story 3.2 alias routing and validation
-evidence.
+3.1 root and nested routing, Story 3.2 alias routing and validation, and Story
+3.3 command local/inherited flag composition evidence.
 
 The matrix does not claim that command routing, config precedence, source
 reports, redaction rendering, compatibility tables, migration examples, or
-release-candidate evidence are complete today. Command flag composition, help
-rendering, handler execution, and lifecycle ownership remain marked `later` and
-are owned by later Epic 3 stories.
+release-candidate evidence are complete today. Help rendering, handler
+execution, and lifecycle ownership remain marked `later` and are owned by later
+Epic 3 stories.

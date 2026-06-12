@@ -1,9 +1,9 @@
 # Test Automation Summary
 
-## Story 3.2 - Gap Analysis
+## Story 3.3 - Gap Analysis
 
-Story 3.2 is a Go package command-routing story. There is no HTTP API endpoint
-or UI/browser surface, so the applicable automated coverage is package-level
+Story 3.3 is a Go package command-routing story. There is no HTTP API endpoint
+or browser UI surface, so the applicable automated coverage is package-level
 public API and end-to-end routing workflow tests using Go's standard `testing`
 package.
 
@@ -11,31 +11,34 @@ The workflow found and fixed these test gaps:
 
 | Gap | Status |
 | --- | --- |
-| Alias routing coverage was spread across focused unit tests but did not include one public API workflow spanning setup, alias routing, canonical snapshots, raw match tokens, and remaining args | Fixed |
-| Typed unknown-command failure coverage did not have a workflow-level alias typo case asserting zero-value result snapshots and inspectable parent path together | Fixed |
-| Setup-time alias collision coverage existed through derivation paths but did not directly cover constructor option validation for ambiguous child aliases | Fixed |
+| Local/inherited flag constructor and derivation APIs lacked direct defensive-copy coverage | Fixed |
+| Command flag-composition diagnostics exposed new accessors without direct defensive accessor coverage | Fixed |
+| Command/flag ambiguity behavior was covered indirectly but lacked one workflow test spanning command-name tokens, registered flag syntax, unknown flag syntax, and `--` passthrough | Fixed |
 
 ## Generated Tests
 
 ### API Tests
 
-- [x] `command/alias_workflow_test.go` - `TestAliasRoutingPublicAPIWorkflow` validates command construction, root and nested alias routing, canonical paths, raw match tokens, remaining args, and canonical-vs-alias parity through public APIs.
-- [x] `command/alias_workflow_test.go` - `TestAliasRoutingPublicAPIWorkflowTypedFailures` validates alias typo failures through `ErrUnknownCommand`, `*command.UnknownCommandError`, parent path accessors, and zero-value failed results.
-- [x] `command/alias_workflow_test.go` - `TestAliasSetupValidationThroughConstructorOptions` validates constructor-time alias token collision diagnostics through `ErrDuplicateCommandToken` and `*command.TokenConflictError`.
+- [x] `command/definition_test.go` - `TestDefinitionFlagOptionsAndDerivationAreDefensive` validates local and inherited flag option copying, accessor defensiveness, and immutable derivation behavior.
+- [x] `command/errors_test.go` - `TestFlagCompositionErrorAccessorsAreDefensive` validates `*command.FlagCompositionError` path and scope accessors without string matching.
+- [x] `command/flags_test.go` - `TestRouteFlagCompositionConflictsAreInspectable` validates duplicate long-name, shorthand, and normalized-name setup diagnostics through typed command and flags errors.
+- [x] `command/flags_test.go` - `TestRoutePreservesParserBoundariesAndTypedFlagFailures` validates help, unknown flag, missing value, conversion, and duplicate-value parse diagnostics.
 
 ### E2E Tests
 
-- [x] `command/alias_workflow_test.go` - `TestAliasRoutingPublicAPIWorkflow` covers the end-to-end command routing workflow for Story 3.2's non-UI command API surface.
-- [x] Browser UI E2E tests are not applicable; this repository has no UI surface for Story 3.2.
+- [x] `command/flags_test.go` - `TestRouteComposesInheritedAndLocalFlags` covers the end-to-end Story 3.3 route workflow for inherited flags, descendant routing, final-command local flags, parsed values, occurrences, and remaining args.
+- [x] `command/flags_test.go` - `TestRouteKeepsSiblingAndAncestorLocalFlagsIsolated` covers sibling and ancestor local-flag isolation through full routing calls.
+- [x] `command/flags_test.go` - `TestRouteDistinguishesCommandTokensFromFlagSyntax` covers command tokens near flag names, registered flag-like tokens, unknown flag-like tokens, and flag-like positionals after `--`.
+- [x] `command/flags_test.go` - `TestRouteFlagSnapshotsAreDefensiveAndReusable` covers immutable route flag snapshots and repeated route calls.
+- [x] Browser UI E2E tests are not applicable; this repository has no UI surface for Story 3.3.
 
 ## Coverage
 
 - API endpoints: 0/0 applicable.
 - UI features: 0/0 applicable.
-- Command public API workflow gaps fixed: 3/3.
-- Story 3.2 generated command test functions: 3.
-- Command package test functions after generation: 24 tests plus 1 example.
-- Story 3.2 behavior areas covered by command tests: alias setup validation, duplicate lookup token diagnostics, root and nested alias routing, canonical route snapshots, raw match-token snapshots, remaining args, unknown commands near aliases, defensive copies, repeatable/concurrent route calls, and process-state isolation.
+- Story 3.3 QA gaps fixed: 3/3.
+- Story 3.3 command flag tests now include: inherited flags, local flags, sibling isolation, ancestor local isolation, conflict diagnostics, normalization collisions, parser boundaries, command/flag ambiguity, defensive flag snapshots, and process-state isolation.
+- Command package test functions after generation: 33 tests plus 1 example.
 
 ## Validation
 

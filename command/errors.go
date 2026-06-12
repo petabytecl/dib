@@ -14,6 +14,9 @@ var ErrInvalidCommandAlias = errors.New("invalid command alias")
 // ErrDuplicateCommandToken identifies an ambiguous command lookup token.
 var ErrDuplicateCommandToken = errors.New("duplicate command token")
 
+// ErrFlagComposition identifies a command route flag composition setup failure.
+var ErrFlagComposition = errors.New("command flag composition failed")
+
 // UnknownCommandError reports an inspectable command routing failure.
 type UnknownCommandError struct {
 	token      string
@@ -174,4 +177,55 @@ func (e *TokenConflictError) CollidingCommand() string {
 		return ""
 	}
 	return e.collidingCommand
+}
+
+// FlagCompositionError reports an inspectable flag composition failure for one
+// canonical command path.
+type FlagCompositionError struct {
+	path  []string
+	scope string
+	cause error
+}
+
+func newFlagCompositionError(path []Definition, scope string, cause error) *FlagCompositionError {
+	return &FlagCompositionError{
+		path:  pathNames(path),
+		scope: scope,
+		cause: cause,
+	}
+}
+
+func (e *FlagCompositionError) Error() string {
+	if e == nil {
+		return "command: flag composition failed"
+	}
+	return fmt.Sprintf("command: %v at %v during %s flag composition: %v", ErrFlagComposition, e.path, e.scope, e.cause)
+}
+
+// Unwrap exposes both the command composition category and the underlying
+// flags package diagnostic for errors.Is and errors.As.
+func (e *FlagCompositionError) Unwrap() []error {
+	if e == nil {
+		return nil
+	}
+	if e.cause == nil {
+		return []error{ErrFlagComposition}
+	}
+	return []error{ErrFlagComposition, e.cause}
+}
+
+// Path returns the canonical command path whose flags failed to compose.
+func (e *FlagCompositionError) Path() []string {
+	if e == nil {
+		return nil
+	}
+	return append([]string(nil), e.path...)
+}
+
+// Scope returns the composition scope associated with the failure.
+func (e *FlagCompositionError) Scope() string {
+	if e == nil {
+		return ""
+	}
+	return e.scope
 }

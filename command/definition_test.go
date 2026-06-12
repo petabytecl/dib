@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/petabytecl/dib/command"
+	"github.com/petabytecl/dib/flags"
 )
 
 func TestNewDefinitionAcceptsStableName(t *testing.T) {
@@ -103,6 +104,56 @@ func TestDefinitionDerivationDoesNotMutateOriginalsOrLeakAliases(t *testing.T) {
 	children[0] = destroy
 	if got := derived.Children(); len(got) != 1 || got[0].Name() != "apply" {
 		t.Fatalf("derived Children() leaked mutable slice: %v", got)
+	}
+}
+
+func TestDefinitionFlagOptionsAndDerivationAreDefensive(t *testing.T) {
+	local := []flags.Definition{flags.Bool("dry-run", false, "")}
+	inherited := []flags.Definition{flags.String("cluster", "", "")}
+	deploy, err := command.NewDefinition(
+		"deploy",
+		command.LocalFlags(local...),
+		command.InheritedFlags(inherited...),
+	)
+	if err != nil {
+		t.Fatalf("NewDefinition(deploy) returned unexpected error: %v", err)
+	}
+	local[0] = flags.Bool("mutated-local", false, "")
+	inherited[0] = flags.String("mutated-inherited", "", "")
+
+	if got := deploy.LocalFlags(); len(got) != 1 || got[0].Name() != "dry-run" {
+		t.Fatalf("LocalFlags() = %v, want dry-run", got)
+	}
+	if got := deploy.InheritedFlags(); len(got) != 1 || got[0].Name() != "cluster" {
+		t.Fatalf("InheritedFlags() = %v, want cluster", got)
+	}
+
+	localCopy := deploy.LocalFlags()
+	localCopy[0] = flags.Bool("mutated-return", false, "")
+	if got := deploy.LocalFlags(); len(got) != 1 || got[0].Name() != "dry-run" {
+		t.Fatalf("LocalFlags() leaked mutable slice: %v", got)
+	}
+
+	derived, err := deploy.WithLocalFlags(flags.Bool("force", false, ""))
+	if err != nil {
+		t.Fatalf("WithLocalFlags returned unexpected error: %v", err)
+	}
+	derived, err = derived.WithInheritedFlags(flags.String("profile", "", ""))
+	if err != nil {
+		t.Fatalf("WithInheritedFlags returned unexpected error: %v", err)
+	}
+
+	if got := deploy.LocalFlags(); len(got) != 1 || got[0].Name() != "dry-run" {
+		t.Fatalf("WithLocalFlags mutated original local flags: %v", got)
+	}
+	if got := deploy.InheritedFlags(); len(got) != 1 || got[0].Name() != "cluster" {
+		t.Fatalf("WithInheritedFlags mutated original inherited flags: %v", got)
+	}
+	if got := derived.LocalFlags(); len(got) != 1 || got[0].Name() != "force" {
+		t.Fatalf("derived LocalFlags() = %v, want force", got)
+	}
+	if got := derived.InheritedFlags(); len(got) != 1 || got[0].Name() != "profile" {
+		t.Fatalf("derived InheritedFlags() = %v, want profile", got)
 	}
 }
 

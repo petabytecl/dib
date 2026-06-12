@@ -131,6 +131,20 @@ child names, duplicate aliases, alias-vs-child-name collisions, and cross-alias
 cycles. Diagnostic strings remain non-contractual; callers should use
 `errors.Is`, `errors.As`, and accessors.
 
+Story 3.3 adds command flag-composition setup diagnostics while preserving the
+underlying `flags` package contracts. Long-name, shorthand, and normalized-name
+collisions produced while composing inherited flags root-to-leaf plus the final
+command's local flags return `command.ErrFlagComposition` through
+`*command.FlagCompositionError`. Callers can inspect the canonical command path
+with `Path()` and the composition scope with `Scope()`. The same error unwraps
+the underlying `*flags.DefinitionError`, so callers can still use
+`errors.Is` with `flags.ErrDuplicateName`, `flags.ErrDuplicateShorthand`, or
+`flags.ErrDuplicateNormalizedName`, and `errors.As` with
+`*flags.DefinitionError`. Runtime flag parse failures during routing continue
+to return the typed `*flags.ParseError` values from `flags.Set.Parse`; command
+routing does not convert help requests, unknown flags, missing values,
+conversion failures, or duplicate values into command diagnostics.
+
 ## Source Labels
 
 Config provenance source labels are fixed to these exact spellings:
@@ -164,6 +178,8 @@ shorthand-parse, shorthand-group, repeated-value, custom-parser, and
 help-request categories, plus parser fuzz evidence that those categories remain
 inspectable under arbitrary input. Story 3.1 adds the first `command` routing
 diagnostic for unknown commands. Story 3.2 adds command alias setup diagnostics
-for invalid aliases and duplicate lookup tokens. Later stories own
-source-report structures, rendered diagnostics, config provenance, and the
-remaining concrete error categories for each package surface.
+for invalid aliases and duplicate lookup tokens. Story 3.3 adds command
+flag-composition setup diagnostics and routes runtime flag parse failures
+through the existing `flags` parse diagnostics. Later stories own source-report
+structures, rendered diagnostics, config provenance, and the remaining concrete
+error categories for each package surface.
