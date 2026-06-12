@@ -32,7 +32,7 @@ func TestReleaseChecklistRecordsReleaseCandidateEvidence(t *testing.T) {
 
 	required := []string{
 		"go module tag: `v0.1.0`",
-		"exact commit: `d6473cf68a59e5abcf1baf58c0515d7eeeb34626`",
+		"exact commit: `d5ce41ce693413b88df95e644eb4358702ae205e`",
 		"owner: coto",
 		"date: 2026-06-12",
 		"reviewer: release reviewer",

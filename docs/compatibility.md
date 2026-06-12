@@ -7,7 +7,8 @@ This boundary applies to Go `flag`, pflag, Cobra, Viper, and comparable projects
 This document describes V1 behavior boundaries for adopters. Executable
 migration examples live under `examples/migration/` and show familiar concepts
 through Dib's native APIs for Story 5.2. Consolidated adoption evidence lives in
-`docs/behavior-matrices.md` for Story 5.3. This document does not claim release readiness; Story 5.4 owns release-readiness evidence.
+`docs/behavior-matrices.md` for Story 5.3. Story 5.4 records release-candidate
+evidence, but this document does not claim tag approval.
 
 ## How To Read This Table
 
@@ -47,7 +48,8 @@ layout.
 
 The following areas are deferred rather than implied as supported:
 
-- Release readiness before Story 5.4.
+- Final tag approval and future release readiness decisions after the recorded
+  Story 5.4 release-candidate evidence.
 - Callback invocation, shell completion, manpages, scaffolding, and generated
   command assets.
 - Additional config formats, remote stores, live reload, aliases, and

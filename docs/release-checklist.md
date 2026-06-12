@@ -5,7 +5,7 @@ Use this checklist for each Dib Go module tag. It records release-candidate evid
 ## Release Identity
 
 - Go module tag: `v0.1.0`
-- Exact commit: `d6473cf68a59e5abcf1baf58c0515d7eeeb34626`
+- Exact commit: `d5ce41ce693413b88df95e644eb4358702ae205e`
 - Owner: Coto
 - Date: 2026-06-12
 - Reviewer: Release reviewer

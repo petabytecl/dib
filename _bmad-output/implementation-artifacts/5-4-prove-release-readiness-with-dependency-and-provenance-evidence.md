@@ -202,7 +202,7 @@ GPT-5 Codex
 
 ### Completion Notes List
 
-- Completed the v0 release evidence package for tag candidate `v0.1.0` at exact commit `d6473cf68a59e5abcf1baf58c0515d7eeeb34626`.
+- Completed the v0 release evidence package for tag candidate `v0.1.0` at exact commit `d5ce41ce693413b88df95e644eb4358702ae205e`.
 - Replaced Story 5.4 placeholder tests with completed-evidence guards for identity, commands, Go version alignment, dependency evidence, v0 status, waiver shape, and release-scope boundaries.
 - Added `docs/release-notes-v0.md` with experimental v0 status, Go 1.26+ guidance, release gates, compatibility boundaries, and migration pointers.
 - Reconciled the behavior matrix and compatibility evidence link so release-candidate evidence is current without claiming tag approval.

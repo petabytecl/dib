@@ -34,7 +34,7 @@ func TestCompatibilityDocumentBoundaries(t *testing.T) {
 		"story 5.3",
 		"story 5.4",
 		"consolidated adoption evidence",
-		"does not claim release readiness",
+		"does not claim tag approval",
 	}
 	for _, phrase := range required {
 		if !strings.Contains(lower, phrase) {
