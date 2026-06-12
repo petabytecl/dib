@@ -69,3 +69,27 @@
 - For Story 6.3, treat docs prose and examples as first-class test targets so public usage documentation cannot drift from the implemented library API.
 - Keep posting GitHub issue milestones after create, dev, QA, review, and push so tracker state stays aligned with automator state.
 - Continue amending final automator metadata into the story commit to avoid leaving dirty state artifacts after commit-story runs.
+
+## Run: 2026-06-12T18:31:07Z
+
+**Epic:** dib - Epic Breakdown
+**Stories:** 6.3
+
+### Patterns Observed
+- Documentation stories still benefit from the full create/dev/QA/review loop because README examples behave like public API contracts.
+- The QA pass found meaningful gaps after dev-story was already green: missing README link assertions, unguarded quickstart API calls, and release-notes drift.
+- GitHub issue checkpoints kept the external tracker aligned without waiting for the final commit.
+
+### Code Review Insights
+- Common issues: generated QA artifacts missing from the story File List.
+- Average cycles to clean: one review cycle; the reviewer auto-fixed the missing File List entry and synced sprint-status to done.
+
+### Timing Estimates
+- create-story: minutes, mostly artifact synthesis and source grounding.
+- dev-story: minutes, covering README creation, docs guard tests, behavior matrix evidence, release checklist scope, and release notes.
+- code-review: one cycle with targeted story bookkeeping fixes.
+
+### Recommendations for Future Runs
+- For Story 6.4, reconcile final release evidence and tracker state after all hardening stories have landed.
+- Keep asserting public documentation links and examples in docs tests so README drift fails locally and in CI.
+- Continue amending final automator state into the story commit so the branch stays clean after each run.

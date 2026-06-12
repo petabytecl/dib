@@ -46,6 +46,7 @@ func TestBehaviorMatricesCoverAdoptionEvidenceRows(t *testing.T) {
 		"migration examples":                                     {"story 5.2", "fr18", "fr19", "current"},
 		"dependency gate evidence":                               {"story 5.3", "story 6.1", "story 6.2", "fr21", "fr23", "fr24", "go run ./tools/depgate", "go run ./tools/lint", "go run ./tools/coverage", "current"},
 		"release-candidate evidence":                             {"story 5.4", "docs/release-notes-v0.md", "current"},
+		"public usage documentation":                             {"story 6.3", "fr25", "nfr12", "readme.md", "current"},
 	}
 
 	for row, phrases := range requiredRows {

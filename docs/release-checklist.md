@@ -11,6 +11,7 @@ Use this checklist for each Dib Go module tag. It records release-candidate evid
 - Reviewer: Release reviewer
 - Story 6.1 evidence scope: lint evidence below was collected from the Story 6.1 working tree based on `7cfdfcaf62b9f344eb4258eb03fc95f6e4783ac6`; final tag commit reconciliation remains a later release-review step.
 - Story 6.2 evidence scope: coverage evidence below was collected from the Story 6.2 working tree; final tag commit reconciliation remains a later release-review step.
+- Story 6.3 evidence scope: public usage documentation was published in the Story 6.3 working tree; final tag commit reconciliation remains a later release-review step.
 
 ## Go Version Alignment
 
@@ -51,7 +52,7 @@ Per-package results from `GOCACHE=/tmp/dib-go-build go run ./tools/coverage` on 
   - `go test -fuzz='^FuzzParse$' -fuzztime=5s ./flags`: PASS on 2026-06-12 with `GOCACHE=/tmp/dib-go-build go test -fuzz='^FuzzParse$' -fuzztime=5s ./flags`.
   - `go test -fuzz='^FuzzParseBoundary$' -fuzztime=5s ./flags`: PASS on 2026-06-12 with `GOCACHE=/tmp/dib-go-build go test -fuzz='^FuzzParseBoundary$' -fuzztime=5s ./flags`.
   - `go test -fuzz='^FuzzParseShortGroups$' -fuzztime=5s ./flags`: PASS on 2026-06-12 with `GOCACHE=/tmp/dib-go-build go test -fuzz='^FuzzParseShortGroups$' -fuzztime=5s ./flags`.
-- Docs/examples evidence input: `docs/behavior-matrices.md` records Story 5.4 release-candidate evidence, consolidates Story 5.3 adoption evidence, and links package tests plus Story 5.2 migration examples.
+- Docs/examples evidence input: `docs/behavior-matrices.md` records Story 5.4 release-candidate evidence, consolidates Story 5.3 adoption evidence, and links package tests plus Story 5.2 migration examples; `README.md` provides public adopter onboarding.
 - Provenance evidence input: `docs/provenance-log.md`; Story 5.4 records final
   provenance review outcome: no new external reference material was used for
   release evidence or release notes; no provenance entry was required.

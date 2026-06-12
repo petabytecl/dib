@@ -2,6 +2,74 @@
 
 ---
 
+## Story 6.3 - Gap Analysis
+
+Story 6.3 is a documentation story that publishes `README.md` and `docs/readme_test.go`. There is no HTTP API or browser UI surface. All applicable automated coverage is docs-package test guards using Go's standard `testing` package.
+
+The workflow found and auto-applied these test gaps:
+
+| Gap | Location | AC |
+| --- | --- | --- |
+| `## Status` heading not asserted | `TestREADMEExistsAndCoversAdoptionOnboarding` | AC1 |
+| `docs/diagnostics-and-errors.md` link not asserted | `TestREADMEExistsAndCoversAdoptionOnboarding` | AC2 |
+| `docs/release-checklist.md` link not asserted | `TestREADMEExistsAndCoversAdoptionOnboarding` | AC2 |
+| `contributing.md` link not asserted | `TestREADMEExistsAndCoversAdoptionOnboarding` | AC2 |
+| `result.PathNames()` API phrase not asserted | none (new test added) | AC3 |
+| `config.NewEnvSnapshot` API phrase not asserted | none (new test added) | AC3 |
+| `config.BindEnv` API phrase not asserted | none (new test added) | AC3 |
+| `state.Values()` API phrase not asserted | none (new test added) | AC3 |
+| `.GetString(` API phrase not asserted | none (new test added) | AC3 |
+| `readme.md` not asserted in release notes | `TestReleaseNotesV0ExistAndPreserveBoundaries` | AC2 |
+
+## Story 6.3 - Generated Tests
+
+### Docs Tests (extended and new)
+
+- [x] `docs/readme_test.go` — `TestREADMEExistsAndCoversAdoptionOnboarding` — extended: added `## Status` heading + 3 doc link phrases (`docs/diagnostics-and-errors.md`, `docs/release-checklist.md`, `contributing.md`)
+- [x] `docs/readme_test.go` — `TestREADMEQuickstartUsesRealAPI` — **new test**: asserts 5 real API phrases from the quickstart (`result.PathNames()`, `config.NewEnvSnapshot`, `config.BindEnv`, `state.Values()`, `.GetString(`)
+- [x] `docs/release_checklist_test.go` — `TestReleaseNotesV0ExistAndPreserveBoundaries` — extended: added `readme.md` to guard Story 6.3's addition to `docs/release-notes-v0.md`
+
+### Previously Implemented Tests (Story 6.3 dev agent — all pass)
+
+- [x] `docs/readme_test.go` `TestREADMEExistsAndCoversAdoptionOnboarding`
+- [x] `docs/readme_test.go` `TestREADMEDoesNotImplySourceCompatibility`
+- [x] `docs/behavior_matrices_test.go` `TestBehaviorMatricesCoverAdoptionEvidenceRows` (story 6.3 / fr25 / nfr12 row)
+- [x] `docs/release_checklist_test.go` `TestReleaseChecklistRecordsReleaseCandidateEvidence` (story 6.3 evidence scope)
+
+## Story 6.3 - Coverage
+
+- API endpoints: 0/0 applicable (documentation-only story).
+- UI features: 0/0 applicable.
+- Story 6.3 QA gaps fixed: 10/10.
+- README required headings asserted: 6/6 (`## Status`, `## Packages`, `## Install`, `## Quickstart`, `## Compatibility`, `## Documentation`).
+- README required doc links asserted: 10/10 (all links from the `## Documentation` table).
+- README real API phrases asserted: 10/10 (all quickstart API calls).
+- Release-notes Story 6.3 addition guarded: yes (`readme.md`).
+
+## Story 6.3 - Validation
+
+- [x] `GOCACHE=/tmp/dib-go-build go test -count=1 ./docs` — PASS (24 tests)
+- [x] `GOCACHE=/tmp/dib-go-build go test -count=1 ./...` — PASS (9 packages)
+- [x] `GOCACHE=/tmp/dib-go-build go vet ./...` — PASS
+- [x] `GOCACHE=/tmp/dib-go-build go run ./tools/depgate` — PASS
+
+## Story 6.3 - Checklist
+
+- [x] API tests generated (applicable — docs evidence guard tests for Go docs package).
+- [x] E2E tests generated where applicable.
+- [x] Tests use standard Go `testing` APIs.
+- [x] Tests cover happy path.
+- [x] Tests cover 1-2 critical error cases (prohibited compatibility framing, missing required phrases).
+- [x] All generated tests run successfully.
+- [x] Tests have clear descriptions.
+- [x] No hardcoded waits or sleeps.
+- [x] Tests are independent (no order dependency).
+- [x] Test summary created.
+- [x] Tests saved to `docs/readme_test.go` and `docs/release_checklist_test.go`.
+- [x] Summary includes coverage metrics.
+
+---
+
 ## Story 6.2 - Gap Analysis
 
 Story 6.2 adds a stdlib-only `tools/coverage` gate and wires it into CI. There is no HTTP API or browser UI, so coverage is package-level unit tests for `tools/coverage`, CI and doc guard tests for the coverage gate integration, and release-evidence doc tests.

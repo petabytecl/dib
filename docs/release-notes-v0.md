@@ -33,7 +33,7 @@ Dib is a clean-room native Go API. It is not a source-compatible clone, not a dr
 
 Compatibility boundaries are documented in `docs/compatibility.md`. Migration examples live under `examples/migration/` and demonstrate Dib-native APIs with
 explicit instances, injected inputs, typed errors, deterministic rendering, and
-redaction-safe reports.
+redaction-safe reports. `README.md` provides public onboarding with install guidance, package roles, and a minimal flag/command/config quickstart.
 
 ## Release Scope
 
