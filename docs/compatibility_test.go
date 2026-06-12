@@ -29,6 +29,7 @@ func TestCompatibilityDocumentBoundaries(t *testing.T) {
 		"cobra",
 		"viper",
 		"explicit setter > flag binding > env > json > default",
+		"examples/migration",
 		"story 5.2",
 		"story 5.3",
 		"story 5.4",
@@ -68,7 +69,6 @@ func TestCompatibilityDocumentDoesNotMakePositiveCompatibilityClaims(t *testing.
 
 	prohibitedClaims := []*regexp.Regexp{
 		regexp.MustCompile(`(?i)\bcompatible replacement\b`),
-		regexp.MustCompile(`(?i)\bmigration examples are complete\b`),
 		regexp.MustCompile(`(?i)\brelease readiness is complete\b`),
 	}
 	for _, pattern := range prohibitedClaims {
@@ -193,7 +193,7 @@ func TestCompatibilityEvidenceLinksResolve(t *testing.T) {
 		}
 
 		targetPath := filepath.Clean(target)
-		if filepath.IsAbs(targetPath) || strings.HasPrefix(targetPath, "..") {
+		if filepath.IsAbs(targetPath) || (strings.HasPrefix(targetPath, "..") && !strings.HasPrefix(targetPath, "../examples/")) {
 			t.Fatalf("compatibility document contains non-local evidence link %q", link)
 		}
 		targetContent, err := os.ReadFile(targetPath)
@@ -206,6 +206,32 @@ func TestCompatibilityEvidenceLinksResolve(t *testing.T) {
 		anchors := markdownAnchors(string(targetContent))
 		if !anchors[anchor] {
 			t.Fatalf("compatibility evidence link %q has missing anchor; available anchors %#v", link, anchors)
+		}
+	}
+}
+
+func TestCompatibilityMigrationExampleEvidence(t *testing.T) {
+	content, err := os.ReadFile("compatibility.md")
+	if err != nil {
+		t.Fatalf("read compatibility document: %v", err)
+	}
+	text := string(content)
+
+	for _, path := range []string{
+		"../examples/migration/standard_flag_concepts_test.go",
+		"../examples/migration/shorthand_flag_migration_test.go",
+		"../examples/migration/nested_command_migration_test.go",
+		"../examples/migration/config_precedence_migration_test.go",
+	} {
+		if !strings.Contains(text, path) {
+			t.Fatalf("compatibility document missing migration evidence link %s", path)
+		}
+		example, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatalf("read migration evidence %s: %v", path, err)
+		}
+		if !strings.Contains(string(example), "Example_") {
+			t.Fatalf("migration evidence %s does not contain runnable Example function", path)
 		}
 	}
 }

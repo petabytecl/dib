@@ -42,7 +42,7 @@ CI failures block tagging. Record the exact command outcome for each required ga
 - Docs/examples evidence:
 - Provenance evidence:
 - Compatibility evidence:
-- Migration evidence:
+- Migration evidence: Story 5.2 example pointers live in `examples/migration/`; Story 5.4 records final release-candidate command outcomes.
 
 ## Standard-Library Dependency Evidence
 

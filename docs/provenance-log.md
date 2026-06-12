@@ -144,6 +144,34 @@ source influenced when known.
   names, file organization, wording, tables, or source-derived structure copied
   into Dib artifacts.
 
+## Story 5.2 Entries
+
+### Go Examples Guidance
+
+- Source: Go examples guidance
+- URL: https://go.dev/blog/examples
+- Access date: 2026-06-12
+- License or terms: Go project BSD-style license, https://go.dev/LICENSE
+- Affected artifact: `examples/migration/standard_flag_concepts_test.go`, `examples/migration/shorthand_flag_migration_test.go`, `examples/migration/nested_command_migration_test.go`, `examples/migration/config_precedence_migration_test.go`
+- Classification: inspiration-only
+- Reviewer: Not applicable
+- Approval date: Not applicable
+- Approval notes: Not applicable for inspiration-only entry
+- Notes: Used to confirm how Go `Example...` functions in `_test.go` files participate in runnable documentation. No source, tests, comments, examples, fixtures, internal names, file organization, wording, or source-derived structure copied into Dib examples or docs.
+
+### Go Testing Package Documentation
+
+- Source: Go `testing` package documentation
+- URL: https://pkg.go.dev/testing
+- Access date: 2026-06-12
+- License or terms: Go project BSD-style license, https://go.dev/LICENSE
+- Affected artifact: `examples/migration/standard_flag_concepts_test.go`, `examples/migration/shorthand_flag_migration_test.go`, `examples/migration/nested_command_migration_test.go`, `examples/migration/config_precedence_migration_test.go`
+- Classification: inspiration-only
+- Reviewer: Not applicable
+- Approval date: Not applicable
+- Approval notes: Not applicable for inspiration-only entry
+- Notes: Used to confirm `Example...` output comment behavior under `go test`. No source, tests, comments, examples, fixtures, internal names, file organization, wording, or source-derived structure copied into Dib examples or docs.
+
 ## Initial Entries
 
 ### Go flag Package Documentation
