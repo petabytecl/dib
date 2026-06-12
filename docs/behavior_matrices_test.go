@@ -45,7 +45,7 @@ func TestBehaviorMatricesCoverAdoptionEvidenceRows(t *testing.T) {
 		"compatibility boundaries":                               {"story 5.1", "nfr7", "supported", "narrowed", "omitted", "intentionally different"},
 		"migration examples":                                     {"story 5.2", "fr18", "fr19", "current"},
 		"dependency gate evidence":                               {"story 5.3", "fr21", "go run ./tools/depgate", "current"},
-		"release-candidate readiness":                            {"story 5.4", "deferred"},
+		"release-candidate evidence":                             {"story 5.4", "docs/release-notes-v0.md", "current"},
 	}
 
 	for row, phrases := range requiredRows {
@@ -100,8 +100,8 @@ func TestBehaviorMatrixKeepsDeferredAndBoundaryLanguage(t *testing.T) {
 			t.Fatalf("behavior matrix overstates release readiness with %q", prohibited)
 		}
 	}
-	if !strings.Contains(lower, "story 5.4") || !strings.Contains(lower, "deferred") {
-		t.Fatal("behavior matrix must keep Story 5.4 release readiness deferred")
+	if !strings.Contains(lower, "story 5.4") || !strings.Contains(lower, "human release review") {
+		t.Fatal("behavior matrix must keep Story 5.4 release evidence scoped to human release review")
 	}
 
 	boundaryTerms := regexp.MustCompile(`(?i)drop-in|source-compatible|source compatibility|clone API|framework compatibility layer|compatible replacement`)

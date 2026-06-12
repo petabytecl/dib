@@ -16,9 +16,9 @@ dependency behavior without requiring them to reverse-engineer every test first.
 - **Executable evidence** names local files and Go `Test...`, `Fuzz...`, or
   `Example...` functions where practical. Function names are cited only when
   they exist in the repository.
-- **Status** is `current` for implemented behavior, `deferred` for future scope,
-  and never means release-candidate approval. Story 5.4 owns final release
-  readiness outcomes.
+- **Status** is `current` for implemented behavior or captured evidence,
+  `deferred` for future scope, and never means release-candidate approval.
+  Story 5.4 owns final release evidence for this v0 candidate.
 
 Dib is a clean-room native Go API. It is not a source-compatible clone, not a
 drop-in replacement, and not a framework compatibility layer for Go `flag`,
@@ -44,7 +44,7 @@ documented as supported, narrowed, omitted, or intentionally different in
 | Compatibility boundaries | Story 5.1 | FR17, FR18, FR20, FR21, NFR1, NFR7 | Familiar Go `flag`, pflag, Cobra, and Viper concepts are documented as supported, narrowed, omitted, or intentionally different. Dib does not claim source compatibility, a compatible replacement, a clone API, or a framework compatibility layer. | `docs/compatibility.md`; `docs/compatibility_test.go` `TestCompatibilityDocumentBoundaries`; `docs/compatibility_test.go` `TestCompatibilityDocumentDoesNotMakePositiveCompatibilityClaims`; `docs/compatibility_test.go` `TestCompatibilityTableCoversStorySurfaces`; `docs/provenance-log.md` | current |
 | Migration examples | Story 5.2 | FR18, FR19, FR21, NFR1, NFR2, NFR3, NFR5, NFR6, NFR7, NFR8 | Executable migration examples demonstrate familiar standard `flag`, pflag-style, Cobra-style, and Viper-style concepts through Dib's native API. Examples use explicit instances, caller-supplied args/readers/writers/env lookup, typed errors, deterministic help, and redaction-safe source reports. | `examples/migration/standard_flag_concepts_test.go` `Example_standardFlagConcepts` `TestStandardFlagConceptsInspectParseErrors`; `examples/migration/shorthand_flag_migration_test.go` `Example_shorthandFlagMigration` `TestShorthandFlagMigrationIntentionalDifferences`; `examples/migration/nested_command_migration_test.go` `Example_nestedCommandMigration` `TestNestedCommandMigrationRoutesAliasesFlagsAndHelp`; `examples/migration/config_precedence_migration_test.go` `Example_configPrecedenceMigration` `TestConfigPrecedenceMigrationReportsAreValueFreeAndRedacted`; `go test ./examples/migration` | current |
 | Dependency gate evidence | Story 5.3 | FR21, NFR1 | Dependency behavior is adoption evidence. Runtime packages, tests, examples, and tools stay standard-library-only unless architecture changes. The local gate checks package imports, and CI runs the same gate after tests and vet. The root module has no `require`, `replace`, or `toolchain` directive and no root go sum file. | `go.mod`; `.github/workflows/ci.yml`; `tools/depgate/main_test.go` `TestDepgateFixtures`; `tools/depgate/main_test.go` `TestDepgateReportsEveryViolationDeterministically`; `tools/depgate/main_test.go` `TestDepgateDisablesWorkspaceMode`; `go run ./tools/depgate`; `docs/release-checklist.md` | current |
-| Release-candidate readiness | Story 5.4 | FR21, NFR1, NFR4 | Release-candidate outcomes, exact commit, tag decision, race-test result, parser mutation-fuzz results, final provenance review, and final command outcomes are not completed by this story. Story 5.3 consolidates evidence inputs only. | `docs/release-checklist.md` | deferred |
+| Release-candidate evidence | Story 5.4 | FR21, NFR1, NFR4 | The v0 evidence package records exact commit, tag candidate, Go version alignment, CI runner/action versions, test/vet/dependency-gate/race outcomes, parser mutation-fuzz outcomes, docs/examples evidence, final provenance review, compatibility review, migration review, dependency evidence, and waiver status. It is evidence for human release review, not tag approval. | `docs/release-checklist.md`; `docs/release-notes-v0.md`; `docs/release_checklist_test.go` | current |
 
 ## Flag Parser Evidence Map
 
@@ -101,17 +101,18 @@ Adoption evidence for dependency behavior is current in Story 5.3:
   `go run ./tools/depgate` on `ubuntu-24.04` with the Go version read from
   `go.mod`.
 - `tools/depgate/` remains the executable local dependency gate.
-- `docs/release-checklist.md` records the consolidated behavior matrix as an
-  evidence input for Story 5.4 without filling release-candidate outcomes.
+- `docs/release-checklist.md` records the consolidated behavior matrix and the
+  Story 5.4 release-candidate outcomes for human release review.
 
-Story 5.4 owns exact release-candidate command results, race-test evidence,
-mutation-fuzz evidence, final provenance review, exact commit, tag readiness,
-and the final release decision.
+Story 5.4 records exact release-candidate command results, race-test evidence,
+mutation-fuzz evidence, final provenance review, exact commit, waiver status,
+and the tag candidate. The final tag action remains a human release-review
+decision.
 
 ## Current Scope Boundaries
 
 This matrix covers implemented behavior from Epics 2 through 4 and adoption
-evidence from Stories 5.1 through 5.3. It does not add runtime APIs, adapters,
+evidence from Stories 5.1 through 5.4. It does not add runtime APIs, adapters,
 package-global helpers, `/cmd` scaffolding, generated assets, new config
 formats, callback invocation, or release-ready claims.
 
