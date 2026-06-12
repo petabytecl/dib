@@ -10,6 +10,11 @@ var (
 	ErrDuplicateKey           = errors.New("duplicate config key")
 	ErrDuplicateNormalizedKey = errors.New("duplicate normalized config key")
 	ErrInvalidDefault         = errors.New("invalid config default")
+	ErrInvalidSource          = errors.New("invalid config source")
+	ErrUnknownSourceKey       = errors.New("unknown config source key")
+	ErrSourceRead             = errors.New("config source read failure")
+	ErrJSONDecode             = errors.New("config JSON decode failure")
+	ErrSourceConversion       = errors.New("config source value conversion failure")
 )
 
 // DefinitionError reports an inspectable setup-time config definition failure.
@@ -122,4 +127,156 @@ func (e *DefinitionError) Provenance() string {
 		return ""
 	}
 	return e.provenance
+}
+
+// SourceError reports an inspectable config source ingestion failure.
+type SourceError struct {
+	key             string
+	source          string
+	envName         string
+	jsonPath        string
+	jsonReaderLabel string
+	kind            Kind
+	diagnosticValue string
+	redacted        bool
+	category        error
+	cause           error
+}
+
+func newSourceError(key string, source string, envName string, jsonPath string, jsonReaderLabel string, kind Kind, diagnosticValue string, redacted bool, category error, cause error) *SourceError {
+	if redacted {
+		diagnosticValue = ""
+	}
+	return &SourceError{
+		key:             key,
+		source:          source,
+		envName:         envName,
+		jsonPath:        jsonPath,
+		jsonReaderLabel: jsonReaderLabel,
+		kind:            kind,
+		diagnosticValue: diagnosticValue,
+		redacted:        redacted,
+		category:        category,
+		cause:           cause,
+	}
+}
+
+func (e *SourceError) Error() string {
+	if e == nil {
+		return "config: source error"
+	}
+	message := fmt.Sprintf("config: %v", e.category)
+	if e.key != "" {
+		message += fmt.Sprintf(" for %q", e.key)
+	}
+	if e.kind.String() != "unknown" {
+		message += fmt.Sprintf(" as %s", e.kind)
+	}
+	if e.source != "" {
+		message += fmt.Sprintf(" from %s", e.source)
+	}
+	if e.envName != "" {
+		message += fmt.Sprintf(" env %q", e.envName)
+	}
+	if e.jsonPath != "" {
+		message += fmt.Sprintf(" path %q", e.jsonPath)
+	}
+	if e.jsonReaderLabel != "" {
+		message += fmt.Sprintf(" reader %q", e.jsonReaderLabel)
+	}
+	if e.redacted {
+		message += " value redacted"
+	} else if e.diagnosticValue != "" {
+		message += fmt.Sprintf(" value %q", e.diagnosticValue)
+	}
+	if e.cause != nil && !e.redacted {
+		message += fmt.Sprintf(": %v", e.cause)
+	}
+	return message
+}
+
+func (e *SourceError) Unwrap() error {
+	if e == nil {
+		return nil
+	}
+	return e.cause
+}
+
+func (e *SourceError) Is(target error) bool {
+	if e == nil {
+		return false
+	}
+	return target == e.category || errors.Is(e.cause, target)
+}
+
+// Category returns the source diagnostic category.
+func (e *SourceError) Category() error {
+	if e == nil {
+		return nil
+	}
+	return e.category
+}
+
+// Key returns the config key associated with the source failure.
+func (e *SourceError) Key() string {
+	if e == nil {
+		return ""
+	}
+	return e.key
+}
+
+// Source returns the provenance source label associated with the failure.
+func (e *SourceError) Source() string {
+	if e == nil {
+		return ""
+	}
+	return e.source
+}
+
+// EnvName returns the environment variable associated with the failure.
+func (e *SourceError) EnvName() string {
+	if e == nil {
+		return ""
+	}
+	return e.envName
+}
+
+// JSONPath returns the JSON file path associated with the failure.
+func (e *SourceError) JSONPath() string {
+	if e == nil {
+		return ""
+	}
+	return e.jsonPath
+}
+
+// JSONReaderLabel returns the JSON reader label associated with the failure.
+func (e *SourceError) JSONReaderLabel() string {
+	if e == nil {
+		return ""
+	}
+	return e.jsonReaderLabel
+}
+
+// Kind returns the expected value kind associated with the failure.
+func (e *SourceError) Kind() Kind {
+	if e == nil {
+		return KindString
+	}
+	return e.kind
+}
+
+// Redacted reports whether the raw source value was omitted from diagnostics.
+func (e *SourceError) Redacted() bool {
+	if e == nil {
+		return false
+	}
+	return e.redacted
+}
+
+// Cause returns the underlying source cause when it is safe to expose.
+func (e *SourceError) Cause() error {
+	if e == nil {
+		return nil
+	}
+	return e.cause
 }

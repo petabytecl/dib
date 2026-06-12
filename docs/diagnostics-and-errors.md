@@ -175,6 +175,19 @@ source but redact raw sensitive values. Default lookup not-found behavior is a
 structured result: `Snapshot.Lookup(key)` returns `(_, false)` for unregistered
 keys rather than panicking or returning a diagnostic.
 
+Story 4.2 adds config source ingestion diagnostics through `*config.SourceError`.
+Invalid source setup, such as a nil env lookup or invalid binding, returns
+`config.ErrInvalidSource`; unregistered explicit/env/JSON keys return
+`config.ErrUnknownSourceKey`; JSON path and reader failures return
+`config.ErrSourceRead`; malformed JSON, non-object roots, and trailing JSON data
+return `config.ErrJSONDecode`; and explicit/env/JSON value type or conversion
+failures return `config.ErrSourceConversion`. Callers can inspect the config
+key, source label, env variable name, JSON path, JSON reader label, expected
+kind, redaction status, and safe underlying cause through `*config.SourceError`.
+File-not-found path failures preserve `errors.Is(err, os.ErrNotExist)`.
+Sensitive source failures identify context without echoing raw fake sensitive
+values.
+
 ## Source Labels
 
 Config provenance source labels are fixed to these exact spellings:
@@ -200,6 +213,10 @@ Once redaction behavior exists, raw sensitive values must not appear in errors,
 `String` output, debug strings, rendered diagnostics, source reports, examples,
 or validation failures.
 
+Story 4.2 source ingestion redacts sensitive raw values in explicit setter, env
+lookup, and JSON conversion diagnostics. It does not introduce source reports
+or rendered config diagnostics.
+
 ## Current Scope
 
 Story 1.3 established the shared contract language. Stories 2.1 through 2.8
@@ -215,6 +232,8 @@ help/usage rendering while preserving existing command and flags error
 categories. Story 3.5 adds boundary metadata while preserving existing command
 and flags error categories. Story 4.1 adds config definition setup diagnostics,
 default provenance, not-found lookup behavior, and sensitive default redaction.
-Later stories own source-report structures, rendered diagnostics beyond command
-help/usage, config explicit setters, flag binding, env and JSON source
-diagnostics, and full precedence error categories.
+Story 4.2 adds config explicit setter, injected env lookup, and JSON reader/path
+source ingestion plus typed source diagnostics. Later stories own config flag
+binding, cross-source precedence, typed public getters, source reports, rendered
+config diagnostics, compatibility tables, migration examples, and release
+evidence.

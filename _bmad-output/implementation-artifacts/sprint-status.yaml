@@ -1,5 +1,5 @@
 # generated: 2026-06-11T12:01:02-04:00
-# last_updated: 2026-06-12T03:12:41-04:00
+# last_updated: 2026-06-12T03:45:07-04:00
 # project: dib
 # project_key: NOKEY
 # tracking_system: file-system
@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: "2026-06-11T12:01:02-04:00"
-last_updated: "2026-06-12T03:12:41-04:00"
+last_updated: "2026-06-12T03:45:07-04:00"
 project: dib
 project_key: NOKEY
 tracking_system: file-system
@@ -71,7 +71,7 @@ development_status:
 
   epic-4: in-progress
   4-1-register-config-keys-with-defaults-and-type-expectations: done
-  4-2-read-config-sources-through-explicit-boundaries: backlog
+  4-2-read-config-sources-through-explicit-boundaries: done
   4-3-resolve-config-precedence-only-when-values-are-needed: backlog
   4-4-retrieve-typed-values-and-absence-state: backlog
   4-5-report-provenance-and-redact-sensitive-diagnostics: backlog

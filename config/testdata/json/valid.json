@@ -1,0 +1,9 @@
+{
+  "log-level": "file-debug",
+  "debug": true,
+  "workers": 4,
+  "retries": 2,
+  "timeout": "500ms",
+  "tags": ["fixture", "json"],
+  "ratio": 1.25
+}

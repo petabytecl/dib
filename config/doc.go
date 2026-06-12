@@ -15,9 +15,19 @@
 // key with no default returns a Value whose Value method reports no value. Values
 // supplied by defaults use the SourceDefault provenance label.
 //
-// Config resolution in this package does not read process arguments,
-// environment variables, stdout, stderr, hidden caches, files, or package-level
-// default configuration.
+// NewExplicitSnapshot ingests ordered caller-supplied assignments with
+// SourceExplicit provenance. NewEnvSnapshot ingests only registered bindings
+// through a caller-supplied EnvLookup function and uses SourceEnv provenance.
+// LoadJSON and LoadJSONFile ingest JSON objects from explicit readers or paths,
+// default to strict registered-key mode, and use SourceJSON provenance.
+//
+// Config source snapshots do not resolve cross-source precedence. That remains
+// a separate resolution step for callers or later package APIs.
+//
+// Config APIs in this package do not read process arguments, live environment
+// variables, stdout, stderr, hidden caches, ambient config files, or
+// package-level default configuration. File reads occur only through explicit
+// caller-supplied JSON paths.
 //
 // Programmatic failures should use typed or sentinel errors so callers can
 // inspect behavior without matching diagnostic strings.

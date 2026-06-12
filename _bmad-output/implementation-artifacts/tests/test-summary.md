@@ -1,40 +1,38 @@
 # Test Automation Summary
 
-## Story 4.1 - Gap Analysis
+## Story 4.2 - Gap Analysis
 
-Story 4.1 is a Go package API story for config key definitions, default
-resolution, typed setup errors, normalization, and sensitivity metadata. There
-is no HTTP API endpoint or browser UI surface, so applicable automated coverage
-is package-level public API and end-to-end consumer workflow tests using Go's
-standard `testing` package.
+Story 4.2 is a Go package API story for explicit config setters, injected env
+lookup, and JSON reader/path source ingestion. There is no HTTP API endpoint or
+browser UI surface, so applicable automated coverage is package-level public API
+and end-to-end consumer workflow tests using Go's standard `testing` package.
 
 The workflow found and fixed these test gaps:
 
 | Gap | Status |
 | --- | --- |
-| Config defaults, normalization, no-default state, sensitivity metadata, defensive values, and not-found behavior were covered in focused tests, but lacked a single public consumer workflow spanning the Story 4.1 contract | Fixed |
-| Unknown config kind validation was supported by implementation but lacked direct typed-error QA coverage | Fixed |
-| Exact key spellings and normalized collision behavior were covered separately, but lacked a QA regression proving exact spellings stay valid while the same definitions fail only when normalization is enabled | Fixed |
+| Focused Story 4.2 tests covered each source independently, but lacked a single QA consumer workflow spanning explicit setters, injected env lookup, JSON readers, JSON file paths, provenance labels, and source metadata | Fixed |
+| Critical source diagnostics were covered in focused tests, but lacked a compact QA regression proving sentinel inspection, typed `*config.SourceError` accessors, file-not-found wrapping, and sensitive redaction across all Story 4.2 ingress paths | Fixed |
 
 ## Generated Tests
 
 ### API Tests
 
-- [x] `config/qa_e2e_test.go` - `TestQAConfigSetupErrorsCoverUnknownKindsAndNormalizedCollisions` validates typed setup errors for unknown kinds and normalized collisions while proving exact spelling registration remains valid by default.
-- [x] Existing Story 4.1 config tests validate definition metadata, kind vocabulary, exact lookup, setup errors, normalized lookup/collisions, invalid normalized keys, immutable derivation, default snapshots, defensive values, concurrent reuse, and redaction-safe sensitive default diagnostics.
+- [x] `config/qa_e2e_test.go` - `TestQAConfigSourceDiagnosticsCoverCriticalFailuresAndRedaction` validates typed source diagnostics for explicit unknown keys, env conversion failures, strict JSON unknown keys, JSON read failures, and sensitive-value redaction across explicit/env/JSON sources.
+- [x] Existing Story 4.2 config tests validate explicit setter last-writer-wins, unknown keys, type mismatch handling, zero values, env prefix/replacer mapping, present-empty env values, absent env variables, strict/permissive JSON modes, reader and path loading, fixtures, decode failures, conversion failures, read failures, and defensive snapshots.
 
 ### E2E Tests
 
-- [x] `config/qa_e2e_test.go` - `TestQAConfigPublicWorkflowCoversDefaultsNormalizationAndNotFound` covers an end-to-end public API workflow from definition registration through normalized lookup, default snapshot resolution, default provenance, no-default registered keys, defensive string-list values, sensitivity metadata, and not-found lookup results.
-- [x] Browser UI E2E tests are not applicable; this repository has no UI surface for Story 4.1.
-- [x] HTTP API E2E tests are not applicable; this repository exposes Go package APIs for Story 4.1.
+- [x] `config/qa_e2e_test.go` - `TestQAConfigSourceWorkflowCoversExplicitEnvAndJSONBoundaries` covers an end-to-end public API workflow from registered definitions through explicit snapshots, injected env snapshots, permissive JSON reader loading, JSON fixture path loading, provenance labels, source metadata, empty env values, and defensive string-list values.
+- [x] Browser UI E2E tests are not applicable; this repository has no UI surface for Story 4.2.
+- [x] HTTP API E2E tests are not applicable; this repository exposes Go package APIs for Story 4.2.
 
 ## Coverage
 
 - API endpoints: 0/0 applicable.
 - UI features: 0/0 applicable.
-- Story 4.1 QA gaps fixed: 3/3.
-- Story 4.1 config tests now include: definition metadata, every supported kind string, optional defaults, no-default keys, zero-value defaults, defensive string-list defaults and snapshots, exact lookup, configured normalization, normalized collision diagnostics, invalid normalized keys, immutable set derivation, default provenance, documented not-found lookup results, typed setup errors, unknown kind validation, redaction corpus behavior, non-sensitive diagnostic visibility, and concurrent snapshot reuse.
+- Story 4.2 QA gaps fixed: 2/2.
+- Story 4.2 config tests now include: explicit setter provenance, deterministic same-source last-writer-wins, registered-key validation, type conversion diagnostics, sensitive redaction, zero values, empty strings, `false`, `0`, empty string lists, injected env lookup, explicit env names, prefix/replacer env mapping, present-empty env values, absent env values, strict JSON unknown-key rejection, deterministic JSON diagnostic key ordering, permissive JSON unknown-key handling, JSON reader loading, JSON path loading, package-local fixtures, JSON `int64` and `uint64` conversion, read/decode/type failures, file-not-found inspection, source metadata, and defensive source snapshots.
 
 ## Validation
 
