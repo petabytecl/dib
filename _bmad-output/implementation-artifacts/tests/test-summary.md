@@ -1,44 +1,40 @@
 # Test Automation Summary
 
-## Story 3.3 - Gap Analysis
+## Story 3.4 - Gap Analysis
 
-Story 3.3 is a Go package command-routing story. There is no HTTP API endpoint
-or browser UI surface, so the applicable automated coverage is package-level
-public API and end-to-end routing workflow tests using Go's standard `testing`
-package.
+Story 3.4 is a Go package API story for deterministic command help and usage
+rendering. There is no HTTP API endpoint or browser UI surface, so applicable
+automated coverage is package-level public API and end-to-end command workflow
+tests using Go's standard `testing` package.
 
 The workflow found and fixed these test gaps:
 
 | Gap | Status |
 | --- | --- |
-| Local/inherited flag constructor and derivation APIs lacked direct defensive-copy coverage | Fixed |
-| Command flag-composition diagnostics exposed new accessors without direct defensive accessor coverage | Fixed |
-| Command/flag ambiguity behavior was covered indirectly but lacked one workflow test spanning command-name tokens, registered flag syntax, unknown flag syntax, and `--` passthrough | Fixed |
+| Definition-local help rendering was covered through routed/root examples but lacked a focused no-route API test for local visible, hidden, deprecated, and sensitive flags | Fixed |
+| `WriteUsage` writer failure and invalid-target behavior lacked direct API coverage | Fixed |
 
 ## Generated Tests
 
 ### API Tests
 
-- [x] `command/definition_test.go` - `TestDefinitionFlagOptionsAndDerivationAreDefensive` validates local and inherited flag option copying, accessor defensiveness, and immutable derivation behavior.
-- [x] `command/errors_test.go` - `TestFlagCompositionErrorAccessorsAreDefensive` validates `*command.FlagCompositionError` path and scope accessors without string matching.
-- [x] `command/flags_test.go` - `TestRouteFlagCompositionConflictsAreInspectable` validates duplicate long-name, shorthand, and normalized-name setup diagnostics through typed command and flags errors.
-- [x] `command/flags_test.go` - `TestRoutePreservesParserBoundariesAndTypedFlagFailures` validates help, unknown flag, missing value, conversion, and duplicate-value parse diagnostics.
+- [x] `command/help_qa_test.go` - `TestWriteHelpRendersDefinitionLocalFlagsWithoutRoute` validates direct definition help rendering for local flags without calling `Route`, including exact output order, hidden flag omission, deprecation notes, and sensitive default redaction.
+- [x] `command/help_qa_test.go` - `TestWriteUsagePropagatesWriterFailuresAndRejectsInvalidTargets` validates `Definition.WriteUsage` and `Result.WriteUsage` writer error propagation and zero-value definition/result diagnostics through `*command.NameError`.
+- [x] `command/help_test.go` - Existing Story 3.4 tests validate definition and routed help output, aliases, descriptions, usage metadata, child commands, inherited/local flag ordering, hidden flags, deprecated flags, sensitive redaction, writer ownership, writer failures, repeated/concurrent rendering, and unchanged help-request routing behavior.
 
 ### E2E Tests
 
-- [x] `command/flags_test.go` - `TestRouteComposesInheritedAndLocalFlags` covers the end-to-end Story 3.3 route workflow for inherited flags, descendant routing, final-command local flags, parsed values, occurrences, and remaining args.
-- [x] `command/flags_test.go` - `TestRouteKeepsSiblingAndAncestorLocalFlagsIsolated` covers sibling and ancestor local-flag isolation through full routing calls.
-- [x] `command/flags_test.go` - `TestRouteDistinguishesCommandTokensFromFlagSyntax` covers command tokens near flag names, registered flag-like tokens, unknown flag-like tokens, and flag-like positionals after `--`.
-- [x] `command/flags_test.go` - `TestRouteFlagSnapshotsAreDefensiveAndReusable` covers immutable route flag snapshots and repeated route calls.
-- [x] Browser UI E2E tests are not applicable; this repository has no UI surface for Story 3.3.
+- [x] `command/help_test.go` - `TestWriteHelpRendersRoutedCommandFlagsAndUsage` covers the end-to-end route-to-render workflow for nested commands, aliases, inherited flags, local flags, hidden flags remaining parseable, exact help output, and exact usage output.
+- [x] `command/help_test.go` - `TestWriteHelpDoesNotChangeRouteHelpRequestBehavior` covers the end-to-end boundary where `Route(... --help)` still returns `flags.ErrHelpRequest` instead of rendering help or mutating process state.
+- [x] Browser UI E2E tests are not applicable; this repository has no UI surface for Story 3.4.
 
 ## Coverage
 
 - API endpoints: 0/0 applicable.
 - UI features: 0/0 applicable.
-- Story 3.3 QA gaps fixed: 3/3.
-- Story 3.3 command flag tests now include: inherited flags, local flags, sibling isolation, ancestor local isolation, conflict diagnostics, normalization collisions, parser boundaries, command/flag ambiguity, defensive flag snapshots, and process-state isolation.
-- Command package test functions after generation: 33 tests plus 1 example.
+- Story 3.4 QA gaps fixed: 2/2.
+- Story 3.4 command rendering tests now include: definition help, definition usage, routed help, routed usage, canonical names, aliases, descriptions, usage metadata, child commands, inherited flags, local flags, hidden flag omission, hidden flag parseability, deprecated flag notes, sensitive value redaction, caller-supplied writers, writer failure propagation, zero-value diagnostics, repeatability, concurrent rendering, defensive accessors, and help-request route boundaries.
+- Command package test functions after generation: 42 tests plus 1 example.
 
 ## Validation
 

@@ -58,6 +58,8 @@ organization were copied or adapted from them.
 | Command local and inherited flag composition | FR3, FR20 | Command definitions attach local and inherited `flags.Definition` values without global state. Route results expose the final composed flag set and parsed snapshot. Inherited flags compose root-to-leaf, final-command local flags compose last, sibling local flags and ancestor local flags remain isolated, and conflicts in long names, shorthands, or normalized names return typed setup diagnostics. | `TestRouteComposesInheritedAndLocalFlags`, `TestRouteKeepsSiblingAndAncestorLocalFlagsIsolated`, `TestRouteFlagCompositionConflictsAreInspectable`, `TestRouteFlagSnapshotsAreDefensiveAndReusable` | current |
 | Command flag parser boundaries | FR3, FR20 | Command routing consumes `flags.Set.Parse` behavior for registered flags while preserving canonical command path and raw match-token behavior. Interspersed flags and command tokens route deterministically; `--` stops flag parsing and passes subsequent tokens through as remaining args; help, unknown flag, missing value, conversion, and duplicate-value failures remain typed `flags.ParseError` diagnostics with zero-value route results. | `TestRoutePreservesParserBoundariesAndTypedFlagFailures`, `TestRouteComposesInheritedAndLocalFlags`, `TestAliasRoutingPublicAPIWorkflow` | current |
 | Command process boundaries | FR1, FR3, FR20 | Command routing never reads `os.Args` or environment state, writes to stdout/stderr, calls `os.Exit`, invokes callbacks, or takes process lifecycle ownership, including alias routing and flag-aware routing paths. | `TestRoutingUsesExplicitInputsAndReturnedValues`, `TestFlagRoutingUsesExplicitInputsAndReturnedValues` | current |
+| Command help and usage rendering | FR4, FR20 | Command definitions and route results render deterministic usage/help text to caller-supplied `io.Writer` values. Output includes canonical names, aliases, descriptions, usage metadata, child commands, and visible flags in definition/composition order. Hidden flags are omitted from output while remaining parseable through `Route`; visible deprecated flags render deterministic notes; sensitive defaults and parse values are not rendered. | `TestWriteHelpRendersDefinitionMetadataDeterministically`, `TestWriteHelpRendersDefinitionLocalFlagsWithoutRoute`, `TestWriteHelpRendersRoutedCommandFlagsAndUsage`, `TestWriteHelpOmitsHiddenAndSensitiveValues`, `TestWriteHelpDoesNotChangeRouteHelpRequestBehavior` | current |
+| Command rendering boundaries | FR4, FR20 | Rendering does not route, parse, execute callbacks, read `os.Args` or environment state, write to stdout/stderr, call `os.Exit`, use terminal width or host-specific state, or mutate command definitions and route results. Writer failures are returned directly, and zero-value definitions/results return inspectable name setup errors. | `TestWriteHelpUsesSuppliedWriterOnly`, `TestWriteHelpPropagatesWriterFailuresAndRejectsInvalidDefinitions`, `TestWriteUsagePropagatesWriterFailuresAndRejectsInvalidTargets`, `TestWriteHelpIsRepeatableConcurrentAndDefensive` | current |
 | Config binding | — | Config resolution must bind flag values into config keys when a config surface exists. | — | later: Epic 4 config stories |
 | Compatibility familiarity | — | Behavior-scoped familiarity with Go `flag`, pflag, Cobra, and Viper differences is documented. Dib does not claim source compatibility with those APIs. | — | later: Epic 5 story 5.1 |
 | Release-candidate evidence | — | Release readiness is validated with end-to-end dependency and provenance evidence. | — | later: Epic 5 story 5.4 |
@@ -65,13 +67,14 @@ organization were copied or adapted from them.
 ## Current Scope Boundaries
 
 This matrix tracks the Epic 2 flag parser surface and the initial Epic 3 command
-routing surface. The parser evidence map above is complete for the behavior
-areas implemented in Stories 2.1 through 2.8, and the command rows cover Story
-3.1 root and nested routing, Story 3.2 alias routing and validation, and Story
-3.3 command local/inherited flag composition evidence.
+routing and rendering surface. The parser evidence map above is complete for the
+behavior areas implemented in Stories 2.1 through 2.8, and the command rows
+cover Story 3.1 root and nested routing, Story 3.2 alias routing and
+validation, Story 3.3 command local/inherited flag composition evidence, and
+Story 3.4 deterministic help/usage rendering.
 
-The matrix does not claim that command routing, config precedence, source
-reports, redaction rendering, compatibility tables, migration examples, or
-release-candidate evidence are complete today. Help rendering, handler
-execution, and lifecycle ownership remain marked `later` and are owned by later
-Epic 3 stories.
+The matrix does not claim that config precedence, source reports, rendered
+diagnostic surfaces beyond command help/usage, compatibility tables, migration
+examples, or release-candidate evidence are complete today. Handler execution
+and lifecycle ownership remain marked `later` and are owned by later Epic 3
+stories.
