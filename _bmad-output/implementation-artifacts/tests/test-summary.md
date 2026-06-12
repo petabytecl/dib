@@ -2,6 +2,72 @@
 
 ---
 
+## Story 7.1 - Gap Analysis
+
+Story 7.1 is a Go package API story for explicit CLI invocation boundaries.
+There is no HTTP API endpoint or browser UI surface, so applicable automation is
+package-level public API and QA-style end-to-end consumer workflow coverage using
+Go's standard `testing` package.
+
+The workflow found and auto-applied these test gaps:
+
+| Gap | Status |
+| --- | --- |
+| Focused invocation tests covered the main constructors, but lacked one QA-style public workflow that carries caller-supplied full argv through reusable immutable invocation values | Fixed |
+| Empty full argv diagnostics covered `nil` argv but not the explicit empty-slice boundary as a separate caller shape | Fixed |
+| Diagnostic redaction was asserted on an invalid boundary path without a QA-level fake-sensitive corpus regression | Fixed |
+
+## Story 7.1 - Generated Tests
+
+### API Tests
+
+- [x] `cli/invocation_test.go` - existing focused public API tests for `FromOSArgs`, `FromArgs`, defensive constructor/accessor copies, explicit `os.Args` avoidance, and typed invalid-invocation errors.
+- [x] `cli/invocation_qa_test.go` - `TestQAInvocationInvalidFullArgvDiagnosticsAreTypedAndValueFree` covers `nil` and empty full argv, zero-value returns, `errors.Is`, `errors.As`, category/problem accessors, and value-free diagnostics.
+
+### E2E Tests
+
+- [x] `cli/invocation_qa_test.go` - `TestQAInvocationPublicWorkflowUsesCallerSuppliedArgv` covers a public consumer workflow from full argv through immutable `Invocation` reuse with caller mutation checks.
+- [x] Browser UI E2E tests are not applicable; this repository has no UI surface for Story 7.1.
+- [x] HTTP API E2E tests are not applicable; this repository exposes Go package APIs for Story 7.1.
+
+## Story 7.1 - Coverage
+
+- API endpoints: 0/0 applicable.
+- UI features: 0/0 applicable.
+- Story 7.1 QA gaps fixed: 3/3.
+- Invocation constructors: 2/2 covered (`FromOSArgs`, `FromArgs`).
+- Invocation accessors: 2/2 covered (`Program`, `Args`).
+- Invalid full argv shapes: 2/2 covered (`nil`, empty slice).
+- Error inspection paths: `errors.Is`, `errors.As`, `Category`, and `Problem` covered.
+
+## Story 7.1 - Validation
+
+- [x] `GOCACHE=/tmp/dib-go-build-qa71 go test ./cli -count=1` - PASS
+- [x] `GOCACHE=/tmp/dib-go-build-qa71 go test ./... -count=1` - PASS
+- [x] `GOCACHE=/tmp/dib-go-build-qa71 go vet ./...` - PASS
+- [x] `GOCACHE=/tmp/dib-go-build-qa71 go run ./tools/lint` - PASS
+- [x] `GOCACHE=/tmp/dib-go-build-qa71 go run ./tools/coverage` - PASS
+- [x] `GOCACHE=/tmp/dib-go-build-qa71 go run ./tools/depgate` - PASS
+- [x] `git diff --check` - PASS
+
+## Story 7.1 - Checklist
+
+- [x] API tests generated where applicable.
+- [x] E2E tests generated where applicable (QA-style package workflow tests).
+- [x] Tests use standard Go `testing` APIs.
+- [x] Tests cover happy path.
+- [x] Tests cover 1-2 critical error cases.
+- [x] All generated tests run successfully.
+- [x] Tests use public `cli` APIs and semantic returned values/errors.
+- [x] Tests have clear descriptions.
+- [x] No hardcoded waits or sleeps.
+- [x] Tests are independent and do not depend on execution order.
+- [x] Test summary created.
+- [x] Tests saved to appropriate package-local directories.
+- [x] Summary includes coverage metrics.
+
+---
+
 ## Story 6.4 - Gap Analysis
 
 Story 6.4 is a documentation-and-tracking-only story with no API endpoints and no browser UI. The test framework is the Go standard `testing` package; all existing tests live in `docs/` as `package docs`.

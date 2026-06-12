@@ -1,0 +1,1 @@
+{"stories":[{"storyId":"7.1","title":"Add Explicit CLI Invocation Boundaries","complexity":{"score":6,"level":"Medium","reasons":["Real-time communication","Logging/monitoring/observability","Configuration/feature flags","High AC count (21)"]}}]}

@@ -1,5 +1,5 @@
 # generated: 2026-06-11T12:01:02-04:00
-# last_updated: 2026-06-12T18:28:41-04:00
+# last_updated: 2026-06-12T19:27:57-04:00
 # project: dib
 # project_key: NOKEY
 # tracking_system: file-system
@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: "2026-06-11T12:01:02-04:00"
-last_updated: "2026-06-12T18:28:41-04:00"
+last_updated: "2026-06-12T19:27:57-04:00"
 project: dib
 project_key: NOKEY
 tracking_system: file-system
@@ -92,7 +92,7 @@ development_status:
   epic-6-retrospective: done
 
   epic-7: in-progress
-  7-1-add-explicit-cli-invocation-boundaries: ready-for-dev
+  7-1-add-explicit-cli-invocation-boundaries: done
   7-2-compose-command-routing-with-config-flag-bindings: backlog
   7-3-resolve-a-cli-composition-plan-without-owning-execution: backlog
   7-4-document-and-reconcile-cli-composition-evidence: backlog

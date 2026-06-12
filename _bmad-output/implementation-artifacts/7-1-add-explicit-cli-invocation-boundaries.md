@@ -5,7 +5,7 @@ created: "2026-06-12"
 
 # Story 7.1: Add Explicit CLI Invocation Boundaries
 
-Status: ready-for-dev
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -38,54 +38,54 @@ so that I do not repeat `os.Args[1:]` slicing or lose testability at the process
 
 ## Tasks / Subtasks
 
-- [ ] Confirm preconditions and package boundary before implementation (AC: 1-4)
-  - [ ] Verify `_bmad-output/implementation-artifacts/sprint-status.yaml` marks Epic 7 `in-progress` and Story 7.1 `ready-for-dev`.
-  - [ ] Confirm `cli/` does not already exist before creating it.
-  - [ ] Read existing public value-object patterns before editing: `command/boundary.go`, `command/result.go`, `command/errors.go`, `flags/snapshot.go`, `flags/errors.go`, `config/flag.go`, `config/snapshot.go`, and `config/errors.go`.
-  - [ ] Do not edit `command/`, `flags/`, `config/`, `README.md`, release docs, examples, coverage thresholds, lint tooling, or dependency-gate behavior in this story.
+- [x] Confirm preconditions and package boundary before implementation (AC: 1-4)
+  - [x] Verify `_bmad-output/implementation-artifacts/sprint-status.yaml` marks Epic 7 `in-progress` and Story 7.1 `ready-for-dev`.
+  - [x] Confirm `cli/` does not already exist before creating it.
+  - [x] Read existing public value-object patterns before editing: `command/boundary.go`, `command/result.go`, `command/errors.go`, `flags/snapshot.go`, `flags/errors.go`, `config/flag.go`, `config/snapshot.go`, and `config/errors.go`.
+  - [x] Do not edit `command/`, `flags/`, `config/`, `README.md`, release docs, examples, coverage thresholds, lint tooling, or dependency-gate behavior in this story.
 
-- [ ] Create the `cli` package invocation API (AC: 1-4)
-  - [ ] Add `cli/doc.go` documenting `cli` as optional composition support, not a root facade or process-owning framework.
-  - [ ] Add `cli/invocation.go` with an immutable `Invocation` value that stores unexported `program string` and `args []string` fields.
-  - [ ] Implement `FromOSArgs(argv []string) (Invocation, error)`:
+- [x] Create the `cli` package invocation API (AC: 1-4)
+  - [x] Add `cli/doc.go` documenting `cli` as optional composition support, not a root facade or process-owning framework.
+  - [x] Add `cli/invocation.go` with an immutable `Invocation` value that stores unexported `program string` and `args []string` fields.
+  - [x] Implement `FromOSArgs(argv []string) (Invocation, error)`:
     - returns a typed error for empty full argv (`len(argv) == 0`);
     - treats `argv[0]` as the program name and `argv[1:]` as user arguments;
     - defensively copies user args;
     - does not import `os` or read `os.Args`.
-  - [ ] Implement `FromArgs(program string, args []string) Invocation`:
+  - [x] Implement `FromArgs(program string, args []string) Invocation`:
     - preserves caller-supplied program exactly, including an empty string if the caller chooses that;
     - defensively copies args;
     - does not validate stripped args because this path is already past the full-process argv boundary.
-  - [ ] Implement `Program() string` and `Args() []string` accessors; `Args()` must always return a defensive copy.
+  - [x] Implement `Program() string` and `Args() []string` accessors; `Args()` must always return a defensive copy.
 
-- [ ] Add typed invocation errors (AC: 3)
-  - [ ] Add `cli/errors.go` with a sentinel such as `ErrInvalidInvocation = errors.New("invalid cli invocation")`.
-  - [ ] Add an inspectable typed error such as `InvocationError` with `Unwrap() error`, `Category() error`, and safe context accessors.
-  - [ ] Do not include raw argv contents in the error string. CLI args can contain secrets; diagnostics may mention shape such as "missing program" but not echo input values.
-  - [ ] Ensure callers can use `errors.Is(err, cli.ErrInvalidInvocation)` and `errors.As(err, *cli.InvocationError)`.
+- [x] Add typed invocation errors (AC: 3)
+  - [x] Add `cli/errors.go` with a sentinel such as `ErrInvalidInvocation = errors.New("invalid cli invocation")`.
+  - [x] Add an inspectable typed error such as `InvocationError` with `Unwrap() error`, `Category() error`, and safe context accessors.
+  - [x] Do not include raw argv contents in the error string. CLI args can contain secrets; diagnostics may mention shape such as "missing program" but not echo input values.
+  - [x] Ensure callers can use `errors.Is(err, cli.ErrInvalidInvocation)` and `errors.As(err, *cli.InvocationError)`.
 
-- [ ] Add invocation tests (AC: 1-4)
-  - [ ] Add `cli/invocation_test.go` using `package cli_test`.
-  - [ ] Cover `FromOSArgs([]string{"dib", "deploy", "--verbose"})`: `Program()` returns `dib`, `Args()` returns `[]string{"deploy", "--verbose"}`.
-  - [ ] Cover `FromArgs("dib", []string{"deploy"})` and an explicit empty program case to prove caller ownership.
-  - [ ] Prove constructor defensive copies: mutate the original argv/args after construction and verify `Invocation` does not change.
-  - [ ] Prove accessor defensive copies: mutate the slice returned from `Args()` and verify a later `Args()` call returns the original values.
-  - [ ] Prove empty full argv returns a typed error and zero-value `Invocation`; assert both `errors.Is` and `errors.As`.
-  - [ ] Prove the package does not read process globals by setting `os.Args` in the test to a different value, passing an explicit argv slice to `FromOSArgs`, and asserting the explicit slice wins. Keep `os` imports test-only.
+- [x] Add invocation tests (AC: 1-4)
+  - [x] Add `cli/invocation_test.go` using `package cli_test`.
+  - [x] Cover `FromOSArgs([]string{"dib", "deploy", "--verbose"})`: `Program()` returns `dib`, `Args()` returns `[]string{"deploy", "--verbose"}`.
+  - [x] Cover `FromArgs("dib", []string{"deploy"})` and an explicit empty program case to prove caller ownership.
+  - [x] Prove constructor defensive copies: mutate the original argv/args after construction and verify `Invocation` does not change.
+  - [x] Prove accessor defensive copies: mutate the slice returned from `Args()` and verify a later `Args()` call returns the original values.
+  - [x] Prove empty full argv returns a typed error and zero-value `Invocation`; assert both `errors.Is` and `errors.As`.
+  - [x] Prove the package does not read process globals by setting `os.Args` in the test to a different value, passing an explicit argv slice to `FromOSArgs`, and asserting the explicit slice wins. Keep `os` imports test-only.
 
-- [ ] Preserve architecture and dependency guardrails (AC: 1-4)
-  - [ ] Keep `cli/` standard-library-only.
-  - [ ] Do not add root package exports, package-global default invocations, callbacks, `os.Exit`, stream mutation, env reads, JSON/file loading, or command/flag/config composition in this story.
-  - [ ] Do not make `command/`, `flags/`, or `config/` import `cli/`.
-  - [ ] Keep story 7.2 and 7.3 scope out of this story: no flag-to-config binding translation and no `cli.Resolve` yet.
+- [x] Preserve architecture and dependency guardrails (AC: 1-4)
+  - [x] Keep `cli/` standard-library-only.
+  - [x] Do not add root package exports, package-global default invocations, callbacks, `os.Exit`, stream mutation, env reads, JSON/file loading, or command/flag/config composition in this story.
+  - [x] Do not make `command/`, `flags/`, or `config/` import `cli/`.
+  - [x] Keep story 7.2 and 7.3 scope out of this story: no flag-to-config binding translation and no `cli.Resolve` yet.
 
-- [ ] Verify (AC: 1-4)
-  - [ ] `go test ./cli ./...`
-  - [ ] `go vet ./...`
-  - [ ] `go run ./tools/lint`
-  - [ ] `go run ./tools/coverage`
-  - [ ] `go run ./tools/depgate`
-  - [ ] `git diff --check`
+- [x] Verify (AC: 1-4)
+  - [x] `go test ./cli ./...`
+  - [x] `go vet ./...`
+  - [x] `go run ./tools/lint`
+  - [x] `go run ./tools/coverage`
+  - [x] `go run ./tools/depgate`
+  - [x] `git diff --check`
 
 ## Dev Notes
 
@@ -204,8 +204,80 @@ GPT-5 Codex
 
 ### Debug Log References
 
-None.
+2026-06-12:
+- Red phase: `GOCACHE=/tmp/dib-go-cache go test ./cli` failed because `cli` had no non-test Go files after adding `cli/invocation_test.go`.
+- Green phase: `GOCACHE=/tmp/dib-go-cache go test ./cli` passed after adding the invocation implementation and typed errors.
 
 ### Completion Notes List
 
+- Added the optional `cli` package with immutable `Invocation` values for explicit program and user-args boundaries.
+- Added `FromOSArgs` for caller-supplied full argv and `FromArgs` for already stripped args; both preserve caller ownership and copy args defensively.
+- Added typed invocation diagnostics with `ErrInvalidInvocation`, `InvocationError`, `Unwrap`, `Category`, and `Problem` accessors without echoing argv contents.
+- Added external package tests proving explicit argv wins over ambient `os.Args`, constructor/accessor defensive copies, empty-program ownership for `FromArgs`, and typed error inspection.
+- Added QA automation coverage for public invocation reuse, explicit empty full argv diagnostics, and value-free fake-sensitive diagnostic regression.
+- Verification passed with `GOCACHE=/tmp/dib-go-cache`: `go test ./cli ./...`, `go vet ./...`, `go run ./tools/lint`, `go run ./tools/coverage`, `go run ./tools/depgate`, and `git diff --check`.
+
 ### File List
+
+- `_bmad-output/implementation-artifacts/7-1-add-explicit-cli-invocation-boundaries.md`
+- `_bmad-output/implementation-artifacts/sprint-status.yaml`
+- `_bmad-output/implementation-artifacts/tests/test-summary.md`
+- `cli/doc.go`
+- `cli/errors.go`
+- `cli/invocation.go`
+- `cli/invocation_qa_test.go`
+- `cli/invocation_test.go`
+
+### Change Log
+
+- 2026-06-12: Implemented Story 7.1 explicit CLI invocation boundaries and marked the story ready for review.
+- 2026-06-12: Added Story 7.1 QA automation tests and test summary evidence.
+- 2026-06-12: Senior developer review approved Story 7.1 and marked it done.
+
+## Senior Developer Review (AI)
+
+### Review Summary
+
+- Reviewer: GPT-5 Codex
+- Review date: 2026-06-12
+- Outcome: Approve
+- Auto-fix result: No source fixes required; no verified critical, high, or medium issues remained.
+
+### Findings
+
+- No critical issues found.
+- No high-severity acceptance criteria gaps found.
+- No medium-severity implementation or documentation discrepancies found.
+
+### Acceptance Criteria Verification
+
+- AC1: Passed. `cli.FromOSArgs(argv)` uses caller-supplied full argv, exposes `Program()` from `argv[0]`, exposes `Args()` from `argv[1:]`, and non-test `cli` code imports only `errors` and `fmt`, with no `os.Args` read.
+- AC2: Passed. `cli.FromArgs(program, args)` preserves the caller-supplied program and defensively copies args.
+- AC3: Passed. Empty full argv returns zero-value `Invocation` plus typed `*cli.InvocationError`; `errors.Is(err, cli.ErrInvalidInvocation)` and `errors.As` are covered.
+- AC4: Passed. Constructor and accessor defensive-copy tests prove mutations to original argv/args and returned args do not change observable invocation state.
+
+### Task Audit
+
+- All checked tasks are supported by implementation or verification evidence.
+- Story File List matches the application/source files reviewed plus workflow artifacts.
+- No prohibited Story 7.1 scope was found in `command/`, `flags/`, `config/`, README, release docs, examples, coverage thresholds, lint tooling, or dependency-gate behavior.
+
+### Files Reviewed
+
+- `cli/doc.go`
+- `cli/errors.go`
+- `cli/invocation.go`
+- `cli/invocation_test.go`
+- `cli/invocation_qa_test.go`
+- `_bmad-output/implementation-artifacts/tests/test-summary.md`
+
+### Validation
+
+- `GOCACHE=/tmp/dib-go-cache go test ./cli ./...` - PASS
+- `GOCACHE=/tmp/dib-go-cache go vet ./...` - PASS
+- `GOCACHE=/tmp/dib-go-cache go run ./tools/lint` - PASS
+- `GOCACHE=/tmp/dib-go-cache go run ./tools/coverage` - PASS
+- `GOCACHE=/tmp/dib-go-cache go run ./tools/depgate` - PASS
+- `git diff --check` - PASS
+- `GOCACHE=/tmp/dib-go-cache go list -f '{{.ImportPath}} {{join .Imports ","}}' ./cli` confirmed runtime imports are standard library only: `errors,fmt`.
+- Local Go docs for `errors.Is` and `errors.As` were checked with `go doc` to validate typed error inspection behavior.
