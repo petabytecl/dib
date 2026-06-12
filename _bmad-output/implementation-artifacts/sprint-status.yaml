@@ -50,7 +50,7 @@ development_status:
   1-5-run-trust-gates-in-ci: done
   epic-1-retrospective: optional
 
-  epic-2: in-progress
+  epic-2: done
   2-1-define-reusable-flag-sets-without-global-state: done
   2-2-match-flag-names-safely-across-styles: done
   2-3-reject-invalid-long-flags-with-inspectable-errors: done
@@ -59,7 +59,7 @@ development_status:
   2-6-accumulate-repeated-and-custom-values: done
   2-7-preserve-parse-boundaries-and-remaining-args: done
   2-8-prove-flag-parsing-across-matrices-and-fuzz-inputs: done
-  epic-2-retrospective: optional
+  epic-2-retrospective: done
 
   epic-3: backlog
   3-1-route-nested-commands-with-inspectable-results: backlog

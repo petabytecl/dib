@@ -102,6 +102,13 @@ and do not produce `ErrHelpRequest`. Help-request detection never calls
 `os.Exit`, writes to stdout or stderr, or renders usage text; all of that
 remains the caller's responsibility.
 
+Story 2.8 adds parser hardening evidence without adding new public diagnostic
+categories. The broad parser fuzz target asserts that parse failures remain
+typed `*flags.ParseError` values, failed parses return zero-value snapshots,
+successful snapshots expose defensive copies, reusable definitions are not
+mutated, and sensitive conversion values remain redacted. These tests reinforce
+the contracts above rather than changing the diagnostic vocabulary.
+
 ## Source Labels
 
 Config provenance source labels are fixed to these exact spellings:
@@ -129,9 +136,10 @@ or validation failures.
 
 ## Current Scope
 
-Story 1.3 established the shared contract language. Stories 2.1 through 2.7
+Story 1.3 established the shared contract language. Stories 2.1 through 2.8
 add the initial `flags` definition, normalization, conversion, long-parse,
 shorthand-parse, shorthand-group, repeated-value, custom-parser, and
-help-request categories. Later stories own source-report structures, rendered
-diagnostics, config provenance, and the remaining concrete error categories for
-each package surface.
+help-request categories, plus parser fuzz evidence that those categories remain
+inspectable under arbitrary input. Later stories own source-report structures,
+rendered diagnostics, config provenance, and the remaining concrete error
+categories for each package surface.

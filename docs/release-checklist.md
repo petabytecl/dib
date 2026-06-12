@@ -35,6 +35,10 @@ CI failures block tagging. Record the exact command outcome for each required ga
 ## Release-Candidate Gates
 
 - `go test -race ./...`:
+- Parser fuzz evidence, when parser behavior changed:
+  - `go test -fuzz='^FuzzParse$' -fuzztime=5s ./flags`:
+  - `go test -fuzz='^FuzzParseBoundary$' -fuzztime=5s ./flags`:
+  - `go test -fuzz='^FuzzParseShortGroups$' -fuzztime=5s ./flags`:
 - Docs/examples evidence:
 - Provenance evidence:
 - Compatibility evidence:
