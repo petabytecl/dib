@@ -75,6 +75,75 @@ source influenced when known.
 - Approval notes: Not applicable for inspiration-only entry
 - Notes: Used to understand `testing.F.Add` argument type constraints and `testing.F.Fuzz` callback signature. No source, tests, comments, examples, fixtures, internal names, or source-derived structure copied.
 
+## Story 5.1 Entries
+
+### Go flag Package Documentation
+
+- Source: Go `flag` package documentation
+- URL: https://pkg.go.dev/flag
+- Access date: 2026-06-12
+- License or terms: Go project BSD-style license, https://go.dev/LICENSE
+- Affected artifact: `docs/compatibility.md`
+- Classification: inspiration-only
+- Reviewer: Not applicable
+- Approval date: Not applicable
+- Approval notes: Not applicable for inspiration-only entry
+- Notes: Used for behavior-boundary context while writing adopter-facing
+  compatibility prose. No source, tests, comments, examples, fixtures, internal
+  names, file organization, wording, tables, or source-derived structure copied
+  into Dib artifacts.
+
+### pflag Package Documentation
+
+- Source: pflag package documentation
+- URL: https://pkg.go.dev/github.com/spf13/pflag
+- Access date: 2026-06-12
+- License or terms: BSD-style license,
+  https://github.com/spf13/pflag/blob/master/LICENSE
+- Affected artifact: `docs/compatibility.md`
+- Classification: inspiration-only
+- Reviewer: Not applicable
+- Approval date: Not applicable
+- Approval notes: Not applicable for inspiration-only entry
+- Notes: Used for behavior-boundary context while writing adopter-facing
+  compatibility prose. No source, tests, comments, examples, fixtures, internal
+  names, file organization, wording, tables, or source-derived structure copied
+  into Dib artifacts.
+
+### Cobra Flags Documentation
+
+- Source: Cobra flags documentation
+- URL: https://cobra.dev/docs/how-to-guides/working-with-flags/
+- Access date: 2026-06-12
+- License or terms: Apache-2.0 license,
+  https://github.com/spf13/cobra/blob/main/LICENSE.txt
+- Affected artifact: `docs/compatibility.md`
+- Classification: inspiration-only
+- Reviewer: Not applicable
+- Approval date: Not applicable
+- Approval notes: Not applicable for inspiration-only entry
+- Notes: Used for behavior-boundary context while writing adopter-facing
+  compatibility prose. No source, tests, comments, examples, fixtures, internal
+  names, file organization, wording, tables, or source-derived structure copied
+  into Dib artifacts.
+
+### Viper Package Documentation
+
+- Source: Viper package documentation
+- URL: https://pkg.go.dev/github.com/spf13/viper
+- Access date: 2026-06-12
+- License or terms: MIT license,
+  https://github.com/spf13/viper/blob/master/LICENSE
+- Affected artifact: `docs/compatibility.md`
+- Classification: inspiration-only
+- Reviewer: Not applicable
+- Approval date: Not applicable
+- Approval notes: Not applicable for inspiration-only entry
+- Notes: Used for behavior-boundary context while writing adopter-facing
+  compatibility prose. No source, tests, comments, examples, fixtures, internal
+  names, file organization, wording, tables, or source-derived structure copied
+  into Dib artifacts.
+
 ## Initial Entries
 
 ### Go flag Package Documentation

@@ -1,5 +1,72 @@
 # Test Automation Summary
 
+## Story 5.1 - Gap Analysis
+
+Story 5.1 is a documentation and adoption-evidence story for compatibility
+boundaries. There is no HTTP API endpoint or browser UI surface, so applicable
+automated coverage is docs-package end-to-end evidence validation using Go's
+standard `testing` package.
+
+The workflow found and auto-applied these test gaps:
+
+| Gap | Status |
+| --- | --- |
+| Compatibility tests checked broad required phrases but did not validate each Go `flag`, pflag, Cobra, and Viper table row against the story's required supported/narrowed/omitted/different concepts | Fixed |
+| Compatibility tests did not prove local evidence links and anchors resolve to existing documentation | Fixed |
+| Compatibility tests did not explicitly lock the clean-room provenance boundary language used by the adopter-facing document | Fixed |
+| Compatibility tests did not guard linked evidence docs against ambiguous positive compatibility positioning | Fixed |
+
+## Story 5.1 - Generated Tests
+
+### API Tests
+
+- [x] HTTP API tests are not applicable; this repository exposes Go packages and documentation for Story 5.1.
+- [x] Runtime package API tests are not applicable; Story 5.1 intentionally changes documentation/evidence tests only.
+
+### E2E Tests
+
+- [x] `docs/compatibility_test.go` - `TestCompatibilityTableCoversStorySurfaces` covers all four compatibility rows and the required supported, narrowed, omitted, and intentionally different concepts.
+- [x] `docs/compatibility_test.go` - `TestCompatibilityEvidenceLinksResolve` validates every local markdown evidence link and anchor in `docs/compatibility.md`.
+- [x] `docs/compatibility_test.go` - `TestCompatibilityCleanRoomProvenanceBoundary` locks the clean-room provenance wording for inspiration-only references and no copied external examples, fixtures, internal names, or document layout.
+- [x] `docs/compatibility_test.go` - `TestCompatibilityEvidenceDocsAvoidAmbiguousPositioning` guards linked evidence docs against ambiguous positive compatibility positioning.
+- [x] Browser UI E2E tests are not applicable; this repository has no UI surface for Story 5.1.
+
+## Story 5.1 - Coverage
+
+- API endpoints: 0/0 applicable.
+- UI features: 0/0 applicable.
+- Story 5.1 QA gaps fixed: 4/4.
+- Compatibility inspiration surfaces: 4/4 covered (`Go flag`, `pflag`, `Cobra`, `Viper`).
+- Local evidence links in `docs/compatibility.md`: 100% checked for file and anchor resolution.
+- Required deferred-story boundaries: Story 5.2, Story 5.3, and Story 5.4 remain checked by `TestCompatibilityDocumentBoundaries`.
+
+## Story 5.1 - Validation
+
+- [x] `GOCACHE=/tmp/dib-go-build go test ./docs` - PASS
+- [x] `GOCACHE=/tmp/dib-go-build go test ./...` - PASS
+- [x] `GOCACHE=/tmp/dib-go-build go vet ./...` - PASS
+- [x] `GOCACHE=/tmp/dib-go-build go run ./tools/depgate` - PASS
+- [x] `git diff --check` - PASS
+- [x] `rg -n "(?i)drop-in|source-compatible|clone API|framework compatibility layer" docs/compatibility.md docs/clean-room-policy.md` - PASS; returned only explicit boundary or policy language.
+
+## Story 5.1 - Checklist
+
+- [x] API tests generated where applicable.
+- [x] E2E tests generated where applicable (QA-style docs evidence tests).
+- [x] Tests use standard Go `testing` APIs.
+- [x] Tests cover happy paths.
+- [x] Tests cover critical error cases.
+- [x] All generated tests run successfully.
+- [x] Tests use local documentation as semantic evidence locators.
+- [x] Tests have clear descriptions.
+- [x] No hardcoded waits or sleeps.
+- [x] Tests are independent and do not depend on execution order.
+- [x] Test summary created.
+- [x] Tests saved to the appropriate package-local directory.
+- [x] Summary includes coverage metrics.
+
+---
+
 ## Story 4.5 - Gap Analysis
 
 Story 4.5 is a Go package API story for config provenance reports and safe
