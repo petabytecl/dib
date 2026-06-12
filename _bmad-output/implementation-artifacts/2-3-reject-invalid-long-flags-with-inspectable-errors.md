@@ -102,9 +102,13 @@ so that scripts and tests can handle parser failures without scraping error text
 
 ### ATDD Artifacts
 
-- No Story 2.3 ATDD artifact existed under `_bmad-output/test-artifacts/` at story creation.
-- Expected next workflow step: run `$bmad-testarch-atdd _bmad-output/implementation-artifacts/2-3-reject-invalid-long-flags-with-inspectable-errors.md`.
-- Dev workflow handoff after ATDD generation: remove one generated `t.Skip` at a time, confirm RED with a narrow `go test ./flags -run ... -count=1`, then implement the smallest production change that passes.
+- Checklist: `_bmad-output/test-artifacts/atdd-checklist-2-3-reject-invalid-long-flags-with-inspectable-errors.md`
+- Backend package acceptance scaffold:
+  - `flags/parse_long_atdd_test.go`
+- Temp API/back-end generation summary: `_bmad-output/test-artifacts/tmp/tea-atdd-api-tests-2026-06-11T20-12-58-0400.json`
+- Temp E2E generation summary: `_bmad-output/test-artifacts/tmp/tea-atdd-e2e-tests-2026-06-11T20-12-58-0400.json`
+- Temp aggregate summary: `_bmad-output/test-artifacts/tmp/tea-atdd-summary-2026-06-11T20-12-58-0400.json`
+- Dev workflow handoff: remove one `t.Skip` in `flags/parse_long_atdd_test.go` at a time, confirm RED with the narrow `go test ./flags -run ... -count=1` command, then implement the smallest change to pass.
 
 ### Source Discovery
 
