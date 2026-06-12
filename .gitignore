@@ -1,2 +1,7 @@
 _bmad/config.user.toml
 _bmad/custom/config.user.toml
+.agents/.story-automator-active
+.codex/
+.idea/
+__pycache__/
+*.pyc
