@@ -43,6 +43,14 @@ normalization collisions. The error is exposed through `*flags.DefinitionError`;
 callers can inspect both raw names with `Name` and `CollidingName`, plus the
 shared normalized lookup key with `NormalizedName`.
 
+Story 2.3 adds long-flag parse diagnostics through `*flags.ParseError`.
+Unknown long flags use `flags.ErrUnknownFlag`, omitted required values use
+`flags.ErrMissingValue`, duplicate single-value flags reuse
+`flags.ErrDuplicateValue`, and conversion failures continue to satisfy
+`flags.ErrConversion` and expose `*flags.ValueError`. Parse errors expose the
+source token without attached raw values, the raw long name, the normalized
+lookup key, and the canonical definition when one was resolved.
+
 ## Source Labels
 
 Config provenance source labels are fixed to these exact spellings:

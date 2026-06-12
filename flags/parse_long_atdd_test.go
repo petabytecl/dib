@@ -3,8 +3,6 @@ package flags_test
 import "testing"
 
 func TestATDDLongFlagValuesPreserveSourceAndRemainingArgs(t *testing.T) {
-	t.Skip("ATDD RED: remove this skip during Story 2.3 implementation")
-
 	runConsumerContract(t, "long flag values preserve source and remaining args", `package flagsconsumer_test
 
 import (
@@ -80,8 +78,6 @@ func TestLongFlagValuesPreserveSourceAndRemainingArgs(t *testing.T) {
 }
 
 func TestATDDBooleanLongFlagsParsePresenceAndExplicitValues(t *testing.T) {
-	t.Skip("ATDD RED: remove this skip during Story 2.3 implementation")
-
 	runConsumerContract(t, "boolean long flags parse presence and explicit values", `package flagsconsumer_test
 
 import (
@@ -154,8 +150,6 @@ func TestBooleanLongFlagsParsePresenceAndExplicitValues(t *testing.T) {
 }
 
 func TestATDDUnknownLongFlagsExposeLookupContext(t *testing.T) {
-	t.Skip("ATDD RED: remove this skip during Story 2.3 implementation")
-
 	runConsumerContract(t, "unknown long flags expose lookup context", `package flagsconsumer_test
 
 import (
@@ -207,8 +201,6 @@ func TestUnknownLongFlagsExposeLookupContext(t *testing.T) {
 }
 
 func TestATDDMissingRequiredLongValuesAreInspectableAndLeaveSetReusable(t *testing.T) {
-	t.Skip("ATDD RED: remove this skip during Story 2.3 implementation")
-
 	runConsumerContract(t, "missing required long values are inspectable and leave set reusable", `package flagsconsumer_test
 
 import (
@@ -278,8 +270,6 @@ func TestMissingRequiredLongValuesAreInspectableAndLeaveSetReusable(t *testing.T
 }
 
 func TestATDDDuplicateSingleValueLongFlagsAreInspectable(t *testing.T) {
-	t.Skip("ATDD RED: remove this skip during Story 2.3 implementation")
-
 	runConsumerContract(t, "duplicate single-value long flags are inspectable", `package flagsconsumer_test
 
 import (
@@ -318,8 +308,6 @@ func TestDuplicateSingleValueLongFlagsAreInspectable(t *testing.T) {
 }
 
 func TestATDDExactAndNormalizedLongNamesParseSafely(t *testing.T) {
-	t.Skip("ATDD RED: remove this skip during Story 2.3 implementation")
-
 	runConsumerContract(t, "exact and normalized long names parse safely", `package flagsconsumer_test
 
 import (
@@ -400,8 +388,6 @@ func TestExactAndNormalizedLongNamesParseSafely(t *testing.T) {
 }
 
 func TestATDDNoPrefixedLongNamesAreOrdinaryNames(t *testing.T) {
-	t.Skip("ATDD RED: remove this skip during Story 2.3 implementation")
-
 	runConsumerContract(t, "no-prefixed long names are ordinary names", `package flagsconsumer_test
 
 import (
@@ -445,8 +431,6 @@ func TestNoPrefixedLongNamesAreOrdinaryNames(t *testing.T) {
 }
 
 func TestATDDSensitiveConversionErrorsDoNotLeakAttachedValues(t *testing.T) {
-	t.Skip("ATDD RED: remove this skip during Story 2.3 implementation")
-
 	runConsumerContract(t, "sensitive conversion errors do not leak attached values", `package flagsconsumer_test
 
 import (

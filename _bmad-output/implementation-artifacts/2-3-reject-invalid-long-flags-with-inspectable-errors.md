@@ -5,7 +5,7 @@ created: "2026-06-11T19:46:09-04:00"
 
 # Story 2.3: Reject Invalid Long Flags With Inspectable Errors
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -31,72 +31,72 @@ so that scripts and tests can handle parser failures without scraping error text
 
 ## Tasks / Subtasks
 
-- [ ] Confirm current tracker, artifact, and source state (AC: 1-5)
-  - [ ] Verify `sprint-status.yaml` marks Story 2.2 `done` and Story 2.3 `ready-for-dev`.
-  - [ ] Check for Story 2.3 ATDD artifacts under `_bmad-output/test-artifacts/`; none existed at story creation, but use them if generated before implementation starts.
-  - [ ] Verify root `go.mod` still declares `module github.com/petabytecl/dib` and `go 1.26` with no `require`, `replace`, or `toolchain` directives.
-  - [ ] Reuse the existing `flags.Set`, `Definition`, `Snapshot`, `ValueState`, `NameNormalizer`, `Definition.Parse`, and typed error foundation instead of replacing them.
+- [x] Confirm current tracker, artifact, and source state (AC: 1-5)
+  - [x] Verify `sprint-status.yaml` marks Story 2.2 `done` and Story 2.3 `ready-for-dev`.
+  - [x] Check for Story 2.3 ATDD artifacts under `_bmad-output/test-artifacts/`; none existed at story creation, but use them if generated before implementation starts.
+  - [x] Verify root `go.mod` still declares `module github.com/petabytecl/dib` and `go 1.26` with no `require`, `replace`, or `toolchain` directives.
+  - [x] Reuse the existing `flags.Set`, `Definition`, `Snapshot`, `ValueState`, `NameNormalizer`, `Definition.Parse`, and typed error foundation instead of replacing them.
 
-- [ ] Add the explicit long-flag parse entrypoint (AC: 1-5)
-  - [ ] Add caller-explicit parse API `func (s Set) Parse(args []string) (Snapshot, error)`.
-  - [ ] Accept caller-supplied args only; do not read `os.Args`, `flag.CommandLine`, stdin/stdout/stderr, package globals, or process state.
-  - [ ] Build parsing from `s.DefaultSnapshot()` or equivalent per-run state so every parse produces an independent snapshot.
-  - [ ] Keep `flags/parser.go` value-parser semantics intact; if CLI token parsing needs its own file, use `flags/parse.go` or `flags/parse_long.go` rather than overloading value parsing concepts.
-  - [ ] Return a self-contained snapshot on success with defensive-copy accessors for values, remaining args, and source metadata.
+- [x] Add the explicit long-flag parse entrypoint (AC: 1-5)
+  - [x] Add caller-explicit parse API `func (s Set) Parse(args []string) (Snapshot, error)`.
+  - [x] Accept caller-supplied args only; do not read `os.Args`, `flag.CommandLine`, stdin/stdout/stderr, package globals, or process state.
+  - [x] Build parsing from `s.DefaultSnapshot()` or equivalent per-run state so every parse produces an independent snapshot.
+  - [x] Keep `flags/parser.go` value-parser semantics intact; if CLI token parsing needs its own file, use `flags/parse.go` or `flags/parse_long.go` rather than overloading value parsing concepts.
+  - [x] Return a self-contained snapshot on success with defensive-copy accessors for values, remaining args, and source metadata.
 
-- [ ] Extend snapshot state for parsed values and remaining args (AC: 1, 2, 5)
-  - [ ] Keep snapshot lookup keyed by canonical `Definition.Name()` values; raw CLI spelling must not become the state key.
-  - [ ] Add `Snapshot.RemainingArgs() []string`, returning a defensive copy.
-  - [ ] Add a small public source/occurrence model so tests can inspect source spelling and canonical definition identity without internals or error strings. Target API: `ValueState.Occurrences() []ValueOccurrence`, with defensive copies and accessors for the raw token/spelling plus the canonical `Definition` or canonical definition name.
-  - [ ] Preserve existing `ValueState.Default()`, `Values()`, `Explicit()`, and `Arity()` behavior for default snapshots and parsed snapshots.
-  - [ ] Do not expose mutable internal slices, maps, or caller-owned `args` storage through the snapshot.
+- [x] Extend snapshot state for parsed values and remaining args (AC: 1, 2, 5)
+  - [x] Keep snapshot lookup keyed by canonical `Definition.Name()` values; raw CLI spelling must not become the state key.
+  - [x] Add `Snapshot.RemainingArgs() []string`, returning a defensive copy.
+  - [x] Add a small public source/occurrence model so tests can inspect source spelling and canonical definition identity without internals or error strings. Target API: `ValueState.Occurrences() []ValueOccurrence`, with defensive copies and accessors for the raw token/spelling plus the canonical `Definition` or canonical definition name.
+  - [x] Preserve existing `ValueState.Default()`, `Values()`, `Explicit()`, and `Arity()` behavior for default snapshots and parsed snapshots.
+  - [x] Do not expose mutable internal slices, maps, or caller-owned `args` storage through the snapshot.
 
-- [ ] Implement long flag token forms (AC: 1, 2, 4)
-  - [ ] Parse `--name=value` by treating the substring before `=` as the raw long-name spelling and the substring after `=` as the raw value; `--name=` is an attached empty value and should be passed to the definition parser.
-  - [ ] Parse `--name value` for definitions with required values when the next token is available and is not the `--` terminator or another long-flag token.
-  - [ ] Parse boolean long flags as `--name` -> true by default, plus `--name=true` and `--name=false` through `Definition.Parse` so invalid boolean text is reported as conversion failure.
-  - [ ] Treat `--no-flag` as an ordinary long name only if the caller registered `no-flag`; do not generate automatic negation aliases.
-  - [ ] Preserve non-flag positional args in relative order in the success snapshot.
-  - [ ] Implement only the minimal `--` stop behavior needed for this story's "unknown before `--`" contract; Story 2.7 owns the complete terminator/interspersed matrix.
+- [x] Implement long flag token forms (AC: 1, 2, 4)
+  - [x] Parse `--name=value` by treating the substring before `=` as the raw long-name spelling and the substring after `=` as the raw value; `--name=` is an attached empty value and should be passed to the definition parser.
+  - [x] Parse `--name value` for definitions with required values when the next token is available and is not the `--` terminator or another long-flag token.
+  - [x] Parse boolean long flags as `--name` -> true by default, plus `--name=true` and `--name=false` through `Definition.Parse` so invalid boolean text is reported as conversion failure.
+  - [x] Treat `--no-flag` as an ordinary long name only if the caller registered `no-flag`; do not generate automatic negation aliases.
+  - [x] Preserve non-flag positional args in relative order in the success snapshot.
+  - [x] Implement only the minimal `--` stop behavior needed for this story's "unknown before `--`" contract; Story 2.7 owns the complete terminator/interspersed matrix.
 
-- [ ] Reuse normalized lookup and canonical identity correctly (AC: 1, 3, 5)
-  - [ ] Resolve long names through `Set.Lookup` so exact-name sets stay exact and normalized sets reuse `NameNormalizer`.
-  - [ ] Do not bypass the raw lookup validation added in Story 2.2; invalid raw names and shorthand-only names must not become long-name aliases through normalization.
-  - [ ] Record the raw source spelling from the token separately from the canonical definition name.
-  - [ ] For normalized matches, expose enough context for tests to assert raw spelling, normalized lookup key where available, and canonical definition identity.
-  - [ ] Keep normalizer callbacks deterministic in tests; do not add caching or mutation that changes lookup behavior across parses.
+- [x] Reuse normalized lookup and canonical identity correctly (AC: 1, 3, 5)
+  - [x] Resolve long names through `Set.Lookup` so exact-name sets stay exact and normalized sets reuse `NameNormalizer`.
+  - [x] Do not bypass the raw lookup validation added in Story 2.2; invalid raw names and shorthand-only names must not become long-name aliases through normalization.
+  - [x] Record the raw source spelling from the token separately from the canonical definition name.
+  - [x] For normalized matches, expose enough context for tests to assert raw spelling, normalized lookup key where available, and canonical definition identity.
+  - [x] Keep normalizer callbacks deterministic in tests; do not add caching or mutation that changes lookup behavior across parses.
 
-- [ ] Add typed parse diagnostics (AC: 2, 3, 4, 5)
-  - [ ] Add sentinel categories for parse errors not already represented, including unknown long flag and missing value. Reuse existing `ErrConversion` and `ErrDuplicateValue`.
-  - [ ] Add a typed parse-context error, such as `*flags.ParseError`, with inspectable accessors for category, token, raw long name, normalized lookup key where available, and canonical definition where applicable.
-  - [ ] Preserve `errors.Is(err, flags.ErrConversion)` and `errors.As(err, *flags.ValueError)` for conversion failures from `Definition.Parse`; wrapping with parse context is acceptable only if both inspections still work.
-  - [ ] Return typed unknown-flag errors for unknown long names before the terminator; include the original flag token and lookup context without relying on rendered text.
-  - [ ] Return typed missing-value errors when a required value is omitted or the next token is `--` or another long-flag token.
-  - [ ] Return typed duplicate-value errors when a non-repeatable flag appears more than once in one parse run.
-  - [ ] Keep sensitive raw values out of error strings and debug output. Error context may identify the flag name/token but must not echo sensitive values.
+- [x] Add typed parse diagnostics (AC: 2, 3, 4, 5)
+  - [x] Add sentinel categories for parse errors not already represented, including unknown long flag and missing value. Reuse existing `ErrConversion` and `ErrDuplicateValue`.
+  - [x] Add a typed parse-context error, such as `*flags.ParseError`, with inspectable accessors for category, token, raw long name, normalized lookup key where available, and canonical definition where applicable.
+  - [x] Preserve `errors.Is(err, flags.ErrConversion)` and `errors.As(err, *flags.ValueError)` for conversion failures from `Definition.Parse`; wrapping with parse context is acceptable only if both inspections still work.
+  - [x] Return typed unknown-flag errors for unknown long names before the terminator; include the original flag token and lookup context without relying on rendered text.
+  - [x] Return typed missing-value errors when a required value is omitted or the next token is `--` or another long-flag token.
+  - [x] Return typed duplicate-value errors when a non-repeatable flag appears more than once in one parse run.
+  - [x] Keep sensitive raw values out of error strings and debug output. Error context may identify the flag name/token but must not echo sensitive values.
 
-- [ ] Add table-driven package tests and ATDD activation (AC: 1-5)
-  - [ ] If `$bmad-testarch-atdd` has generated Story 2.3 scaffolds, activate one skipped ATDD test at a time, confirm RED with a narrow `go test ./flags -run ... -count=1`, then implement the smallest production change that passes.
-  - [ ] Add focused package tests, likely `flags/parse_long_test.go`, for attached values, separate values, positionals, boolean presence, explicit booleans, invalid booleans, unknown long flags, missing values, duplicate single-value flags, exact matching, normalized matching, and `--no-*` as an ordinary registered/unregistered long name.
-  - [ ] Assert parsed values through `Snapshot.Lookup(...).Values()`, explicit state, remaining args accessors, source metadata, and canonical definition identity.
-  - [ ] Assert diagnostics through `errors.Is`, `errors.As`, and typed accessors; do not make exact error strings the only contract.
-  - [ ] Add redaction-focused tests if sensitive values are present in parse errors.
-  - [ ] Keep tests deterministic and standard-library-only.
+- [x] Add table-driven package tests and ATDD activation (AC: 1-5)
+  - [x] If `$bmad-testarch-atdd` has generated Story 2.3 scaffolds, activate one skipped ATDD test at a time, confirm RED with a narrow `go test ./flags -run ... -count=1`, then implement the smallest production change that passes.
+  - [x] Add focused package tests, likely `flags/parse_long_test.go`, for attached values, separate values, positionals, boolean presence, explicit booleans, invalid booleans, unknown long flags, missing values, duplicate single-value flags, exact matching, normalized matching, and `--no-*` as an ordinary registered/unregistered long name.
+  - [x] Assert parsed values through `Snapshot.Lookup(...).Values()`, explicit state, remaining args accessors, source metadata, and canonical definition identity.
+  - [x] Assert diagnostics through `errors.Is`, `errors.As`, and typed accessors; do not make exact error strings the only contract.
+  - [x] Add redaction-focused tests if sensitive values are present in parse errors.
+  - [x] Keep tests deterministic and standard-library-only.
 
-- [ ] Update adoption-facing docs only for new public behavior (AC: 5)
-  - [ ] Update `docs/behavior-matrices.md` if the new parse entrypoint, remaining-args snapshot, or long-flag behavior needs adoption evidence.
-  - [ ] Update `docs/diagnostics-and-errors.md` if new parse sentinels or typed parse errors become part of the public contract.
-  - [ ] Do not add compatibility examples, fuzz seeds, command/config integration docs, or release evidence; later stories own those surfaces.
+- [x] Update adoption-facing docs only for new public behavior (AC: 5)
+  - [x] Update `docs/behavior-matrices.md` if the new parse entrypoint, remaining-args snapshot, or long-flag behavior needs adoption evidence.
+  - [x] Update `docs/diagnostics-and-errors.md` if new parse sentinels or typed parse errors become part of the public contract.
+  - [x] Do not add compatibility examples, fuzz seeds, command/config integration docs, or release evidence; later stories own those surfaces.
 
-- [ ] Verify the story implementation (AC: 1-5)
-  - [ ] Run `go test ./...`.
-  - [ ] Run `go vet ./...`.
-  - [ ] Run `go run ./tools/depgate`.
-  - [ ] Run `git diff --check`.
-  - [ ] Confirm `go.mod` still has no `require`, `replace`, or `toolchain` directives and no `go.sum` was created.
-  - [ ] Confirm no package imports outside the Go standard library and local module were added.
-  - [ ] Consider `go test -race ./...` as extra evidence because snapshots and sets are reusable values.
-  - [ ] Record exact commands and outcomes in the Dev Agent Record.
+- [x] Verify the story implementation (AC: 1-5)
+  - [x] Run `go test ./...`.
+  - [x] Run `go vet ./...`.
+  - [x] Run `go run ./tools/depgate`.
+  - [x] Run `git diff --check`.
+  - [x] Confirm `go.mod` still has no `require`, `replace`, or `toolchain` directives and no `go.sum` was created.
+  - [x] Confirm no package imports outside the Go standard library and local module were added.
+  - [x] Consider `go test -race ./...` as extra evidence because snapshots and sets are reusable values.
+  - [x] Record exact commands and outcomes in the Dev Agent Record.
 
 ## Dev Notes
 
@@ -247,10 +247,93 @@ GPT-5 Codex
 
 ### Debug Log References
 
+- 2026-06-11T21:26:53-04:00: Loaded `sprint-status.yaml`; confirmed Story 2.2 `done` and Story 2.3 `ready-for-dev`, then moved Story 2.3 to `in-progress`.
+- 2026-06-11T21:26:53-04:00: Confirmed Story 2.3 ATDD artifacts existed, including `flags/parse_long_atdd_test.go` and `_bmad-output/test-artifacts/atdd-checklist-2-3-reject-invalid-long-flags-with-inspectable-errors.md`.
+- 2026-06-11T21:26:53-04:00: Confirmed `go.mod` contains only `module github.com/petabytecl/dib` and `go 1.26`.
+- RED: `GOCACHE=/tmp/dib-go-build GOPATH=/tmp/dib-gopath go test ./flags -run TestATDDLongFlagValuesPreserveSourceAndRemainingArgs -count=1` failed because `flags.Set` had no `Parse` method.
+- GREEN: Activated each Story 2.3 ATDD test in `flags/parse_long_atdd_test.go` and verified each narrow `go test ./flags -run ... -count=1` command passed after implementation.
+- Validation: `GOCACHE=/tmp/dib-go-build GOPATH=/tmp/dib-gopath go test ./flags -count=1` passed.
+- Validation: `GOCACHE=/tmp/dib-go-build GOPATH=/tmp/dib-gopath go test ./...` passed.
+- Validation: `GOCACHE=/tmp/dib-go-build GOPATH=/tmp/dib-gopath go vet ./...` passed.
+- Validation: `GOCACHE=/tmp/dib-go-build GOPATH=/tmp/dib-gopath go run ./tools/depgate` passed.
+- Validation: `git diff --check` passed.
+- Extra validation: `GOCACHE=/tmp/dib-go-build GOPATH=/tmp/dib-gopath go test -race ./...` passed.
+- Validation: confirmed no `go.sum` exists; `go.mod` still has no `require`, `replace`, or `toolchain` directives.
+- Validation: `go list` imports showed only standard-library imports and local module packages.
+- Review fix: moved duplicate single-value detection ahead of second-value parsing so duplicate occurrences cannot be misreported as conversion failures or invoke caller parsers unnecessarily.
+- Review fix: preserved raw long-name spelling in duplicate parse diagnostics while still exposing normalized lookup key and canonical definition identity.
+- Review validation: `GOCACHE=/tmp/dib-go-build GOPATH=/tmp/dib-gopath go test ./flags -run 'TestParseLongDuplicate' -count=1` passed.
+- Review validation: `GOCACHE=/tmp/dib-go-build GOPATH=/tmp/dib-gopath go test ./flags -count=1` passed.
+- Review validation: `GOCACHE=/tmp/dib-go-build GOPATH=/tmp/dib-gopath go test ./...` passed.
+- Review validation: `GOCACHE=/tmp/dib-go-build GOPATH=/tmp/dib-gopath go vet ./...` passed.
+- Review validation: `GOCACHE=/tmp/dib-go-build GOPATH=/tmp/dib-gopath go run ./tools/depgate` passed.
+- Review validation: `git diff --check` passed.
+- Review validation: `GOCACHE=/tmp/dib-go-build GOPATH=/tmp/dib-gopath go test -race ./...` passed.
+- GitHub issue sync: no issue or PR number was present in the story, branch, commits, or local artifacts; `gh issue list --repo petabytecl/dib --search '"Story 2.3" OR "Reject Invalid Long Flags"' --limit 20` failed because `api.github.com` was unreachable from this workspace, so no GitHub issue comment could be posted.
+
 ### Completion Notes List
 
+- Added explicit `flags.Set.Parse(args []string) (Snapshot, error)` for caller-supplied long-flag parsing without process globals or IO.
+- Added snapshot remaining-argument and value-occurrence metadata with defensive-copy accessors.
+- Added inspectable parse diagnostics through `flags.ErrUnknownFlag`, `flags.ErrMissingValue`, and `*flags.ParseError`, while preserving `ErrConversion`, `ErrDuplicateValue`, and `*flags.ValueError` inspection.
+- Implemented long attached/separate values, boolean presence and explicit boolean values, exact and normalized lookup, ordinary `--no-*` names, duplicate single-value detection, minimal `--` stop handling, and redaction-safe parse error text.
+- Activated Story 2.3 ATDD consumer contracts and added focused package tests for edge cases and defensive accessors.
+- Updated adoption-facing behavior and diagnostics docs for the new public parse behavior.
+- Senior review fixed duplicate error precedence and raw/normalized duplicate diagnostic context.
+
 ### File List
+
+- `_bmad-output/implementation-artifacts/2-3-reject-invalid-long-flags-with-inspectable-errors.md`
+- `_bmad-output/implementation-artifacts/sprint-status.yaml`
+- `docs/behavior-matrices.md`
+- `docs/diagnostics-and-errors.md`
+- `flags/errors.go`
+- `flags/parse.go`
+- `flags/parse_long_atdd_test.go`
+- `flags/parse_long_test.go`
+- `flags/snapshot.go`
 
 ### Change Log
 
 - 2026-06-11: Story created and marked ready for development.
+- 2026-06-11: Implemented inspectable long-flag parsing, activated ATDD coverage, updated docs, and marked story ready for review.
+- 2026-06-11: Senior developer review fixed duplicate parse diagnostics, reran validation gates, and marked story done.
+
+## Senior Developer Review (AI)
+
+Reviewer: GPT-5 Codex
+Date: 2026-06-11T21:43:42-04:00
+Outcome: Approved after automatic fixes
+
+### Findings Fixed
+
+- HIGH: Duplicate non-repeatable long flags were detected after parsing the second value, so `--workers=2 --workers=not-an-int` returned `ErrConversion` instead of the required `ErrDuplicateValue`. Fixed by checking duplicate state immediately after definition lookup and before value parsing.
+- MEDIUM: Duplicate diagnostics for normalized spellings reported the canonical name as `ParseError.Name()` instead of the raw source long name. Fixed duplicate error construction to preserve raw name, normalized lookup key, and canonical definition separately.
+
+### Review Notes
+
+- Acceptance criteria 1-5 were cross-checked against implementation and tests.
+- Story File List covers the story source and documentation files. `flags/parse.go` and `flags/parse_long_test.go` are currently untracked in git status, so `git diff --name-only` omits them even though the Go toolchain compiled and tested them.
+- GitHub issue reflection was attempted, but no issue or PR reference was discoverable locally and the GitHub CLI could not reach `api.github.com` from this workspace.
+
+### Validation Checklist
+
+- [x] Story file loaded from `_bmad-output/implementation-artifacts/2-3-reject-invalid-long-flags-with-inspectable-errors.md`
+- [x] Story Status verified as reviewable (`review`)
+- [x] Epic and Story IDs resolved (`2.3`)
+- [x] Story Context warning recorded: no separate story context file discovered
+- [x] Epic Tech Spec located via `_bmad-output/planning-artifacts/epics.md`
+- [x] Architecture/standards docs loaded from `_bmad-output/planning-artifacts/architecture.md`
+- [x] Tech stack detected: Go 1.26 module, standard library runtime
+- [x] MCP doc search/web fallback not required for local code review; no new external technical claims introduced
+- [x] Acceptance Criteria cross-checked against implementation
+- [x] File List reviewed and validated for completeness
+- [x] Tests identified and mapped to ACs; duplicate diagnostics coverage added
+- [x] Code quality review performed on changed files
+- [x] Security review performed on changed files and dependencies
+- [x] Outcome decided: approve after fixes
+- [x] Review notes appended under "Senior Developer Review (AI)"
+- [x] Change Log updated with review entry
+- [x] Status updated to `done`
+- [x] Sprint status synced
+- [x] Story saved successfully

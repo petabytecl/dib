@@ -12,6 +12,8 @@ var (
 	ErrDuplicateShorthand      = errors.New("duplicate flag shorthand")
 	ErrInvalidShorthand        = errors.New("invalid flag shorthand")
 	ErrInvalidNoOptionDefault  = errors.New("invalid flag no-option default")
+	ErrUnknownFlag             = errors.New("unknown flag")
+	ErrMissingValue            = errors.New("missing flag value")
 	ErrDuplicateValue          = errors.New("duplicate flag value")
 	ErrConversion              = errors.New("flag value conversion failed")
 )
@@ -148,4 +150,92 @@ func (e *ValueError) Kind() Kind {
 		return KindString
 	}
 	return e.kind
+}
+
+// ParseError reports an inspectable command-line parse failure.
+type ParseError struct {
+	category       error
+	token          string
+	name           string
+	normalizedName string
+	definition     Definition
+	hasDefinition  bool
+	cause          error
+}
+
+func newParseError(category error, token string, name string, normalizedName string, def Definition, hasDefinition bool, cause error) *ParseError {
+	return &ParseError{
+		category:       category,
+		token:          token,
+		name:           name,
+		normalizedName: normalizedName,
+		definition:     def,
+		hasDefinition:  hasDefinition,
+		cause:          cause,
+	}
+}
+
+func (e *ParseError) Error() string {
+	if e == nil {
+		return "flags: parse error"
+	}
+
+	message := fmt.Sprintf("flags: %v", e.category)
+	if e.token != "" {
+		message += fmt.Sprintf(" at %q", e.token)
+	}
+	if e.name != "" {
+		message += fmt.Sprintf(" for %q", e.name)
+	}
+	return message
+}
+
+func (e *ParseError) Unwrap() []error {
+	if e == nil {
+		return nil
+	}
+	if e.cause == nil {
+		return []error{e.category}
+	}
+	return []error{e.category, e.cause}
+}
+
+// Category returns the sentinel parse failure category.
+func (e *ParseError) Category() error {
+	if e == nil {
+		return nil
+	}
+	return e.category
+}
+
+// Token returns the source flag token without any attached value.
+func (e *ParseError) Token() string {
+	if e == nil {
+		return ""
+	}
+	return e.token
+}
+
+// Name returns the raw long flag name from the source token.
+func (e *ParseError) Name() string {
+	if e == nil {
+		return ""
+	}
+	return e.name
+}
+
+// NormalizedName returns the lookup key produced by the set normalizer.
+func (e *ParseError) NormalizedName() string {
+	if e == nil {
+		return ""
+	}
+	return e.normalizedName
+}
+
+// Definition returns the canonical definition associated with the parse failure.
+func (e *ParseError) Definition() (Definition, bool) {
+	if e == nil || !e.hasDefinition {
+		return Definition{}, false
+	}
+	return e.definition, true
 }
