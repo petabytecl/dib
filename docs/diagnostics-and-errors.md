@@ -188,6 +188,21 @@ File-not-found path failures preserve `errors.Is(err, os.ErrNotExist)`.
 Sensitive source failures identify context without echoing raw fake sensitive
 values.
 
+Story 4.3 adds config flag binding and cross-source precedence resolution.
+`NewFlagSnapshot` ingests caller-supplied `FlagValue` bindings with `flag binding`
+provenance. An unknown `ConfigKey` returns `config.ErrUnknownSourceKey` through
+`*config.SourceError`; duplicate `ConfigKey` entries (including entries that normalize
+to the same key) return `config.ErrDuplicateBinding` through `*config.SourceError`;
+and kind-mismatch flag values return `config.ErrSourceConversion` through
+`*config.SourceError`. All three error types use the `"flag binding"` source label.
+A `FlagValue` with `ExplicitlySet: false` stores an absent source value — the flag's
+default does **not** enter the flag binding tier.
+
+`Resolve` returns a new snapshot applying the V1 precedence order: explicit setter >
+flag binding > env > JSON > default. A zero-value `Snapshot{}` for any tier is safe;
+it contributes no values. The returned snapshot is self-contained. Source snapshots
+are not mutated. See `docs/config-precedence.md` for the canonical precedence reference.
+
 ## Source Labels
 
 Config provenance source labels are fixed to these exact spellings:
@@ -233,7 +248,7 @@ categories. Story 3.5 adds boundary metadata while preserving existing command
 and flags error categories. Story 4.1 adds config definition setup diagnostics,
 default provenance, not-found lookup behavior, and sensitive default redaction.
 Story 4.2 adds config explicit setter, injected env lookup, and JSON reader/path
-source ingestion plus typed source diagnostics. Later stories own config flag
-binding, cross-source precedence, typed public getters, source reports, rendered
-config diagnostics, compatibility tables, migration examples, and release
-evidence.
+source ingestion plus typed source diagnostics. Story 4.3 adds config flag
+binding and cross-source precedence resolution. Later stories own typed public
+getters, source reports, rendered config diagnostics, compatibility tables,
+migration examples, and release evidence.

@@ -5,6 +5,8 @@ const (
 	SourceDefault = "default"
 	// SourceExplicit is the provenance label for caller-supplied explicit values.
 	SourceExplicit = "explicit setter"
+	// SourceFlagBinding is the provenance label for values supplied by explicit flag bindings.
+	SourceFlagBinding = "flag binding"
 	// SourceEnv is the provenance label for values supplied by injected env lookup.
 	SourceEnv = "env"
 	// SourceJSON is the provenance label for values supplied by JSON readers or paths.

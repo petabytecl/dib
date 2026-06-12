@@ -12,6 +12,7 @@ var (
 	ErrInvalidDefault         = errors.New("invalid config default")
 	ErrInvalidSource          = errors.New("invalid config source")
 	ErrUnknownSourceKey       = errors.New("unknown config source key")
+	ErrDuplicateBinding       = errors.New("duplicate config flag binding")
 	ErrSourceRead             = errors.New("config source read failure")
 	ErrJSONDecode             = errors.New("config JSON decode failure")
 	ErrSourceConversion       = errors.New("config source value conversion failure")

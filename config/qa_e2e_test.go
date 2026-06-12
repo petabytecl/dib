@@ -375,6 +375,241 @@ func TestQAConfigSourceDiagnosticsCoverCriticalFailuresAndRedaction(t *testing.T
 	}
 }
 
+func TestQAConfigResolutionWorkflowCoversFlagBindingAndFullPrecedence(t *testing.T) {
+	t.Parallel()
+
+	normalizeSeparators := config.NameNormalizer(func(name string) string {
+		return strings.NewReplacer("_", "-", ".", "-").Replace(name)
+	})
+	set, err := config.NewNormalizedSet(
+		normalizeSeparators,
+		config.String("log-level", "info", "log level"),
+		config.Int("workers", 1, "worker count"),
+		config.Bool("debug", false, "debug mode"),
+		config.Duration("timeout", time.Second, "timeout"),
+		config.String("output", "default-output", "output path"),
+		config.Float64("ratio", 1.5, "sampling ratio"),
+		config.Define("token", config.KindString, "api token", config.Sensitive()),
+	)
+	if err != nil {
+		t.Fatalf("NewNormalizedSet: %v", err)
+	}
+
+	// Explicit wins for "log-level".
+	explicitSnap, err := config.NewExplicitSnapshot(set,
+		config.Assignment{Key: "log-level", Value: "explicit-level"},
+	)
+	if err != nil {
+		t.Fatalf("NewExplicitSnapshot: %v", err)
+	}
+
+	// Flag wins for "workers" and sensitive "token"; ExplicitlySet=false for "output" injects nothing.
+	flagSnap, err := config.NewFlagSnapshot(set, []config.FlagValue{
+		{ConfigKey: "workers", ExplicitlySet: true, Value: 4},
+		{ConfigKey: "output", ExplicitlySet: false},
+		{ConfigKey: "token", ExplicitlySet: true, Value: "dib_fake_token_value"},
+	})
+	if err != nil {
+		t.Fatalf("NewFlagSnapshot: %v", err)
+	}
+
+	// Env wins for "debug" and "output" (flag did not inject "output").
+	envSnap, err := config.NewEnvSnapshot(
+		set,
+		mapLookup(map[string]string{
+			"DIB_DEBUG":  "true",
+			"DIB_OUTPUT": "env-output",
+		}),
+		[]config.EnvBinding{
+			config.BindEnv("debug", "DIB_DEBUG"),
+			config.BindEnv("output", "DIB_OUTPUT"),
+		},
+	)
+	if err != nil {
+		t.Fatalf("NewEnvSnapshot: %v", err)
+	}
+
+	// JSON wins for "timeout"; "log-level" and "workers" from JSON lose to higher tiers.
+	jsonSnap, err := config.LoadJSON(
+		set,
+		strings.NewReader(`{"log-level":"json-level","workers":99,"timeout":"500ms","output":"json-output"}`),
+		config.JSONPermissive(),
+	)
+	if err != nil {
+		t.Fatalf("LoadJSON: %v", err)
+	}
+
+	result := config.Resolve(set, explicitSnap, flagSnap, envSnap, jsonSnap)
+
+	// Explicit tier wins for "log-level".
+	assertConfigValue(t, result, "log-level", "explicit-level", config.SourceExplicit)
+
+	// Flag tier wins for "workers"; verify Source().Key() is canonical.
+	assertConfigValue(t, result, "workers", 4, config.SourceFlagBinding)
+	workersVal, _ := result.Lookup("workers")
+	if got := workersVal.Source().Key(); got != "workers" {
+		t.Fatalf("workers Source().Key() = %q; want workers", got)
+	}
+
+	// Env tier wins for "debug"; Source().EnvName() reflects the binding.
+	assertConfigValue(t, result, "debug", true, config.SourceEnv)
+	debugVal, _ := result.Lookup("debug")
+	if got := debugVal.Source().EnvName(); got != "DIB_DEBUG" {
+		t.Fatalf("debug Source().EnvName() = %q; want DIB_DEBUG", got)
+	}
+
+	// JSON tier wins for "timeout" (no higher source provided it).
+	assertConfigValue(t, result, "timeout", 500*time.Millisecond, config.SourceJSON)
+
+	// Env tier wins for "output": flag ExplicitlySet=false → no flag value; env beats JSON.
+	assertConfigValue(t, result, "output", "env-output", config.SourceEnv)
+
+	// Default tier wins for "ratio" (no source provided it).
+	assertConfigValue(t, result, "ratio", 1.5, config.SourceDefault)
+
+	// Flag tier wins for "token" (sensitive, explicitly set).
+	tokenVal, ok := result.Lookup("token")
+	if !ok {
+		t.Fatal("Lookup(token) returned false")
+	}
+	gotToken, hasToken := tokenVal.Value()
+	if !hasToken || gotToken != "dib_fake_token_value" {
+		t.Fatalf("token Value() = %#v, %v; want dib_fake_token_value, true", gotToken, hasToken)
+	}
+	if p := tokenVal.Provenance(); p != config.SourceFlagBinding {
+		t.Fatalf("token Provenance() = %q; want %q", p, config.SourceFlagBinding)
+	}
+	if !tokenVal.Source().Redacted() {
+		t.Fatal("token Source().Redacted() = false; want true for sensitive key resolved via flag binding")
+	}
+
+	// Normalized key lookup works on the resolved snapshot.
+	logLevelByUnderscore, ok := result.Lookup("log_level")
+	if !ok {
+		t.Fatal("Lookup(log_level) on resolved snapshot returned false")
+	}
+	if got, _ := logLevelByUnderscore.Value(); got != "explicit-level" {
+		t.Fatalf("log_level via resolved Lookup = %q; want explicit-level", got)
+	}
+
+	// Resolved snapshot is reusable: a second Resolve with the same inputs returns identical results.
+	result2 := config.Resolve(set, explicitSnap, flagSnap, envSnap, jsonSnap)
+	for _, key := range []string{"log-level", "workers", "debug", "timeout", "output", "ratio"} {
+		v1, _ := result.Lookup(key)
+		v2, _ := result2.Lookup(key)
+		val1, _ := v1.Value()
+		val2, _ := v2.Value()
+		if !reflect.DeepEqual(val1, val2) || v1.Provenance() != v2.Provenance() {
+			t.Fatalf("key %q: second Resolve returned different results (%#v/%q vs %#v/%q)",
+				key, val1, v1.Provenance(), val2, v2.Provenance())
+		}
+	}
+}
+
+func TestQAConfigFlagBindingDiagnosticsCoverErrorCategories(t *testing.T) {
+	t.Parallel()
+
+	set, err := config.NewSet(
+		config.Int("workers", 1, "worker count"),
+		config.String("log-level", "info", "log level"),
+		config.Define("secret-int", config.KindInt, "secret integer", config.Sensitive()),
+	)
+	if err != nil {
+		t.Fatalf("NewSet: %v", err)
+	}
+
+	tests := []struct {
+		name       string
+		run        func() error
+		wantIs     error
+		wantSource string
+		wantKey    string
+		wantSecret string
+	}{
+		{
+			name: "unknown config key",
+			run: func() error {
+				_, err := config.NewFlagSnapshot(set, []config.FlagValue{
+					{ConfigKey: "nonexistent", ExplicitlySet: true, Value: "value"},
+				})
+				return err
+			},
+			wantIs:     config.ErrUnknownSourceKey,
+			wantSource: config.SourceFlagBinding,
+			wantKey:    "nonexistent",
+		},
+		{
+			name: "kind mismatch for non-sensitive key",
+			run: func() error {
+				_, err := config.NewFlagSnapshot(set, []config.FlagValue{
+					{ConfigKey: "workers", ExplicitlySet: true, Value: "not-an-int"},
+				})
+				return err
+			},
+			wantIs:     config.ErrSourceConversion,
+			wantSource: config.SourceFlagBinding,
+			wantKey:    "workers",
+		},
+		{
+			name: "kind mismatch for sensitive key redacts raw value",
+			run: func() error {
+				_, err := config.NewFlagSnapshot(set, []config.FlagValue{
+					{ConfigKey: "secret-int", ExplicitlySet: true, Value: "dib_fake_secret_value"},
+				})
+				return err
+			},
+			wantIs:     config.ErrSourceConversion,
+			wantSource: config.SourceFlagBinding,
+			wantKey:    "secret-int",
+			wantSecret: "dib_fake_secret_value",
+		},
+		{
+			name: "duplicate binding colliding key is reported",
+			run: func() error {
+				_, err := config.NewFlagSnapshot(set, []config.FlagValue{
+					{ConfigKey: "workers", ExplicitlySet: true, Value: 2},
+					{ConfigKey: "workers", ExplicitlySet: true, Value: 3},
+				})
+				return err
+			},
+			wantIs:     config.ErrDuplicateBinding,
+			wantSource: config.SourceFlagBinding,
+			wantKey:    "workers",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			err := tt.run()
+			if err == nil {
+				t.Fatal("NewFlagSnapshot returned nil error")
+			}
+			if !errors.Is(err, tt.wantIs) {
+				t.Fatalf("errors.Is(err, %v) = false; err=%v", tt.wantIs, err)
+			}
+			var sourceErr *config.SourceError
+			if !errors.As(err, &sourceErr) {
+				t.Fatalf("error does not expose *config.SourceError: %T", err)
+			}
+			if got := sourceErr.Source(); got != tt.wantSource {
+				t.Fatalf("SourceError.Source() = %q; want %q", got, tt.wantSource)
+			}
+			if got := sourceErr.Key(); got != tt.wantKey {
+				t.Fatalf("SourceError.Key() = %q; want %q", got, tt.wantKey)
+			}
+			if tt.wantSecret != "" {
+				if strings.Contains(err.Error(), tt.wantSecret) {
+					t.Fatalf("sensitive source error leaked raw value: %v", err)
+				}
+				if !sourceErr.Redacted() {
+					t.Fatal("SourceError.Redacted() = false; want true for sensitive key")
+				}
+			}
+		})
+	}
+}
+
 func assertConfigValue(t *testing.T, snapshot config.Snapshot, key string, want any, wantSource string) {
 	t.Helper()
 
