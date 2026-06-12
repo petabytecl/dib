@@ -1,54 +1,45 @@
 # Test Automation Summary
 
-## Story 2.8 - Gap Analysis
+## Story 3.1 - Gap Analysis
 
-Story 2.8 is a Go package parser-hardening story. There is no HTTP API or UI
-surface, so the applicable automated coverage is package-level parser tests and
-standard-library Go fuzz targets.
+Story 3.1 is a Go package command-routing story. There is no HTTP API endpoint
+or UI/browser surface, so the applicable automated coverage is package-level
+API and end-to-end routing workflow tests using Go's standard `testing`
+package.
 
 The workflow found and fixed these test gaps:
 
 | Gap | Status |
 | --- | --- |
-| `FuzzParse` did not assert reusable `Set` definitions stay unchanged after arbitrary parses | Fixed |
-| `FuzzParse` did not assert successful snapshot `ValueState.Values()` and `ValueState.Occurrences()` are defensively copied | Fixed |
-| `FuzzParse` was cited as redaction evidence but did not include a sensitive conversion failure invariant | Fixed |
-| `FuzzParse` was cited as normalization evidence but used a non-normalized set and had no normalized spelling seed | Fixed |
-| `FuzzParseShortGroups` incorrectly treated sensitive-looking unknown flag names as sensitive values | Fixed |
-| Unanchored `-fuzz=FuzzParse` verification matched multiple fuzz targets and was not reproducible | Fixed |
+| Unknown-command coverage did not prove flag-like tokens before a leaf remain command-routing failures instead of being parsed as flags | Fixed |
+| Unknown-command coverage did not prove alias metadata is not routed in Story 3.1 | Fixed |
+| Routing did not have an explicit test for the zero-value root definition failing through the `NameError` contract with a zero-value result | Fixed |
 
 ## Generated Tests
 
 ### API Tests
 
-- [x] Not applicable - no HTTP/API endpoint surface exists for this story.
+- [x] `command/route_test.go` - `TestRouteRejectsInvalidRootDefinition` validates invalid root routing fails through `*command.NameError` and returns a zero-value result.
+- [x] `command/route_test.go` - `TestRouteUnknownCommandErrorsAreInspectable` now covers flag-like unknown tokens and alias metadata tokens in addition to root and nested unknown commands.
 
 ### E2E Tests
 
-- [x] Not applicable - no UI/browser workflow exists for this story.
-
-### Package And Fuzz Tests
-
-- [x] `flags/fuzz_test.go` - `FuzzParse` now asserts parser determinism, zero-value failed snapshots, typed parse errors, reusable definitions, defensive copies for remaining args, defensive copies for values and occurrences, sensitive conversion redaction, and normalized long-name spellings.
-- [x] `flags/parse_group_test.go` - `FuzzParseShortGroups` now keeps grouped shorthand fuzzing scoped to deterministic typed parser diagnostics.
-- [x] Existing Story 2.8 parser matrix tests and fuzz corpus remain in place under `flags/*_test.go` and `flags/testdata/fuzz/`.
+- [x] `command/route_test.go` - `TestRouteRootAndNestedCommands` covers root, nested, remaining-args, flag-like leaf args, and `--` routing workflows.
+- [x] `command/contract_test.go` - `TestRoutingUsesExplicitInputsAndReturnedValues` covers routing end to end with misleading process args, environment, stdout, and stderr.
 
 ## Coverage
 
 - API endpoints: 0/0 applicable.
 - UI features: 0/0 applicable.
-- Parser behavior areas covered: definitions, normalization, long flags, short flags, shorthand groups, repeated/custom values, no-option defaults, parse boundaries, help requests, diagnostics, redaction, and fuzz/property hardening.
-- Fuzz targets covered: 3/3 parser fuzz targets (`FuzzParse`, `FuzzParseBoundary`, `FuzzParseShortGroups`).
+- Command routing behavior areas covered: root routing, nested routing, remaining args, `--` boundary behavior, unknown command diagnostics, alias metadata non-routing, invalid root diagnostics, immutable snapshots, defensive copies, deterministic concurrent route calls, and process-state isolation.
+- Story 3.1 command package test functions covered: 13/13.
 
 ## Validation
 
-- [x] `GOCACHE=/tmp/dib-go-build GOPATH=/tmp/dib-gopath go test ./flags -run 'TestSet|TestDefinition|TestExact|TestParse|TestSensitive|TestNonSensitive' -count=1` - PASS
+- [x] `GOCACHE=/tmp/dib-go-build GOPATH=/tmp/dib-gopath go test ./command -count=1` - PASS
 - [x] `GOCACHE=/tmp/dib-go-build GOPATH=/tmp/dib-gopath go test ./...` - PASS
 - [x] `GOCACHE=/tmp/dib-go-build GOPATH=/tmp/dib-gopath go vet ./...` - PASS
 - [x] `GOCACHE=/tmp/dib-go-build GOPATH=/tmp/dib-gopath go run ./tools/depgate` - PASS
-- [x] `GOCACHE=/tmp/dib-go-build GOPATH=/tmp/dib-gopath go test -fuzz='^FuzzParse$' -fuzztime=5s ./flags` - PASS
-- [x] `GOCACHE=/tmp/dib-go-build GOPATH=/tmp/dib-gopath go test -fuzz='^FuzzParseBoundary$' -fuzztime=5s ./flags` - PASS
-- [x] `GOCACHE=/tmp/dib-go-build GOPATH=/tmp/dib-gopath go test -fuzz='^FuzzParseShortGroups$' -fuzztime=5s ./flags` - PASS
 - [x] `GOCACHE=/tmp/dib-go-build GOPATH=/tmp/dib-gopath go test -race ./... -count=1` - PASS
 - [x] `git diff --check` - PASS
 
@@ -59,8 +50,10 @@ The workflow found and fixed these test gaps:
 - [x] Tests use standard Go `testing` APIs.
 - [x] Tests cover happy paths.
 - [x] Tests cover critical error cases.
-- [x] Tests use semantic public parser APIs instead of internal mutable state.
+- [x] Tests use public command APIs and semantic returned values/errors.
 - [x] Tests have clear descriptions.
 - [x] Tests have no hardcoded waits or sleeps.
 - [x] Tests are independent and do not depend on execution order.
+- [x] Test summary created.
+- [x] Tests saved to appropriate package-local directories.
 - [x] Summary includes coverage metrics.

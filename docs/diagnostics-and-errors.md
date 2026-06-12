@@ -109,6 +109,17 @@ successful snapshots expose defensive copies, reusable definitions are not
 mutated, and sensitive conversion values remain redacted. These tests reinforce
 the contracts above rather than changing the diagnostic vocabulary.
 
+Story 3.1 adds the first concrete command routing diagnostic category. Unknown
+command tokens return `command.ErrUnknownCommand` through
+`*command.UnknownCommandError`, so callers can use both
+`errors.Is(err, command.ErrUnknownCommand)` and
+`errors.As` with `*command.UnknownCommandError`. The typed error exposes the
+unmatched token with `Token()` and the matched parent command path with
+`ParentPath()`. Unknown-command routing failures return a zero-value route
+result so callers cannot accidentally use partial routing state. Routing
+diagnostics do not render help, call `os.Exit`, read `os.Args`, or write to
+stdout or stderr.
+
 ## Source Labels
 
 Config provenance source labels are fixed to these exact spellings:
@@ -140,6 +151,7 @@ Story 1.3 established the shared contract language. Stories 2.1 through 2.8
 add the initial `flags` definition, normalization, conversion, long-parse,
 shorthand-parse, shorthand-group, repeated-value, custom-parser, and
 help-request categories, plus parser fuzz evidence that those categories remain
-inspectable under arbitrary input. Later stories own source-report structures,
+inspectable under arbitrary input. Story 3.1 adds the first `command` routing
+diagnostic for unknown commands. Later stories own source-report structures,
 rendered diagnostics, config provenance, and the remaining concrete error
 categories for each package surface.
