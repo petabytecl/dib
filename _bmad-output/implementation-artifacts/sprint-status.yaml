@@ -1,5 +1,5 @@
 # generated: 2026-06-11T12:01:02-04:00
-# last_updated: 2026-06-12T02:36:30-04:00
+# last_updated: 2026-06-12T02:42:16-04:00
 # project: dib
 # project_key: NOKEY
 # tracking_system: file-system
@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: "2026-06-11T12:01:02-04:00"
-last_updated: "2026-06-12T02:36:30-04:00"
+last_updated: "2026-06-12T02:42:16-04:00"
 project: dib
 project_key: NOKEY
 tracking_system: file-system
@@ -61,13 +61,13 @@ development_status:
   2-8-prove-flag-parsing-across-matrices-and-fuzz-inputs: done
   epic-2-retrospective: done
 
-  epic-3: in-progress
+  epic-3: done
   3-1-route-nested-commands-with-inspectable-results: done
   3-2-resolve-aliases-and-unknown-commands-predictably: done
   3-3-apply-local-and-inherited-flags-predictably-during-routing: done
   3-4-render-deterministic-command-help-and-usage: done
   3-5-preserve-caller-controlled-execution-boundaries: done
-  epic-3-retrospective: optional
+  epic-3-retrospective: done
 
   epic-4: backlog
   4-1-register-config-keys-with-defaults-and-type-expectations: backlog

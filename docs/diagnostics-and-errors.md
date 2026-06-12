@@ -145,6 +145,14 @@ to return the typed `*flags.ParseError` values from `flags.Set.Parse`; command
 routing does not convert help requests, unknown flags, missing values,
 conversion failures, or duplicate values into command diagnostics.
 
+Story 3.4 adds deterministic command help and usage rendering without adding a
+new Dib-owned public diagnostic category. `Definition.WriteHelp`,
+`Definition.WriteUsage`, `Result.WriteHelp`, and `Result.WriteUsage` return
+caller-supplied writer errors directly. Invalid zero-value definitions or route
+results return the existing `*command.NameError`. Rendering does not convert
+`flags.ErrHelpRequest` into output, does not call `os.Exit`, and does not write
+to process-global stdout or stderr.
+
 Story 3.5 adds command execution-boundary metadata without adding a new
 Dib-owned public error category. `Definition.RouteBoundary` returns the same
 typed routing and flag parse diagnostics as `Definition.Route`, and failed
@@ -190,7 +198,9 @@ inspectable under arbitrary input. Story 3.1 adds the first `command` routing
 diagnostic for unknown commands. Story 3.2 adds command alias setup diagnostics
 for invalid aliases and duplicate lookup tokens. Story 3.3 adds command
 flag-composition setup diagnostics and routes runtime flag parse failures
-through the existing `flags` parse diagnostics. Story 3.5 adds boundary
-metadata while preserving existing command and flags error categories. Later
-stories own source-report structures, rendered diagnostics, config provenance,
-and the remaining concrete error categories for each package surface.
+through the existing `flags` parse diagnostics. Story 3.4 adds command
+help/usage rendering while preserving existing command and flags error
+categories. Story 3.5 adds boundary metadata while preserving existing command
+and flags error categories. Later stories own source-report structures,
+rendered diagnostics beyond command help/usage, config provenance, and the
+remaining concrete error categories for each package surface.

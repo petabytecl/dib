@@ -77,6 +77,7 @@ execution-boundary metadata.
 
 The matrix does not claim that config precedence, source reports, rendered
 diagnostic surfaces beyond command help/usage, compatibility tables, migration
-examples, or release-candidate evidence are complete today. Handler execution,
-callback invocation, and lifecycle ownership remain marked `later` and are
-owned by later Epic 3 stories.
+examples, or release-candidate evidence are complete today. Epic 3 completed
+caller-controlled boundary metadata; callback invocation, handler dispatch, and
+process lifecycle ownership remain deferred unless a future architecture/API
+decision explicitly approves that surface.
