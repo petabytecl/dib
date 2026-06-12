@@ -33,6 +33,8 @@ func TestCompatibilityDocumentBoundaries(t *testing.T) {
 		"story 5.2",
 		"story 5.3",
 		"story 5.4",
+		"consolidated adoption evidence",
+		"does not claim release readiness",
 	}
 	for _, phrase := range required {
 		if !strings.Contains(lower, phrase) {
@@ -42,6 +44,7 @@ func TestCompatibilityDocumentBoundaries(t *testing.T) {
 
 	for _, link := range []string{
 		"behavior-matrices.md",
+		"behavior-matrices.md#consolidated-adoption-evidence",
 		"config-precedence.md",
 		"diagnostics-and-errors.md",
 		"release-checklist.md",

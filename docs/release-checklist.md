@@ -39,9 +39,14 @@ CI failures block tagging. Record the exact command outcome for each required ga
   - `go test -fuzz='^FuzzParse$' -fuzztime=5s ./flags`:
   - `go test -fuzz='^FuzzParseBoundary$' -fuzztime=5s ./flags`:
   - `go test -fuzz='^FuzzParseShortGroups$' -fuzztime=5s ./flags`:
-- Docs/examples evidence:
-- Provenance evidence:
-- Compatibility evidence:
+- Docs/examples evidence input: `docs/behavior-matrices.md` consolidates Story
+  5.3 adoption evidence and links package tests plus Story 5.2 migration
+  examples. Story 5.4 records final release-candidate command outcomes.
+- Provenance evidence input: `docs/provenance-log.md`; Story 5.4 records final
+  provenance review outcome.
+- Compatibility evidence input: `docs/compatibility.md` and
+  `docs/behavior-matrices.md`; Story 5.4 records final compatibility review
+  outcome.
 - Migration evidence: Story 5.2 example pointers live in `examples/migration/`; Story 5.4 records final release-candidate command outcomes.
 
 ## Standard-Library Dependency Evidence
