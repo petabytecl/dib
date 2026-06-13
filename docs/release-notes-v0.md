@@ -69,5 +69,10 @@ completing the CLI composition story for Dib v0:
   `Example_composedCLI` function in `examples/multicommand/example_test.go`
   demonstrates the full composition path with caller-supplied inputs, and
   `Example_dispatchStartStop` demonstrates application-owned `start`/`stop`
-  handler dispatch after `cli.Resolve`.
-- GitHub tracking: Epic 7 issue #46, Story 7.4 issue #50.
+  handler dispatch after `cli.Resolve`; `Example_lowLevelDispatch` preserves
+  the manual dispatch pattern as low-level evidence.
+- Post-Epic 7 issue #52 adds the high-level `cli.Command` builder,
+  distributed subcommand registration, `cli.CommandContext`, and `Run` handler
+  dispatch while keeping `Resolve` as the low-level inspectable path.
+- GitHub tracking: Epic 7 issue #46, Story 7.4 issue #50, handler dispatch
+  follow-up issue #52.

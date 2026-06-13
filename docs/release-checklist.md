@@ -14,6 +14,7 @@ Use this checklist for each Dib Go module tag. It records release-candidate evid
 - Story 6.3 evidence scope: public usage documentation was published in the Story 6.3 working tree; final tag commit reconciliation remains a later release-review step.
 - Story 6.4 evidence scope: release evidence, sprint tracker, and GitHub issue alignment reconciled in the Story 6.4 working tree; Epic 6 lint gate, package-aware coverage validation, and public usage documentation are confirmed as formal release gates in `docs/release-notes-v0.md`; sprint-status.yaml updated; GitHub issues for Epic 6 are annotated to match local sprint status; final tag commit reconciliation remains a human release-review step.
 - Story 7.4 evidence scope: `cli` package added as a fourth public runtime package; coverage gate extended to include `cli` at 85% threshold; `examples/multicommand/` added as executable CLI composition and application-owned dispatch evidence; `README.md` quickstart updated to cover `cli` composition and `start`/`stop` dispatch; `docs/behavior-matrices.md` `cli composition ergonomics` row added; `docs/release-notes-v0.md` Epic 7 section added; sprint-status.yaml updated; GitHub issues for Epic 7 reconciled; final tag commit reconciliation remains a human release-review step.
+- Issue #52 evidence scope: `cli.Command` builder, distributed subcommand registration, `cli.CommandContext`, and `Run` handler dispatch added after the Epic 7 retrospective; `Resolve` remains available as the low-level inspectable path and process lifecycle remains caller-owned.
 
 ## Go Version Alignment
 
@@ -69,15 +70,19 @@ Per-package results from `GOCACHE=/tmp/dib-go-build go run ./tools/coverage` on 
 
 Epic 7 added the `cli` package as an optional fourth public package surface for
 CLI composition. The `cli` package (`cli.Invocation`, `cli.Plan`, `cli.Resolve`,
-`cli.Result`) was added across Stories 7.1–7.4. The `examples/multicommand/`
-directory provides executable evidence via `Example_composedCLI` and
-`Example_dispatchStartStop` in `examples/multicommand/example_test.go`. The
+`cli.Result`) was added across Stories 7.1–7.4. Issue #52 adds the high-level
+`cli.Command` builder, distributed subcommand registration, `cli.CommandContext`,
+and `Run` handler dispatch on top of that low-level API. The
+`examples/multicommand/` directory provides executable evidence via
+`Example_composedCLI`, `Example_dispatchStartStop`, and
+`Example_lowLevelDispatch` in `examples/multicommand/example_test.go`. The
 coverage gate (`go run
 ./tools/coverage`) was extended to include `cli` at the 85% threshold. The
-`README.md` quickstart was extended to cover `cli` composition and
-application-owned `start`/`stop` dispatch. The behavior
+`README.md` quickstart was extended to cover `cli` composition, distributed
+command registration, and application-owned `start`/`stop` dispatch. The behavior
 matrix (`docs/behavior-matrices.md`) records the `cli composition ergonomics`
-row. GitHub issue #46 (Epic 7) and issue #50 (Story 7.4) track this scope.
+row. GitHub issue #46 (Epic 7), issue #50 (Story 7.4), and issue #52
+(handler-dispatch follow-up) track this scope.
 
 ## Standard-Library Dependency Evidence
 
@@ -101,6 +106,6 @@ Waivers require owner, reason, expiry, and impact tracking. Open-ended waivers b
 
 ## Final Review
 
-- All required evidence captured: Yes; exact commit, lint, test, vet, coverage, dependency-gate, race-test, docs/examples (including `README.md` public onboarding and `examples/multicommand/` CLI composition plus application-owned dispatch evidence), fuzz, provenance, compatibility, migration, CI runner/action, Go version, dependency, lint-isolation, and coverage-isolation evidence are recorded above; Epic 6 lint gate, package-aware coverage validation, public usage documentation, and Epic 7 CLI composition evidence are formally confirmed as release gates.
+- All required evidence captured: Yes; exact commit, lint, test, vet, coverage, dependency-gate, race-test, docs/examples (including `README.md` public onboarding and `examples/multicommand/` CLI composition plus application-owned dispatch evidence), fuzz, provenance, compatibility, migration, CI runner/action, Go version, dependency, lint-isolation, and coverage-isolation evidence are recorded above; Epic 6 lint gate, package-aware coverage validation, public usage documentation, Epic 7 CLI composition evidence, and issue #52 handler-dispatch evidence are formally confirmed as release gates.
 - All waivers approved with expiry: No waivers requested; any future waiver must include owner, reason, expiry, and impact before release review continues.
 - Tagging decision: Evidence is captured for human release review of `v0.1.0`; this checklist does not approve or perform the tag action.

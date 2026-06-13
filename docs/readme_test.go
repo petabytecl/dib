@@ -32,8 +32,8 @@ func TestREADMEExistsAndCoversAdoptionOnboarding(t *testing.T) {
 		"command.NewDefinition",
 		"config.NewSet",
 		"config.Resolve",
-		"Using command, flags, and config together",
-		"Dispatching application commands",
+		"Building a distributed command tree",
+		"Using Resolve directly",
 	} {
 		if !strings.Contains(text, phrase) {
 			t.Fatalf("README.md missing required phrase %q", phrase)
@@ -78,8 +78,11 @@ func TestREADMEQuickstartUsesRealAPI(t *testing.T) {
 		"cli.FromOSArgs",
 		"cli.Resolve",
 		"result.Route().PathNames()",
-		"case \"start\"",
-		"case \"stop\"",
+		"cli.New",
+		".Command(",
+		"cli.Handle",
+		"cli.CommandContext",
+		"RunArgs",
 	} {
 		if !strings.Contains(text, phrase) {
 			t.Fatalf("README.md quickstart missing real API phrase %q", phrase)

@@ -163,6 +163,15 @@ into command or flags diagnostics. If a caller later invokes its own execution
 function, that function's ordinary Go error remains caller-owned unless a future
 approved API explicitly documents otherwise.
 
+Issue #52 adds high-level `cli.Command.Run` handler dispatch without changing
+the lower-level `command.Boundary` contract above. `Run` first resolves the
+invocation through the `cli` composition path, then invokes exactly one matched
+`func(cli.CommandContext) error` handler. Resolve failures prevent handler
+invocation; a matched route without a handler returns `cli.ErrNoHandler`
+through `*cli.DispatchError`; ordinary handler errors are returned directly for
+caller-owned logging and exit policy. `Run` does not call `os.Exit`, write
+streams, read environment variables implicitly, or load files.
+
 Story 4.1 adds the first concrete config setup diagnostics. Invalid config
 definitions return `config.ErrInvalidDefinition` through
 `*config.DefinitionError`; duplicate exact keys return `config.ErrDuplicateKey`;
@@ -304,3 +313,5 @@ source ingestion plus typed source diagnostics. Story 4.3 adds config flag
 binding and cross-source precedence resolution. Story 4.4 adds typed public
 getters. Story 4.5 adds source reports and rendered config diagnostics. Later
 stories own compatibility tables, migration examples, and release evidence.
+Issue #52 adds high-level `cli` dispatch diagnostics for matched routes without
+handlers while preserving direct handler errors as caller-owned errors.

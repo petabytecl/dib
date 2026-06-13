@@ -135,6 +135,8 @@ func TestCompatibilityTableCoversStorySurfaces(t *testing.T) {
 			"local and inherited flags",
 			"deterministic help and usage rendering",
 			"caller-controlled execution-boundary metadata",
+			"distributed command registration",
+			"opt-in handler dispatch",
 			"shell completion",
 			"manpage generation",
 			"scaffolding",

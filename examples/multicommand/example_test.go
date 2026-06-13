@@ -2,8 +2,8 @@ package multicommand_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/petabytecl/dib/cli"
@@ -51,10 +51,166 @@ func Example_composedCLI() {
 	// example.com
 }
 
-// Example_dispatchStartStop demonstrates the application-owned dispatch layer
-// that sits after cli.Resolve. Dib resolves argv into route, flags, and config;
-// the caller decides which handler to run.
+// Example_dispatchStartStop demonstrates distributed command registration and
+// handler dispatch through the high-level cli.Command builder.
 func Example_dispatchStartStop() {
+	root := serviceCommands(
+		func(cmd cli.CommandContext) error {
+			target, err := cmd.Config().GetString("target")
+			if err != nil {
+				return err
+			}
+			fmt.Println("start", target)
+			return nil
+		},
+		func(cmd cli.CommandContext) error {
+			target, err := cmd.Config().GetString("target")
+			if err != nil {
+				return err
+			}
+			fmt.Println("stop", target)
+			return nil
+		},
+	)
+
+	for _, argv := range [][]string{
+		{"svcctl", "service", "start", "--target", "scrapd"},
+		{"svcctl", "service", "stop", "--target", "scrapd"},
+	} {
+		if _, err := root.Run(context.Background(), argv); err != nil {
+			fmt.Println("error:", err)
+			return
+		}
+	}
+
+	// Output:
+	// start scrapd
+	// stop scrapd
+}
+
+func TestDispatchStartStopCallsApplicationHandlers(t *testing.T) {
+	startErr := errors.New("start handler called")
+	stopErr := errors.New("stop handler called")
+	root := serviceCommands(
+		func(cli.CommandContext) error {
+			return startErr
+		},
+		func(cli.CommandContext) error {
+			return stopErr
+		},
+	)
+
+	result, err := root.Run(context.Background(), []string{"svcctl", "service", "start", "--target", "scrapd"})
+	if !errors.Is(err, startErr) {
+		t.Fatalf("start err = %v, want start handler error", err)
+	}
+	if got := result.Route().PathNames(); len(got) != 3 || got[2] != "start" {
+		t.Fatalf("start route = %v, want final start", got)
+	}
+
+	result, err = root.Run(context.Background(), []string{"svcctl", "service", "stop", "--target", "scrapd"})
+	if !errors.Is(err, stopErr) {
+		t.Fatalf("stop err = %v, want stop handler error", err)
+	}
+	if got := result.Route().PathNames(); len(got) != 3 || got[2] != "stop" {
+		t.Fatalf("stop route = %v, want final stop", got)
+	}
+}
+
+func serviceCommands(start cli.Handler, stop cli.Handler) *cli.Command {
+	root := cli.New("svcctl",
+		cli.Description("service control"),
+		cli.Config(config.String("target", "scrapd", "service target")),
+	)
+	registerServiceCommands(root, start, stop)
+	return root
+}
+
+func registerServiceCommands(root *cli.Command, start cli.Handler, stop cli.Handler) {
+	service := root.Command("service", cli.Description("service commands"))
+	service.Command("start",
+		cli.Flags(flags.String("target", "scrapd", "service target")),
+		cli.Bindings(cli.BindFlag("target", "target")),
+		cli.Handle(start),
+	)
+	service.Command("stop",
+		cli.Flags(flags.String("target", "scrapd", "service target")),
+		cli.Bindings(cli.BindFlag("target", "target")),
+		cli.Handle(stop),
+	)
+}
+
+func TestCommandBuilderPlanRemainsInspectable(t *testing.T) {
+	root := serviceCommands(
+		func(cli.CommandContext) error {
+			return nil
+		},
+		func(cli.CommandContext) error {
+			return nil
+		},
+	)
+
+	plan, err := root.Plan()
+	if err != nil {
+		t.Fatalf("plan: %v", err)
+	}
+	if plan.Root().Name() != "svcctl" {
+		t.Fatalf("plan root = %q, want svcctl", plan.Root().Name())
+	}
+	if _, ok := plan.ConfigSet().Lookup("target"); !ok {
+		t.Fatal("plan config set missing target")
+	}
+}
+
+func TestCommandBuilderRunArgsUsesRootName(t *testing.T) {
+	wantErr := errors.New("status handler called")
+	root := cli.New("svcctl")
+	root.Command("status", cli.Handle(func(cmd cli.CommandContext) error {
+		if cmd.Invocation().Program() != "svcctl" {
+			t.Fatalf("program = %q, want svcctl", cmd.Invocation().Program())
+		}
+		return wantErr
+	}))
+
+	_, err := root.RunArgs(context.Background(), []string{"status"})
+	if !errors.Is(err, wantErr) {
+		t.Fatalf("run args err = %v, want status handler error", err)
+	}
+}
+
+func TestCommandBuilderMissingHandlerIsInspectable(t *testing.T) {
+	root := cli.New("svcctl")
+	root.Command("start")
+
+	result, err := root.Run(context.Background(), []string{"svcctl", "start"})
+	if !errors.Is(err, cli.ErrNoHandler) {
+		t.Fatalf("run err = %v, want ErrNoHandler", err)
+	}
+	var dispatchErr *cli.DispatchError
+	if !errors.As(err, &dispatchErr) {
+		t.Fatalf("run err %T, want *cli.DispatchError", err)
+	}
+	if got := dispatchErr.Path(); len(got) != 2 || got[1] != "start" {
+		t.Fatalf("dispatch path = %v, want [svcctl start]", got)
+	}
+	if got := result.Route().PathNames(); len(got) != 2 || got[1] != "start" {
+		t.Fatalf("route = %v, want [svcctl start]", got)
+	}
+}
+
+func TestCommandBuilderDoesNotCallHandlerAfterResolveFailure(t *testing.T) {
+	root := cli.New("svcctl")
+	root.Command("start", cli.Handle(func(cli.CommandContext) error {
+		t.Fatal("handler was called after resolve failure")
+		return nil
+	}))
+
+	if _, err := root.Run(context.Background(), []string{"svcctl", "unknown"}); err == nil {
+		t.Fatal("run unknown: expected error")
+	}
+}
+
+func Example_lowLevelDispatch() {
 	app := serviceApp{}
 
 	startCode, startEvent, err := runServiceCLI(context.Background(), []string{"svcctl", "start", "--target", "scrapd"}, app)
@@ -67,41 +223,14 @@ func Example_dispatchStartStop() {
 		fmt.Println("error:", err)
 		return
 	}
-
 	fmt.Println(startCode)
 	fmt.Println(stopCode)
-	fmt.Println(strings.Join([]string{startEvent, stopEvent}, ", "))
+	fmt.Println(startEvent + ", " + stopEvent)
 
 	// Output:
 	// 0
 	// 0
 	// start scrapd, stop scrapd
-}
-
-func TestDispatchStartStopCallsApplicationHandlers(t *testing.T) {
-	app := serviceApp{}
-
-	code, event, err := runServiceCLI(context.Background(), []string{"svcctl", "start", "--target", "scrapd"}, app)
-	if err != nil {
-		t.Fatalf("run start: %v", err)
-	}
-	if code != 0 {
-		t.Fatalf("start exit code = %d, want 0", code)
-	}
-	if event != "start scrapd" {
-		t.Fatalf("start event = %q, want start scrapd", event)
-	}
-
-	code, event, err = runServiceCLI(context.Background(), []string{"svcctl", "stop", "--target", "scrapd"}, app)
-	if err != nil {
-		t.Fatalf("run stop: %v", err)
-	}
-	if code != 0 {
-		t.Fatalf("stop exit code = %d, want 0", code)
-	}
-	if event != "stop scrapd" {
-		t.Fatalf("stop event = %q, want stop scrapd", event)
-	}
 }
 
 type serviceApp struct{}

@@ -15,9 +15,9 @@ Four public package surfaces compose the library:
 | `flags`   | `github.com/petabytecl/dib/flags`   | Explicit flag sets, long/short flags, shorthand groups, repeated values, and typed parse diagnostics.                                                   |
 | `command` | `github.com/petabytecl/dib/command` | Command routing, nested trees, aliases, local/inherited flags, deterministic help/usage, and typed routing errors.                                      |
 | `config`  | `github.com/petabytecl/dib/config`  | Registered keys, explicit setters, flag/env/JSON bindings, precedence, typed getters, provenance, and redaction.                                        |
-| `cli`     | `github.com/petabytecl/dib/cli`     | Optional composition: carries `os.Args` as an explicit `Invocation`, routes commands, resolves config, and returns a `Result` without owning process lifecycle. |
+| `cli`     | `github.com/petabytecl/dib/cli`     | Optional composition: builds distributed command trees, resolves route/flag/config state, dispatches handlers, and still leaves process lifecycle to callers. |
 
-The first three packages work independently: `flags` works without `command` or `config`; `command` does not depend on `config`; callers compose these surfaces explicitly. `cli` is an optional fourth surface that composes all three in a single call.
+The first three packages work independently: `flags` works without `command` or `config`; `command` does not depend on `config`; callers compose these surfaces explicitly. `cli` is an optional fourth surface that provides a high-level command builder plus the lower-level `Resolve` API.
 
 ## Install
 
@@ -101,7 +101,68 @@ if err != nil {
 fmt.Println(host)
 ```
 
-### Using command, flags, and config together
+### Building a distributed command tree
+
+`cli.New` returns a root command builder. Feature packages can receive that root
+or any subcommand and attach their own command subtree in file order. `Run`
+builds the immutable command/config plan, resolves the invocation, and invokes
+the matched handler with one `cli.CommandContext` argument.
+
+```go
+func main() {
+    root := cli.New("svcctl",
+        cli.Description("service control"),
+        cli.Config(config.String("target", "scrapd", "service target")),
+    )
+
+    registerServiceCommands(root)
+
+    if _, err := root.Run(context.Background(), os.Args); err != nil {
+        log.Fatal(err)
+    }
+}
+
+func registerServiceCommands(root *cli.Command) {
+    service := root.Command("service",
+        cli.Description("service commands"),
+    )
+
+    service.Command("start",
+        cli.Flags(flags.String("target", "scrapd", "service target")),
+        cli.Bindings(cli.BindFlag("target", "target")),
+        cli.Handle(startService),
+    )
+
+    service.Command("stop",
+        cli.Flags(flags.String("target", "scrapd", "service target")),
+        cli.Bindings(cli.BindFlag("target", "target")),
+        cli.Handle(stopService),
+    )
+}
+
+func startService(cmd cli.CommandContext) error {
+    target, err := cmd.Config().GetString("target")
+    if err != nil {
+        return err
+    }
+    return start(cmd.Context(), target)
+}
+
+func stopService(cmd cli.CommandContext) error {
+    target, err := cmd.Config().GetString("target")
+    if err != nil {
+        return err
+    }
+    return stop(cmd.Context(), target)
+}
+```
+
+`Run` does not call `os.Exit`, write output, read environment variables, or load
+files. Handlers own their application behavior; the caller still owns logging,
+IO, context cancellation, and exit-code policy. For tests or adapters that
+already have stripped user args, use `RunArgs`.
+
+### Using Resolve directly
 
 `cli.Resolve` is the optional composition entry point. It accepts an explicit
 `Invocation` (built from `os.Args`, `os.Args[0]`, and `os.Args[1:]` or any
@@ -150,66 +211,10 @@ fmt.Println(result.Route().PathNames()) // e.g. [app serve]
 fmt.Println(host)                       // e.g. example.com (from --host flag)
 ```
 
-### Dispatching application commands
-
-`cli` does not start services, stop services, invoke callbacks, write output,
-or call `os.Exit`. A real application keeps that policy in a small entry-point
-wrapper: resolve the invocation with Dib, inspect the routed command, read the
-resolved config values, then call application handlers.
-
-```go
-type ServiceApp interface {
-    Start(context.Context, string) error
-    Stop(context.Context, string) error
-}
-
-func run(ctx context.Context, argv []string, app ServiceApp) (int, error) {
-    inv, err := cli.FromOSArgs(argv)
-    if err != nil {
-        return 2, err
-    }
-
-    plan, err := servicePlan()
-    if err != nil {
-        return 2, err
-    }
-
-    result, err := cli.Resolve(inv, plan)
-    if err != nil {
-        return 2, err
-    }
-
-    target, err := result.Config().GetString("target")
-    if err != nil {
-        return 2, err
-    }
-
-    route := result.Route().PathNames()
-    if len(route) < 2 {
-        return 2, fmt.Errorf("missing command")
-    }
-
-    switch route[1] {
-    case "start":
-        if err := app.Start(ctx, target); err != nil {
-            return 1, err
-        }
-        return 0, nil
-    case "stop":
-        if err := app.Stop(ctx, target); err != nil {
-            return 1, err
-        }
-        return 0, nil
-    default:
-        return 2, fmt.Errorf("unhandled command %q", route[1])
-    }
-}
-```
-
-This is the intended shape for projects such as a `scrapctl` command: Dib owns
-the route/flag/config resolution; the host project owns service lifecycle,
-context cancellation, IO, logging, and exit-code policy. See
-`examples/multicommand/` for the executable `Example_dispatchStartStop` sample.
+The builder API is the recommended path for application CLIs. `Resolve` remains
+available when a caller wants to inspect routing/config state and dispatch
+manually. See `examples/multicommand/` for executable examples covering both
+`Example_dispatchStartStop` and `Example_lowLevelDispatch`.
 
 ## Compatibility
 

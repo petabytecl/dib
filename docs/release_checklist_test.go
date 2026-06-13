@@ -398,7 +398,10 @@ func TestReleaseChecklistRecordsEpic7Story74Scope(t *testing.T) {
 		"`cli`: observed",
 		"examples/multicommand/",
 		"example_dispatchstartstop",
+		"example_lowleveldispatch",
 		"start`/`stop` dispatch",
+		"issue #52",
+		"cli.commandcontext",
 	} {
 		if !strings.Contains(lower, phrase) {
 			t.Fatalf("release checklist missing Story 7.4 / Epic 7 phrase %q", phrase)
@@ -422,9 +425,13 @@ func TestReleaseNotesV0RecordsEpic7CLICompositionScope(t *testing.T) {
 		"cli.result",
 		"examples/multicommand/",
 		"example_dispatchstartstop",
+		"example_lowleveldispatch",
 		"start`/`stop`",
+		"cli.command",
+		"cli.commandcontext",
 		"issue #46",
 		"issue #50",
+		"issue #52",
 	} {
 		if !strings.Contains(lower, phrase) {
 			t.Fatalf("release notes missing Epic 7 CLI composition phrase %q", phrase)
