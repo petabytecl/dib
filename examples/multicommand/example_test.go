@@ -1,7 +1,9 @@
 package multicommand_test
 
 import (
+	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/petabytecl/dib/cli"
@@ -47,6 +49,143 @@ func Example_composedCLI() {
 	// Output:
 	// [app serve]
 	// example.com
+}
+
+// Example_dispatchStartStop demonstrates the application-owned dispatch layer
+// that sits after cli.Resolve. Dib resolves argv into route, flags, and config;
+// the caller decides which handler to run.
+func Example_dispatchStartStop() {
+	app := serviceApp{}
+
+	startCode, startEvent, err := runServiceCLI(context.Background(), []string{"svcctl", "start", "--target", "scrapd"}, app)
+	if err != nil {
+		fmt.Println("error:", err)
+		return
+	}
+	stopCode, stopEvent, err := runServiceCLI(context.Background(), []string{"svcctl", "stop", "--target", "scrapd"}, app)
+	if err != nil {
+		fmt.Println("error:", err)
+		return
+	}
+
+	fmt.Println(startCode)
+	fmt.Println(stopCode)
+	fmt.Println(strings.Join([]string{startEvent, stopEvent}, ", "))
+
+	// Output:
+	// 0
+	// 0
+	// start scrapd, stop scrapd
+}
+
+func TestDispatchStartStopCallsApplicationHandlers(t *testing.T) {
+	app := serviceApp{}
+
+	code, event, err := runServiceCLI(context.Background(), []string{"svcctl", "start", "--target", "scrapd"}, app)
+	if err != nil {
+		t.Fatalf("run start: %v", err)
+	}
+	if code != 0 {
+		t.Fatalf("start exit code = %d, want 0", code)
+	}
+	if event != "start scrapd" {
+		t.Fatalf("start event = %q, want start scrapd", event)
+	}
+
+	code, event, err = runServiceCLI(context.Background(), []string{"svcctl", "stop", "--target", "scrapd"}, app)
+	if err != nil {
+		t.Fatalf("run stop: %v", err)
+	}
+	if code != 0 {
+		t.Fatalf("stop exit code = %d, want 0", code)
+	}
+	if event != "stop scrapd" {
+		t.Fatalf("stop event = %q, want stop scrapd", event)
+	}
+}
+
+type serviceApp struct{}
+
+func (a serviceApp) Start(_ context.Context, target string) (string, error) {
+	return "start " + target, nil
+}
+
+func (a serviceApp) Stop(_ context.Context, target string) (string, error) {
+	return "stop " + target, nil
+}
+
+func runServiceCLI(ctx context.Context, argv []string, app serviceApp) (int, string, error) {
+	inv, err := cli.FromOSArgs(argv)
+	if err != nil {
+		return 2, "", err
+	}
+
+	plan, err := servicePlan()
+	if err != nil {
+		return 2, "", err
+	}
+
+	result, err := cli.Resolve(inv, plan)
+	if err != nil {
+		return 2, "", err
+	}
+
+	target, err := result.Config().GetString("target")
+	if err != nil {
+		return 2, "", err
+	}
+
+	route := result.Route().PathNames()
+	if len(route) < 2 {
+		return 2, "", fmt.Errorf("missing command")
+	}
+
+	switch route[1] {
+	case "start":
+		event, err := app.Start(ctx, target)
+		if err != nil {
+			return 1, "", err
+		}
+		return 0, event, nil
+	case "stop":
+		event, err := app.Stop(ctx, target)
+		if err != nil {
+			return 1, "", err
+		}
+		return 0, event, nil
+	default:
+		return 2, "", fmt.Errorf("unhandled command %q", route[1])
+	}
+}
+
+func servicePlan() (cli.Plan, error) {
+	start, err := command.NewDefinition("start",
+		command.Description("start the service"),
+		command.LocalFlags(flags.String("target", "scrapd", "service target")),
+	)
+	if err != nil {
+		return cli.Plan{}, err
+	}
+	stop, err := command.NewDefinition("stop",
+		command.Description("stop the service"),
+		command.LocalFlags(flags.String("target", "scrapd", "service target")),
+	)
+	if err != nil {
+		return cli.Plan{}, err
+	}
+	root, err := command.NewDefinition("svcctl",
+		command.Description("service control"),
+		command.Children(start, stop),
+	)
+	if err != nil {
+		return cli.Plan{}, err
+	}
+	set, err := config.NewSet(config.String("target", "scrapd", "service target"))
+	if err != nil {
+		return cli.Plan{}, err
+	}
+	return cli.NewPlan(root, set).
+		WithBindings([]cli.FlagBinding{cli.BindFlag("target", "target")}), nil
 }
 
 // TestComposedCLIResolvesBehavior asserts the composed resolution behavior

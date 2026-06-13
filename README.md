@@ -150,6 +150,67 @@ fmt.Println(result.Route().PathNames()) // e.g. [app serve]
 fmt.Println(host)                       // e.g. example.com (from --host flag)
 ```
 
+### Dispatching application commands
+
+`cli` does not start services, stop services, invoke callbacks, write output,
+or call `os.Exit`. A real application keeps that policy in a small entry-point
+wrapper: resolve the invocation with Dib, inspect the routed command, read the
+resolved config values, then call application handlers.
+
+```go
+type ServiceApp interface {
+    Start(context.Context, string) error
+    Stop(context.Context, string) error
+}
+
+func run(ctx context.Context, argv []string, app ServiceApp) (int, error) {
+    inv, err := cli.FromOSArgs(argv)
+    if err != nil {
+        return 2, err
+    }
+
+    plan, err := servicePlan()
+    if err != nil {
+        return 2, err
+    }
+
+    result, err := cli.Resolve(inv, plan)
+    if err != nil {
+        return 2, err
+    }
+
+    target, err := result.Config().GetString("target")
+    if err != nil {
+        return 2, err
+    }
+
+    route := result.Route().PathNames()
+    if len(route) < 2 {
+        return 2, fmt.Errorf("missing command")
+    }
+
+    switch route[1] {
+    case "start":
+        if err := app.Start(ctx, target); err != nil {
+            return 1, err
+        }
+        return 0, nil
+    case "stop":
+        if err := app.Stop(ctx, target); err != nil {
+            return 1, err
+        }
+        return 0, nil
+    default:
+        return 2, fmt.Errorf("unhandled command %q", route[1])
+    }
+}
+```
+
+This is the intended shape for projects such as a `scrapctl` command: Dib owns
+the route/flag/config resolution; the host project owns service lifecycle,
+context cancellation, IO, logging, and exit-code policy. See
+`examples/multicommand/` for the executable `Example_dispatchStartStop` sample.
+
 ## Compatibility
 
 Dib is a clean-room native Go API. It is not a source-compatible clone, not a drop-in replacement, and not a framework compatibility layer for Go `flag`, pflag, Cobra, Viper, or comparable projects. Familiar CLI concepts from those libraries are documented as supported, narrowed, omitted, or intentionally different.

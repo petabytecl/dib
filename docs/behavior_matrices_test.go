@@ -48,7 +48,7 @@ func TestBehaviorMatricesCoverAdoptionEvidenceRows(t *testing.T) {
 		"release-candidate evidence":                             {"story 5.4", "docs/release-notes-v0.md", "current"},
 		"public usage documentation":                             {"story 6.3", "fr25", "nfr12", "readme.md", "current"},
 		"release hardening reconciliation":                       {"story 6.4", "fr23", "fr24", "fr25", "nfr11", "docs/release-notes-v0.md", "docs/release-checklist.md", "current"},
-		"cli composition ergonomics":                             {"story 7.1", "story 7.3", "fr26", "cli/resolve_test.go", "current"},
+		"cli composition ergonomics":                             {"story 7.1", "story 7.3", "fr26", "cli/resolve_test.go", "example_dispatchstartstop", "current"},
 	}
 
 	for row, phrases := range requiredRows {

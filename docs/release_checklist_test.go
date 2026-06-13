@@ -397,6 +397,8 @@ func TestReleaseChecklistRecordsEpic7Story74Scope(t *testing.T) {
 		"epic 7 scope note",
 		"`cli`: observed",
 		"examples/multicommand/",
+		"example_dispatchstartstop",
+		"start`/`stop` dispatch",
 	} {
 		if !strings.Contains(lower, phrase) {
 			t.Fatalf("release checklist missing Story 7.4 / Epic 7 phrase %q", phrase)
@@ -419,6 +421,8 @@ func TestReleaseNotesV0RecordsEpic7CLICompositionScope(t *testing.T) {
 		"cli.resolve",
 		"cli.result",
 		"examples/multicommand/",
+		"example_dispatchstartstop",
+		"start`/`stop`",
 		"issue #46",
 		"issue #50",
 	} {

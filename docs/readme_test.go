@@ -33,6 +33,7 @@ func TestREADMEExistsAndCoversAdoptionOnboarding(t *testing.T) {
 		"config.NewSet",
 		"config.Resolve",
 		"Using command, flags, and config together",
+		"Dispatching application commands",
 	} {
 		if !strings.Contains(text, phrase) {
 			t.Fatalf("README.md missing required phrase %q", phrase)
@@ -50,6 +51,7 @@ func TestREADMEExistsAndCoversAdoptionOnboarding(t *testing.T) {
 		"docs/release-checklist.md",
 		"contributing.md",
 		"examples/migration/",
+		"examples/multicommand/",
 	} {
 		if !strings.Contains(lower, phrase) {
 			t.Fatalf("README.md missing required phrase (case-insensitive) %q", phrase)
@@ -75,6 +77,9 @@ func TestREADMEQuickstartUsesRealAPI(t *testing.T) {
 		".GetString(",
 		"cli.FromOSArgs",
 		"cli.Resolve",
+		"result.Route().PathNames()",
+		"case \"start\"",
+		"case \"stop\"",
 	} {
 		if !strings.Contains(text, phrase) {
 			t.Fatalf("README.md quickstart missing real API phrase %q", phrase)
