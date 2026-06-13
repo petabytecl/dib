@@ -1,0 +1,1 @@
+{"stories":[{"storyId":"7.2","title":"Compose Command Routing With Config Flag Bindings","complexity":{"score":5,"level":"Medium","reasons":["Internationalization","Integration testing required","Configuration/feature flags","High AC count (20)"]}}]}

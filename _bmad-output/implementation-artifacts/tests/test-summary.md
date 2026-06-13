@@ -2,6 +2,73 @@
 
 ---
 
+## Story 7.2 - Gap Analysis
+
+Story 7.2 is a Go package API composition story for translating routed command
+flag snapshots into config flag-binding snapshots. There is no HTTP API endpoint
+or browser UI surface, so applicable automation is package-level public API and
+QA-style end-to-end consumer workflow coverage using Go's standard `testing`
+package.
+
+The workflow found and auto-applied these test gaps:
+
+| Gap | Status |
+| --- | --- |
+| Default route flag coverage proved env fallback but did not prove JSON and registered config default fallback when the flag tier stays absent | Fixed |
+| Duplicate config-key binding errors were enforced by `config`, but the `cli` bridge did not have a public API test proving the wrapped cause remains inspectable | Fixed |
+
+## Story 7.2 - Generated Tests
+
+### API Tests
+
+- [x] `cli/binding_test.go` - existing focused public API tests for explicit flag precedence, default omission from the flag tier, absent known bindings, zero-binding behavior, missing route snapshots, unknown route flags, unknown config keys, string-list translation, defensive copies, sensitive-value redaction, and import boundaries.
+- [x] `cli/binding_test.go` - extended `TestNewFlagSnapshotDefaultFlagDoesNotOverrideLowerPrecedence` to cover env > JSON > default fallback when a flag is present only through its definition default.
+- [x] `cli/binding_test.go` - added `TestNewFlagSnapshotDuplicateConfigBindingIsInspectable` to verify `cli.BindingError` preserves `config.ErrDuplicateBinding` and exposes the wrapped `*config.SourceError`.
+
+### E2E Tests
+
+- [x] `cli/binding_test.go` - public consumer workflows route commands, build `cli.NewFlagSnapshot`, feed `config.Resolve`, and assert visible resolved outcomes.
+- [x] Browser UI E2E tests are not applicable; this repository has no UI surface for Story 7.2.
+- [x] HTTP API E2E tests are not applicable; this repository exposes Go package APIs for Story 7.2.
+
+## Story 7.2 - Coverage
+
+- API endpoints: 0/0 applicable.
+- UI features: 0/0 applicable.
+- Story 7.2 QA gaps fixed: 2/2.
+- Acceptance criteria covered: 4/4.
+- Critical binding error cases covered: missing route flag snapshot, unknown route flag, unknown config key, duplicate config binding, incompatible sensitive value conversion.
+- Config fallback sources covered when the route flag is not explicit: env, JSON, registered default.
+- Coverage gate: command 85.2%, config 89.6%, flags 85.0% (all thresholds pass).
+
+## Story 7.2 - Validation
+
+- [x] `GOCACHE=/tmp/dib-go-cache go test ./cli ./config ./command ./flags` - PASS
+- [x] `GOCACHE=/tmp/dib-go-cache go test ./...` - PASS
+- [x] `GOCACHE=/tmp/dib-go-cache go vet ./...` - PASS
+- [x] `GOCACHE=/tmp/dib-go-cache go run ./tools/lint` - PASS
+- [x] `GOCACHE=/tmp/dib-go-cache go run ./tools/coverage` - PASS
+- [x] `GOCACHE=/tmp/dib-go-cache go run ./tools/depgate` - PASS
+- [x] `git diff --check` - PASS
+
+## Story 7.2 - Checklist
+
+- [x] API tests generated where applicable.
+- [x] E2E tests generated where applicable (QA-style package workflow tests).
+- [x] Tests use standard Go `testing` APIs.
+- [x] Tests cover happy path.
+- [x] Tests cover 1-2 critical error cases.
+- [x] All generated tests run successfully.
+- [x] Tests use public `cli`, `command`, `flags`, and `config` APIs with semantic returned values/errors.
+- [x] Tests have clear descriptions.
+- [x] No hardcoded waits or sleeps.
+- [x] Tests are independent and do not depend on execution order.
+- [x] Test summary created.
+- [x] Tests saved to appropriate package-local directories.
+- [x] Summary includes coverage metrics.
+
+---
+
 ## Story 7.1 - Gap Analysis
 
 Story 7.1 is a Go package API story for explicit CLI invocation boundaries.
