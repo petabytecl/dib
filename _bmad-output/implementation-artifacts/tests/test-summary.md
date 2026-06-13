@@ -2,6 +2,69 @@
 
 ---
 
+## Story 7.3 - Gap Analysis
+
+Story 7.3 adds `cli.Plan`, `cli.Result`, and `cli.Resolve` — the composition layer for the `cli` package. There is no HTTP API or browser UI; all automation is package-level public API tests using Go's standard `testing` package.
+
+The workflow found and auto-applied these test gaps:
+
+| Gap | Status |
+| --- | --- |
+| `Plan.WithExplicit` was at 0% coverage — the explicit-setter source tier (highest precedence) was never exercised in any test | Fixed |
+| `Plan.Bindings()` defensive copy was not tested — mutating the returned slice did not verify isolation | Fixed |
+| Caller's original slice passed to `WithBindings` was not tested for defensive isolation from Plan | Fixed |
+| No QA-style test exercised all five source tiers simultaneously through the full `cli.Resolve` pipeline | Fixed |
+
+## Story 7.3 - Generated Tests
+
+### API / QA Tests (new — `cli/resolve_qa_test.go`)
+
+- [x] `TestQAResolveFullPrecedenceChainWithAllSourceTiers` — all 5 source tiers (explicit, flag binding, env, JSON, default) exercised; explicit beats flag, env, JSON, and default; route, invocation, remaining args, and config all asserted (AC1)
+- [x] `TestQAResolvePlanWithExplicitSnapshotAloneCoversRequiredAC1Path` — `WithExplicit` only; no flag snapshot present; explicit value returned from `Config()` (AC1)
+- [x] `TestQAResolvePlanExplicitSnapshotWinsOverFlagBinding` — explicit vs. flag binding tier boundary; explicit wins when both are set (AC1)
+- [x] `TestQAResolvePlanBindingsIsDefensivelyCopied` — mutating the slice returned by `Plan.Bindings()` does not affect subsequent calls or Resolve (AC1 — immutable-value contract)
+- [x] `TestQAResolvePlanCallerSuppliedInputsAreNotMutated` — mutating the caller's slice after `WithBindings` does not affect the plan (AC1 — immutable-value contract)
+
+### E2E Tests
+
+No UI surface. The QA tests above serve as end-to-end tests for the full composition pipeline.
+
+## Story 7.3 - Coverage Delta
+
+| Scope | Before | After |
+|-------|--------|-------|
+| `cli/resolve.go:WithExplicit` | **0.0%** | **100.0%** |
+| `cli` package total | 79.6% | 80.9% |
+
+All functions in `cli/resolve.go` and `cli/result.go` are at **100%** coverage.
+
+## Story 7.3 - Validation
+
+- [x] `GOCACHE=/tmp/dib-go-cache go test ./cli/... -v -run TestQA` — PASS (5 new tests)
+- [x] `GOCACHE=/tmp/dib-go-cache go test ./cli/...` — PASS
+- [x] `GOCACHE=/tmp/dib-go-cache go test ./...` — PASS (all packages)
+- [x] `GOCACHE=/tmp/dib-go-cache go vet ./...` — PASS
+- [x] `GOCACHE=/tmp/dib-go-cache go run ./tools/lint` — PASS
+- [x] `GOCACHE=/tmp/dib-go-cache go run ./tools/depgate` — PASS
+
+## Story 7.3 - Checklist
+
+- [x] API tests generated (applicable — `cli` package public API composition tests).
+- [x] E2E tests generated where applicable (QA-style package workflow tests).
+- [x] Tests use standard Go `testing` APIs.
+- [x] Tests cover happy path (all 5 source tiers, WithExplicit, full precedence chain).
+- [x] Tests cover 1-2 critical error cases (routing failure, binding failure — in existing tests).
+- [x] All generated tests run successfully.
+- [x] Tests use public `cli`, `command`, `config`, and `flags` APIs only.
+- [x] Tests have clear descriptions.
+- [x] No hardcoded waits or sleeps.
+- [x] Tests are independent (all marked `t.Parallel()`).
+- [x] Test summary created.
+- [x] Tests saved to `cli/resolve_qa_test.go`.
+- [x] Summary includes coverage metrics.
+
+---
+
 ## Story 7.2 - Gap Analysis
 
 Story 7.2 is a Go package API composition story for translating routed command
