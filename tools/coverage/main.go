@@ -24,6 +24,7 @@ var thresholds = []threshold{
 	{pkg: "github.com/petabytecl/dib/command", minPct: 85.0},
 	{pkg: "github.com/petabytecl/dib/config", minPct: 85.0},
 	{pkg: "github.com/petabytecl/dib/flags", minPct: 85.0},
+	{pkg: "github.com/petabytecl/dib/cli", minPct: 85.0},
 }
 
 var coverageRE = regexp.MustCompile(`coverage: (\d+\.\d+)%`)
@@ -33,7 +34,7 @@ func main() {
 }
 
 func run(stdout, stderr io.Writer) int {
-	cmd := exec.Command("go", "test", "-cover", "./command", "./config", "./flags")
+	cmd := exec.Command("go", "test", "-cover", "./command", "./config", "./flags", "./cli")
 	out, err := cmd.CombinedOutput()
 	if err != nil && len(strings.TrimSpace(string(out))) == 0 {
 		fmt.Fprintf(stderr, "coverage execution error: %v\n", err)

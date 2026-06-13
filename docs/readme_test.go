@@ -19,6 +19,7 @@ func TestREADMEExistsAndCoversAdoptionOnboarding(t *testing.T) {
 		"github.com/petabytecl/dib/flags",
 		"github.com/petabytecl/dib/command",
 		"github.com/petabytecl/dib/config",
+		"github.com/petabytecl/dib/cli",
 		"## Status",
 		"## Packages",
 		"## Install",
@@ -31,6 +32,7 @@ func TestREADMEExistsAndCoversAdoptionOnboarding(t *testing.T) {
 		"command.NewDefinition",
 		"config.NewSet",
 		"config.Resolve",
+		"Using command, flags, and config together",
 	} {
 		if !strings.Contains(text, phrase) {
 			t.Fatalf("README.md missing required phrase %q", phrase)
@@ -71,6 +73,8 @@ func TestREADMEQuickstartUsesRealAPI(t *testing.T) {
 		"config.BindEnv",
 		"state.Values()",
 		".GetString(",
+		"cli.FromOSArgs",
+		"cli.Resolve",
 	} {
 		if !strings.Contains(text, phrase) {
 			t.Fatalf("README.md quickstart missing real API phrase %q", phrase)

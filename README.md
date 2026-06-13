@@ -8,15 +8,16 @@ Dib v0 is an experimental API. Future v0 tags may change exported interfaces bef
 
 ## Packages
 
-Three independent public package surfaces compose the library:
+Four public package surfaces compose the library:
 
 | Package | Import path | Role |
 | --- | --- | --- |
 | `flags` | `github.com/petabytecl/dib/flags` | Explicit flag sets, long/short flags, shorthand groups, repeated values, and typed parse diagnostics. |
 | `command` | `github.com/petabytecl/dib/command` | Command routing, nested trees, aliases, local/inherited flags, deterministic help/usage, and typed routing errors. |
 | `config` | `github.com/petabytecl/dib/config` | Registered keys, explicit setters, flag/env/JSON bindings, precedence, typed getters, provenance, and redaction. |
+| `cli` | `github.com/petabytecl/dib/cli` | Optional composition: carries `os.Args` as an explicit `Invocation`, routes commands, resolves config, and returns a `Result` without owning process lifecycle. |
 
-Each package works independently: `flags` works without `command` or `config`; `command` does not depend on `config`; callers compose the three surfaces explicitly.
+The first three packages work independently: `flags` works without `command` or `config`; `command` does not depend on `config`; callers compose these surfaces explicitly. `cli` is an optional fourth surface that composes all three in a single call.
 
 ## Install
 
@@ -28,6 +29,7 @@ Import the surfaces you need:
 
 ```go
 import (
+    "github.com/petabytecl/dib/cli"
     "github.com/petabytecl/dib/command"
     "github.com/petabytecl/dib/config"
     "github.com/petabytecl/dib/flags"
@@ -99,6 +101,55 @@ if err != nil {
 fmt.Println(host)
 ```
 
+### Using command, flags, and config together
+
+`cli.Resolve` is the optional composition entry point. It accepts an explicit
+`Invocation` (built from `os.Args`, `os.Args[0]`, and `os.Args[1:]` or any
+caller-supplied slice) and a `Plan`, then routes commands, parses flags, and
+resolves config in one call without owning process lifecycle.
+
+```go
+// Invocation boundary: os.Args[0] is the program; os.Args[1:] are the user args.
+inv, err := cli.FromOSArgs(os.Args)
+if err != nil {
+    log.Fatal(err)
+}
+
+// Define a command tree with a --host flag on the serve sub-command.
+serve, _ := command.NewDefinition("serve",
+    command.Description("start the server"),
+    command.LocalFlags(flags.String("host", "localhost", "server hostname")),
+)
+root, err := command.NewDefinition("app",
+    command.Description("my application"),
+    command.Children(serve),
+)
+if err != nil {
+    log.Fatal(err)
+}
+
+// Register config keys.
+set, err := config.NewSet(
+    config.String("host", "localhost", "server hostname"),
+)
+if err != nil {
+    log.Fatal(err)
+}
+
+// Bind the --host flag to the host config key and resolve everything.
+plan := cli.NewPlan(root, set).
+    WithBindings([]cli.FlagBinding{cli.BindFlag("host", "host")})
+
+result, err := cli.Resolve(inv, plan)
+if err != nil {
+    log.Fatal(err)
+}
+
+host, _ := result.Config().GetString("host")
+fmt.Println(result.Route().PathNames()) // e.g. [app serve]
+fmt.Println(host)                       // e.g. example.com (from --host flag)
+```
+
 ## Compatibility
 
 Dib is a clean-room native Go API. It is not a source-compatible clone, not a drop-in replacement, and not a framework compatibility layer for Go `flag`, pflag, Cobra, Viper, or comparable projects. Familiar CLI concepts from those libraries are documented as supported, narrowed, omitted, or intentionally different.
@@ -116,4 +167,5 @@ See `docs/compatibility.md` for the full compatibility boundary table.
 | `docs/testing.md` | Local verification, lint, coverage, release gates |
 | `docs/release-checklist.md` | Release evidence |
 | `examples/migration/` | Executable migration examples |
+| `examples/multicommand/` | CLI composition example |
 | `CONTRIBUTING.md` | Contribution guidelines and clean-room policy |

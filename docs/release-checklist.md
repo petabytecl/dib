@@ -13,6 +13,7 @@ Use this checklist for each Dib Go module tag. It records release-candidate evid
 - Story 6.2 evidence scope: coverage evidence below was collected from the Story 6.2 working tree; final tag commit reconciliation remains a later release-review step.
 - Story 6.3 evidence scope: public usage documentation was published in the Story 6.3 working tree; final tag commit reconciliation remains a later release-review step.
 - Story 6.4 evidence scope: release evidence, sprint tracker, and GitHub issue alignment reconciled in the Story 6.4 working tree; Epic 6 lint gate, package-aware coverage validation, and public usage documentation are confirmed as formal release gates in `docs/release-notes-v0.md`; sprint-status.yaml updated; GitHub issues for Epic 6 are annotated to match local sprint status; final tag commit reconciliation remains a human release-review step.
+- Story 7.4 evidence scope: `cli` package added as a fourth public runtime package; coverage gate extended to include `cli` at 85% threshold; `examples/multicommand/` added as executable CLI composition evidence; `README.md` quickstart updated to cover `cli` composition; `docs/behavior-matrices.md` `cli composition ergonomics` row added; `docs/release-notes-v0.md` Epic 7 section added; sprint-status.yaml updated; GitHub issues for Epic 7 reconciled; final tag commit reconciliation remains a human release-review step.
 
 ## Go Version Alignment
 
@@ -45,6 +46,7 @@ Per-package results from `GOCACHE=/tmp/dib-go-build go run ./tools/coverage` on 
 - `command`: observed 85.2%, threshold 85% — PASS
 - `config`: observed 89.6%, threshold 85% — PASS
 - `flags`: observed 85.0%, threshold 85% — PASS
+- `cli`: observed 88.5%, threshold 85% — PASS
 
 ## Release-Candidate Gates
 
@@ -53,7 +55,7 @@ Per-package results from `GOCACHE=/tmp/dib-go-build go run ./tools/coverage` on 
   - `go test -fuzz='^FuzzParse$' -fuzztime=5s ./flags`: PASS on 2026-06-12 with `GOCACHE=/tmp/dib-go-build go test -fuzz='^FuzzParse$' -fuzztime=5s ./flags`.
   - `go test -fuzz='^FuzzParseBoundary$' -fuzztime=5s ./flags`: PASS on 2026-06-12 with `GOCACHE=/tmp/dib-go-build go test -fuzz='^FuzzParseBoundary$' -fuzztime=5s ./flags`.
   - `go test -fuzz='^FuzzParseShortGroups$' -fuzztime=5s ./flags`: PASS on 2026-06-12 with `GOCACHE=/tmp/dib-go-build go test -fuzz='^FuzzParseShortGroups$' -fuzztime=5s ./flags`.
-- Docs/examples evidence input: `docs/behavior-matrices.md` records Story 5.4 release-candidate evidence, consolidates Story 5.3 adoption evidence, and links package tests plus Story 5.2 migration examples; `README.md` provides public adopter onboarding.
+- Docs/examples evidence input: `docs/behavior-matrices.md` records Story 5.4 release-candidate evidence, consolidates Story 5.3 adoption evidence, and links package tests plus Story 5.2 migration examples; `README.md` provides public adopter onboarding; `examples/multicommand/` provides executable CLI composition evidence.
 - Provenance evidence input: `docs/provenance-log.md`; Story 5.4 records final
   provenance review outcome: no new external reference material was used for
   release evidence or release notes; no provenance entry was required.
@@ -62,6 +64,18 @@ Per-package results from `GOCACHE=/tmp/dib-go-build go run ./tools/coverage` on 
   framed as a clean-room native Go API, not source-compatible or drop-in.
 - Migration evidence: Story 5.2 example pointers live in `examples/migration/`; `GOCACHE=/tmp/dib-go-build go test ./examples/migration` passed on 2026-06-12.
 - V0 experimental API status: `docs/release-notes-v0.md` states that v0 may change APIs while preserving correctness, redaction, clean-room, dependency, and release-gate expectations.
+
+## Epic 7 Scope Note
+
+Epic 7 added the `cli` package as an optional fourth public package surface for
+CLI composition. The `cli` package (`cli.Invocation`, `cli.Plan`, `cli.Resolve`,
+`cli.Result`) was added across Stories 7.1–7.4. The `examples/multicommand/`
+directory provides executable evidence via `Example_composedCLI` in
+`examples/multicommand/example_test.go`. The coverage gate (`go run
+./tools/coverage`) was extended to include `cli` at the 85% threshold. The
+`README.md` quickstart was extended to cover `cli` composition. The behavior
+matrix (`docs/behavior-matrices.md`) records the `cli composition ergonomics`
+row. GitHub issue #46 (Epic 7) and issue #50 (Story 7.4) track this scope.
 
 ## Standard-Library Dependency Evidence
 

@@ -11,7 +11,7 @@ import (
 )
 
 func TestCoveragePassesPackagesMeetingThreshold(t *testing.T) {
-	out := fakeCoverageOutput(90.0, 90.0, 90.0)
+	out := fakeCoverageOutput(90.0, 90.0, 90.0, 90.0)
 	var stdout, stderr bytes.Buffer
 	code := check([]byte(out), &stdout, &stderr)
 	if code != 0 {
@@ -31,7 +31,7 @@ func TestCoveragePassesPackagesMeetingThreshold(t *testing.T) {
 }
 
 func TestCoverageFailsPackagesBelowThreshold(t *testing.T) {
-	out := fakeCoverageOutput(50.0, 90.0, 90.0)
+	out := fakeCoverageOutput(50.0, 90.0, 90.0, 90.0)
 	var stdout, stderr bytes.Buffer
 	code := check([]byte(out), &stdout, &stderr)
 	if code != thresholdViolationExit {
@@ -58,7 +58,7 @@ func TestCoverageSeparatesExecutionFailuresFromThresholdViolations(t *testing.T)
 }
 
 func TestCoverageReportsDeterministicOutput(t *testing.T) {
-	out := fakeCoverageOutput(90.0, 90.0, 90.0)
+	out := fakeCoverageOutput(90.0, 90.0, 90.0, 90.0)
 	var stdout bytes.Buffer
 	check([]byte(out), &stdout, &bytes.Buffer{})
 
@@ -93,7 +93,7 @@ func TestCoverageCommandRunsFromRepositoryRoot(t *testing.T) {
 
 func TestCoveragePassesAtExactThreshold(t *testing.T) {
 	// Package at exactly the threshold (85.0%) should PASS, not FAIL.
-	out := fakeCoverageOutput(85.0, 85.0, 85.0)
+	out := fakeCoverageOutput(85.0, 85.0, 85.0, 85.0)
 	var stdout, stderr bytes.Buffer
 	code := check([]byte(out), &stdout, &stderr)
 	if code != 0 {
@@ -108,7 +108,7 @@ func TestCoveragePassesAtExactThreshold(t *testing.T) {
 }
 
 func TestCoverageFailsAllPackagesBelowThreshold(t *testing.T) {
-	out := fakeCoverageOutput(50.0, 60.0, 70.0)
+	out := fakeCoverageOutput(50.0, 60.0, 70.0, 80.0)
 	var stdout, stderr bytes.Buffer
 	code := check([]byte(out), &stdout, &stderr)
 	if code != thresholdViolationExit {
@@ -126,7 +126,7 @@ func TestCoverageFailsAllPackagesBelowThreshold(t *testing.T) {
 
 func TestCoverageOutputFormatVerifiesAllFields(t *testing.T) {
 	// Verify the exact output format: "coverage: <pkg>: X.X% (threshold Y%) PASS"
-	out := fakeCoverageOutput(90.0, 90.0, 90.0)
+	out := fakeCoverageOutput(90.0, 90.0, 90.0, 90.0)
 	var stdout bytes.Buffer
 	check([]byte(out), &stdout, &bytes.Buffer{})
 
@@ -154,10 +154,11 @@ func TestCoverageExecutionFailureWhenConfigMissing(t *testing.T) {
 	}
 }
 
-func fakeCoverageOutput(commandPct, configPct, flagsPct float64) string {
+func fakeCoverageOutput(commandPct, configPct, flagsPct, cliPct float64) string {
 	return strings.Join([]string{
 		fmt.Sprintf("ok  \tgithub.com/petabytecl/dib/command\t0.006s\tcoverage: %.1f%% of statements", commandPct),
 		fmt.Sprintf("ok  \tgithub.com/petabytecl/dib/config\t0.004s\tcoverage: %.1f%% of statements", configPct),
 		fmt.Sprintf("ok  \tgithub.com/petabytecl/dib/flags\t2.227s\tcoverage: %.1f%% of statements", flagsPct),
+		fmt.Sprintf("ok  \tgithub.com/petabytecl/dib/cli\t0.013s\tcoverage: %.1f%% of statements", cliPct),
 	}, "\n")
 }

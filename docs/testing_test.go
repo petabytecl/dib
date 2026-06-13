@@ -28,6 +28,7 @@ func TestTestingGuideDocumentsCoverageGate(t *testing.T) {
 		"command",
 		"config",
 		"flags",
+		"cli",
 		"threshold",
 		"tools/depgate",
 		"tools/lint",
@@ -40,6 +41,26 @@ func TestTestingGuideDocumentsCoverageGate(t *testing.T) {
 	} {
 		if !strings.Contains(lower, phrase) {
 			t.Fatalf("testing guide missing coverage gate phrase %q", phrase)
+		}
+	}
+}
+
+func TestTestingGuideCLIPackageListedAtCorrectThreshold(t *testing.T) {
+	content, err := os.ReadFile("testing.md")
+	if err != nil {
+		t.Fatalf("read testing guide: %v", err)
+	}
+	text := string(content)
+
+	// Story 7.4 extended the coverage gate to include cli as the fourth public
+	// runtime package at the same 85% threshold as command, config, and flags.
+	for _, phrase := range []string{
+		"`cli`: 85%",
+		"Story 7.4 extended",
+		"fourth",
+	} {
+		if !strings.Contains(text, phrase) {
+			t.Fatalf("testing guide missing Story 7.4 CLI coverage phrase %q", phrase)
 		}
 	}
 }

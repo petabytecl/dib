@@ -42,3 +42,30 @@ redaction-safe reports. `README.md` provides public onboarding with install guid
 Dib v0 releases are Go module tags. This guidance does not define standalone
 artifact publishing, container images, cluster manifests, completion-script
 generation, or manpage generation.
+
+## Epic 7: CLI Composition Ergonomics
+
+Epic 7 added the `cli` package as an optional fourth public package surface,
+completing the CLI composition story for Dib v0:
+
+- Added `cli.Invocation` to carry an explicit caller-supplied program name and
+  user arguments as an immutable snapshot. `cli.FromOSArgs` accepts a full argv
+  slice (where `os.Args[0]` is the program and `os.Args[1:]` are the user args)
+  and `cli.FromArgs` accepts separate program and args values.
+- Added `cli.Plan` to carry the root command definition, config set, optional
+  source snapshots, and flag bindings as an immutable composition plan.
+- Added `cli.Resolve` to route an invocation through a plan: routes commands via
+  `command.Definition.Route`, builds the flag-tier config snapshot from
+  `cli.FlagBinding` values, resolves config by precedence, and returns a
+  `cli.Result` — without invoking callbacks, calling `os.Exit`, writing streams,
+  reading env implicitly, or loading files.
+- Added `cli.Result` to expose the invocation, command route, flag snapshot, and
+  fully resolved config snapshot as a single immutable value.
+- The `cli` package may be used optionally; `command`, `flags`, and `config`
+  remain independently usable without it.
+- Coverage gate extended to include `cli` at the same 85% threshold as the
+  existing three public runtime packages.
+- `examples/multicommand/` added as executable composition evidence; the
+  `Example_composedCLI` function in `examples/multicommand/example_test.go`
+  demonstrates the full composition path with caller-supplied inputs.
+- GitHub tracking: Epic 7 issue #46, Story 7.4 issue #50.

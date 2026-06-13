@@ -352,6 +352,80 @@ func TestSprintStatusYAMLRecordsEpic6TrackerState(t *testing.T) {
 	}
 }
 
+func TestSprintStatusYAMLRecordsEpic7TrackerState(t *testing.T) {
+	content, err := os.ReadFile("../_bmad-output/implementation-artifacts/sprint-status.yaml")
+	if err != nil {
+		t.Fatalf("read sprint-status.yaml: %v", err)
+	}
+	lower := strings.ToLower(string(content))
+
+	for _, phrase := range []string{
+		"7-1-add-explicit-cli-invocation-boundaries: done",
+		"7-2-compose-command-routing-with-config-flag-bindings: done",
+		"7-3-resolve-a-cli-composition-plan-without-owning-execution: done",
+		"7-4-document-and-reconcile-cli-composition-evidence: done",
+		"epic-7: in-progress",
+	} {
+		if !strings.Contains(lower, phrase) {
+			t.Fatalf("sprint-status.yaml missing Epic 7 tracker phrase %q", phrase)
+		}
+	}
+
+	for _, prohibited := range []string{
+		"7-4-document-and-reconcile-cli-composition-evidence: backlog",
+		"7-4-document-and-reconcile-cli-composition-evidence: ready-for-dev",
+		"7-4-document-and-reconcile-cli-composition-evidence: review",
+		"epic-7: done",
+	} {
+		if strings.Contains(lower, prohibited) {
+			t.Fatalf("sprint-status.yaml records Epic 7 in unexpected state: %q", prohibited)
+		}
+	}
+}
+
+func TestReleaseChecklistRecordsEpic7Story74Scope(t *testing.T) {
+	content, err := os.ReadFile("release-checklist.md")
+	if err != nil {
+		t.Fatalf("read release checklist: %v", err)
+	}
+	lower := strings.ToLower(string(content))
+
+	for _, phrase := range []string{
+		"story 7.4 evidence scope:",
+		"epic 7 scope note",
+		"`cli`: observed",
+		"examples/multicommand/",
+	} {
+		if !strings.Contains(lower, phrase) {
+			t.Fatalf("release checklist missing Story 7.4 / Epic 7 phrase %q", phrase)
+		}
+	}
+}
+
+func TestReleaseNotesV0RecordsEpic7CLICompositionScope(t *testing.T) {
+	content, err := os.ReadFile("release-notes-v0.md")
+	if err != nil {
+		t.Fatalf("read v0 release notes: %v", err)
+	}
+	lower := strings.ToLower(string(content))
+
+	for _, phrase := range []string{
+		"epic 7",
+		"cli composition",
+		"cli.invocation",
+		"cli.plan",
+		"cli.resolve",
+		"cli.result",
+		"examples/multicommand/",
+		"issue #46",
+		"issue #50",
+	} {
+		if !strings.Contains(lower, phrase) {
+			t.Fatalf("release notes missing Epic 7 CLI composition phrase %q", phrase)
+		}
+	}
+}
+
 func assertChecklistFieldFilled(t *testing.T, text, field string) {
 	t.Helper()
 

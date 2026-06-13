@@ -2,6 +2,65 @@
 
 ---
 
+## Story 7.4 - Gap Analysis
+
+Story 7.4 documents the `cli` composition package, adds executable examples,
+extends coverage validation to include `cli`, and reconciles release evidence.
+There is no browser or HTTP API surface; applicable automation is Go package
+tests for docs, examples, and coverage tooling.
+
+The workflow found and auto-applied these test gaps:
+
+| Gap | Status |
+| --- | --- |
+| Testing documentation did not assert `cli` is listed as a public package with an 85% threshold | Fixed |
+| Release checklist and release notes did not have focused guard tests for Epic 7 / Story 7.4 evidence | Fixed |
+| `cli` package coverage had an uncovered repeatable-flag-to-scalar-config branch in binding translation | Fixed |
+
+## Story 7.4 - Generated Tests
+
+### Documentation Evidence Tests
+
+- [x] `docs/testing_test.go` — Added `cli` coverage-gate assertions and a focused threshold test.
+- [x] `docs/release_checklist_test.go` — Added Epic 7 sprint tracking, Story 7.4 release evidence, and Epic 7 release-notes guard tests.
+- [x] `docs/readme_test.go` and `docs/behavior_matrices_test.go` — Extended README and behavior-matrix guards for the public `cli` package and composition quickstart.
+
+### CLI Coverage Gap Tests
+
+- [x] `cli/coverage_test.go` — Added `TestNewFlagSnapshotRepeatableStringFlagBoundToScalarConfigKey` for the multi-value flag binding branch.
+
+### Executable Example Tests
+
+- [x] `examples/multicommand/example_test.go` — Added an executable `cli.Resolve` composition example and behavior test.
+
+## Story 7.4 - Coverage
+
+- `cli` package: 88.5% (threshold 85%) PASS
+- `command`: 85.2% PASS
+- `config`: 89.6% PASS
+- `flags`: 85.0% PASS
+
+## Story 7.4 - Validation
+
+- [x] `GOCACHE=/tmp/dib-go-cache go test ./docs ./examples/... ./...` — PASS
+- [x] `GOCACHE=/tmp/dib-go-cache go vet ./...` — PASS
+- [x] `GOCACHE=/tmp/dib-go-cache go run ./tools/lint` — PASS
+- [x] `GOCACHE=/tmp/dib-go-cache go run ./tools/coverage` — PASS
+- [x] `GOCACHE=/tmp/dib-go-cache go run ./tools/depgate` — PASS
+- [x] `git diff --check` — PASS
+
+## Story 7.4 - Checklist
+
+- [x] API/docs tests generated where applicable.
+- [x] Executable example tests generated.
+- [x] Tests use standard Go `testing` APIs.
+- [x] Tests cover the public CLI composition happy path.
+- [x] Tests cover a critical coverage gap for repeatable flag bindings.
+- [x] All generated tests run successfully.
+- [x] Test summary created without removing prior story evidence.
+
+---
+
 ## Story 7.3 - Gap Analysis
 
 Story 7.3 adds `cli.Plan`, `cli.Result`, and `cli.Resolve` — the composition layer for the `cli` package. There is no HTTP API or browser UI; all automation is package-level public API tests using Go's standard `testing` package.

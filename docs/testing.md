@@ -43,17 +43,18 @@ skipping repository metadata and BMAD/agent artifact directories.
 
 Story 6.2 selected a repository-local standard-library coverage tool instead of
 an external coverage action or package. The short tooling review favored this
-path because it adds deterministic package-aware coverage evidence for the three
-public runtime packages (`command`, `config`, and `flags`), runs with the same
-Go toolchain already pinned by `go.mod`, and does not add third-party imports, a
-root `require`, a root `replace`, a `toolchain` directive, or a go sum file.
-This approach is consistent with the `tools/lint` and `tools/depgate` precedent
-already established in this repository.
+path because it adds deterministic package-aware coverage evidence for the public
+runtime packages, runs with the same Go toolchain already pinned by `go.mod`,
+and does not add third-party imports, a root `require`, a root `replace`, a
+`toolchain` directive, or a go sum file. This approach is consistent with the
+`tools/lint` and `tools/depgate` precedent already established in this
+repository. Story 7.4 extended the gate to cover the `cli` package as the fourth
+public runtime package.
 
 The coverage tool lives under `tools/coverage`, imports only the Go standard
 library, and is versioned with the repository. It invokes `go test -cover` via
 `os/exec` (stdlib) and applies per-package thresholds to `command`, `config`,
-and `flags`. Each public runtime package that reports coverage below its
+`flags`, and `cli`. Each public runtime package that reports coverage below its
 threshold causes exit 1; an inability to extract coverage data causes exit 2.
 
 Local command:
@@ -73,6 +74,7 @@ Per-package thresholds (floor to nearest 5%, minimum 80%):
 - `command`: 85%
 - `config`: 85%
 - `flags`: 85%
+- `cli`: 85%
 
 ### Tooling Package Exceptions
 

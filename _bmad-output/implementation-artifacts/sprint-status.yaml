@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: "2026-06-11T12:01:02-04:00"
-last_updated: "2026-06-13T00:00:00-04:00"
+last_updated: "2026-06-12T23:30:00-04:00"
 project: dib
 project_key: NOKEY
 tracking_system: file-system
@@ -95,5 +95,5 @@ development_status:
   7-1-add-explicit-cli-invocation-boundaries: done
   7-2-compose-command-routing-with-config-flag-bindings: done
   7-3-resolve-a-cli-composition-plan-without-owning-execution: done
-  7-4-document-and-reconcile-cli-composition-evidence: backlog
+  7-4-document-and-reconcile-cli-composition-evidence: done
   epic-7-retrospective: optional
