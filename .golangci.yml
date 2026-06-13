@@ -1,0 +1,268 @@
+# golangci-lint configuration for github.com/petabytecl/dib
+#
+# Adapted from maratori's "golden config" (MIT, https://gist.github.com/maratori/47a4d00457a92aa426dbd48a18776322)
+# and the petabytecl/gaz configuration. Tailored for dib:
+#   - dib has zero external module dependencies; depguard enforces that invariant
+#     (only the Go standard library and the dib module itself may be imported).
+#   - wrapcheck is intentionally omitted: with no external dependencies its findings
+#     are limited to stdlib fmt/strconv wraps, which add noise without value here.
+#
+# golangci-lint is invoked as an external CI binary; it is never imported, so the
+# dependency-free go.mod / absent go.sum invariant is preserved.
+
+version: "2"
+
+run:
+  go: "1.26"
+
+issues:
+  # Maximum count of issues with the same text. Set to 0 to disable.
+  max-same-issues: 50
+
+formatters:
+  enable:
+    - goimports
+    - gci
+    - gofumpt
+    - gofmt
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/petabytecl/dib
+    gci:
+      sections:
+        - standard
+        - default
+        - prefix(github.com/petabytecl/dib)
+    gofumpt:
+      module-path: github.com/petabytecl/dib
+      extra-rules: true
+    gofmt:
+      simplify: true
+      rewrite-rules:
+        - pattern: "interface{}"
+          replacement: "any"
+        - pattern: "a[b:len(a)]"
+          replacement: "a[b:]"
+
+linters:
+  enable:
+    - asasalint # checks for pass []any as any in variadic func(...any)
+    - asciicheck # checks that your code does not contain non-ASCII identifiers
+    - bidichk # checks for dangerous unicode character sequences
+    - bodyclose # checks whether HTTP response body is closed successfully
+    - canonicalheader # checks whether net/http.Header uses canonical header
+    - copyloopvar # detects places where loop variables are copied (Go 1.22+)
+    - cyclop # checks function and package cyclomatic complexity
+    - depguard # checks if package imports are in a list of acceptable packages
+    - dupl # tool for code clone detection
+    - durationcheck # checks for two durations multiplied together
+    - errcheck # checking for unchecked errors, these unchecked errors can be critical bugs in some cases
+    - errname # checks that sentinel errors are prefixed with the Err and error types are suffixed with the Error
+    - errorlint # finds code that will cause problems with the error wrapping scheme introduced in Go 1.13
+    - exhaustive # checks exhaustiveness of enum switch statements
+    - exptostd # detects functions from golang.org/x/exp/ that can be replaced by std functions
+    - fatcontext # detects nested contexts in loops
+    - forbidigo # forbids identifiers
+    - funcorder # checks the order of functions, methods, and constructors
+    - funlen # tool for detection of long functions
+    - gocheckcompilerdirectives # validates go compiler directive comments (//go:)
+    - gochecknoglobals # checks that no global variables exist
+    - gochecknoinits # checks that no init functions are present in Go code
+    - gochecksumtype # checks exhaustiveness on Go "sum types"
+    - gocognit # computes and checks the cognitive complexity of functions
+    - gocritic # provides diagnostics that check for bugs, performance and style issues
+    - gocyclo # computes and checks the cyclomatic complexity of functions
+    - godot # checks if comments end in a period
+    - gomoddirectives # manages the use of 'replace', 'retract', and 'excludes' directives in go.mod
+    - goprintffuncname # checks that printf-like functions are named with f at the end
+    - gosec # inspects source code for security problems
+    - govet # reports suspicious constructs, such as Printf calls whose arguments do not align with the format string
+    - iface # checks the incorrect use of interfaces, helping developers avoid interface pollution
+    - ineffassign # detects when assignments to existing variables are not used
+    - intrange # finds places where for loops could make use of an integer range
+    - loggercheck # checks key value pairs for common logger libraries (kitlog,klog,logr,zap)
+    - makezero # finds slice declarations with non-zero initial length
+    - mirror # reports wrong mirror patterns of bytes/strings usage
+    - mnd # detects magic numbers
+    - musttag # enforces field tags in (un)marshaled structs
+    - nakedret # finds naked returns in functions greater than a specified function length
+    - nestif # reports deeply nested if statements
+    - nilerr # finds the code that returns nil even if it checks that the error is not nil
+    - nilnesserr # reports that it checks for err != nil, but it returns a different nil value error
+    - nilnil # checks that there is no simultaneous return of nil error and an invalid value
+    - noctx # finds sending http request without context.Context
+    - nolintlint # reports ill-formed or insufficient nolint directives
+    - nonamedreturns # reports all named returns
+    - nosprintfhostport # checks for misuse of Sprintf to construct a host with port in a URL
+    - perfsprint # checks that fmt.Sprintf can be replaced with a faster alternative
+    - predeclared # finds code that shadows one of Go's predeclared identifiers
+    - promlinter # checks Prometheus metrics naming via promlint
+    - protogetter # reports direct reads from proto message fields when getters should be used
+    - reassign # checks that package variables are not reassigned
+    - recvcheck # checks for receiver type consistency
+    - revive # fast, configurable, extensible, flexible, and beautiful linter for Go
+    - rowserrcheck # checks whether Err of rows is checked successfully
+    - sloglint # ensure consistent code style when using log/slog
+    - spancheck # checks for mistakes with OpenTelemetry/Census spans
+    - sqlclosecheck # checks that sql.Rows and sql.Stmt are closed
+    - staticcheck # is a go vet on steroids, applying a ton of static analysis checks
+    - testableexamples # checks if examples are testable (have an expected output)
+    - testifylint # checks usage of github.com/stretchr/testify
+    - tparallel # detects inappropriate usage of t.Parallel() method in your Go test codes
+    - unconvert # removes unnecessary type conversions
+    - unparam # reports unused function parameters
+    - unused # checks for unused constants, variables, functions and types
+    - usestdlibvars # detects the possibility to use variables/constants from the Go standard library
+    - usetesting # reports uses of functions with replacement inside the testing package
+    - wastedassign # finds wasted assignment statements
+    - whitespace # detects leading and trailing whitespace
+    - decorder # checks declaration order and count of types, constants, variables and functions
+    - interfacebloat # checks the number of methods inside an interface
+    - ireturn # accept interfaces, return concrete types
+    - prealloc # finds slice declarations that could potentially be preallocated
+    # wrapcheck intentionally omitted (zero external deps -> low signal).
+
+  settings:
+    cyclop:
+      max-complexity: 30
+      package-average: 10.0
+
+    depguard:
+      rules:
+        all:
+          files:
+            - "$all"
+          # dib is dependency-free: only the standard library and the module itself
+          # may be imported. Adding an external dependency must be a deliberate,
+          # reviewed change to this allow list.
+          allow:
+            - $gostd
+            - github.com/petabytecl/dib
+
+    errcheck:
+      check-type-assertions: true
+
+    exhaustive:
+      check:
+        - switch
+        - map
+      default-signifies-exhaustive: true
+
+    funcorder:
+      # dib groups unexported helpers next to the exported methods they support.
+      struct-method: false
+
+    funlen:
+      lines: 100
+      statements: 50
+
+    gochecksumtype:
+      default-signifies-exhaustive: false
+
+    gocognit:
+      min-complexity: 20
+
+    gocritic:
+      settings:
+        captLocal:
+          paramsOnly: false
+        underef:
+          skipRecvDeref: false
+
+    govet:
+      enable-all: true
+      disable:
+        - fieldalignment # too strict
+      settings:
+        shadow:
+          strict: true
+
+    inamedparam:
+      skip-single-param: true
+
+    mnd:
+      ignored-functions:
+        - args.Error
+        - flag.Arg
+        - flag.Duration.*
+        - flag.Float.*
+        - flag.Int.*
+        - flag.Uint.*
+        - os.Chmod
+        - os.Mkdir.*
+        - os.OpenFile
+        - os.WriteFile
+
+    nakedret:
+      max-func-lines: 0
+
+    nolintlint:
+      allow-no-explanation:
+        - funlen
+        - gocognit
+        - unused
+      require-explanation: true
+      require-specific: true
+
+    perfsprint:
+      strconcat: false
+
+    reassign:
+      patterns:
+        - ".*"
+
+    staticcheck:
+      checks:
+        - all
+        - -ST1000 # Incorrect or missing package comment.
+        - -ST1016 # Use consistent method receiver names.
+        - -QF1008 # Omit embedded fields from selector expression.
+
+    usetesting:
+      os-temp-dir: true
+
+  exclusions:
+    paths:
+      # Intentional fixtures with their own go.mod files; not product code.
+      - tools/depgate/testdata
+    rules:
+      # Test files legitimately use long table-driven functions, duplicated
+      # setup, and relaxed safety around fixtures.
+      - linters:
+          - dupl
+          - funlen
+          - gocognit
+          - gocyclo
+          - cyclop
+          - gosec
+          - noctx
+          - usetesting
+          - fatcontext
+        path: _test\.go
+      # CLI tests drive invocations by reassigning os.Args/os.Stdout/os.Stderr,
+      # which is the canonical way to exercise a command-line tool and is, by
+      # construction, incompatible with parallel subtests. reassign stays strict
+      # for non-test code (where it has no findings).
+      - linters:
+          - reassign
+          - tparallel
+        path: _test\.go
+      - linters:
+          - revive
+        path: _test\.go
+        text: "unused-parameter"
+      - linters:
+          - govet
+        path: _test\.go
+        text: "shadow:"
+      # getTyped returns a generic type parameter by design (typed config access).
+      - linters:
+          - ireturn
+        path: config/getter\.go
+      # source.go reads a configuration file from a caller-controlled path; the
+      # path originates from trusted CLI configuration, not untrusted input.
+      - linters:
+          - gosec
+        path: config/source\.go
+        text: "G304"
