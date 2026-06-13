@@ -102,7 +102,7 @@ through the Epic 7 CLI composition evidence:
 - The root repository has no go sum file.
 - Root `go.mod` has no `require`, `replace`, or `toolchain` directives.
 - `.github/workflows/ci.yml` runs `golangci-lint` via
-  `golangci/golangci-lint-action@v6` (pinned to `v2.10.1`), `go test ./...`,
+  `golangci/golangci-lint-action@v7` (pinned to `v2.10.1`), `go test ./...`,
   `go vet ./...`, `go run ./tools/coverage`, and `go run ./tools/depgate` on
   `ubuntu-24.04` with the Go version read from `go.mod`.
 - `tools/depgate/` remains the executable local dependency gate.

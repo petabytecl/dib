@@ -77,7 +77,7 @@ func TestTestingGuideDocumentsLintGateIsolationAndPinning(t *testing.T) {
 		"## Lint Gate",
 		"golangci-lint",
 		"`.golangci.yml`",
-		"golangci/golangci-lint-action@v6",
+		"golangci/golangci-lint-action@v7",
 		"v2.10.1",
 		"go.mod",
 		"root `require`",

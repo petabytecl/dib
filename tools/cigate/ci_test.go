@@ -20,7 +20,7 @@ func TestCIWorkflowRunsTrustGates(t *testing.T) {
 		"go.mod version file":  "go-version-file: go.mod",
 		"cache disabled":       "cache: false",
 		"go version evidence":  "run: go version",
-		"lint gate":            "uses: golangci/golangci-lint-action@v6",
+		"lint gate":            "uses: golangci/golangci-lint-action@v7",
 		"go test gate":         "run: go test ./...",
 		"go vet gate":          "run: go vet ./...",
 		"dependency gate":      "run: go run ./tools/depgate",
@@ -52,7 +52,7 @@ func TestCIWorkflowUsesOnlyTrustedStaticSteps(t *testing.T) {
 		}
 		action := strings.TrimSpace(strings.TrimPrefix(trimmed, "uses:"))
 		switch action {
-		case "actions/checkout@v6", "actions/setup-go@v6", "golangci/golangci-lint-action@v6":
+		case "actions/checkout@v6", "actions/setup-go@v6", "golangci/golangci-lint-action@v7":
 			// Official GitHub actions and the golangci-lint maintainers' action.
 		default:
 			t.Fatalf("CI workflow uses unsupported action %q; only the official checkout/setup-go and golangci-lint actions are allowed", action)
@@ -66,7 +66,7 @@ func TestCIWorkflowRunsLintAfterGoSetupAndBeforeReleaseGates(t *testing.T) {
 	assertOrderedMarkers(t, workflow, []string{
 		"uses: actions/setup-go@v6",
 		"run: go version",
-		"uses: golangci/golangci-lint-action@v6",
+		"uses: golangci/golangci-lint-action@v7",
 		"run: go test ./...",
 		"run: go vet ./...",
 		"run: go run ./tools/depgate",
