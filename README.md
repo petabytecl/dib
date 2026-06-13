@@ -10,12 +10,12 @@ Dib v0 is an experimental API. Future v0 tags may change exported interfaces bef
 
 Four public package surfaces compose the library:
 
-| Package | Import path | Role |
-| --- | --- | --- |
-| `flags` | `github.com/petabytecl/dib/flags` | Explicit flag sets, long/short flags, shorthand groups, repeated values, and typed parse diagnostics. |
-| `command` | `github.com/petabytecl/dib/command` | Command routing, nested trees, aliases, local/inherited flags, deterministic help/usage, and typed routing errors. |
-| `config` | `github.com/petabytecl/dib/config` | Registered keys, explicit setters, flag/env/JSON bindings, precedence, typed getters, provenance, and redaction. |
-| `cli` | `github.com/petabytecl/dib/cli` | Optional composition: carries `os.Args` as an explicit `Invocation`, routes commands, resolves config, and returns a `Result` without owning process lifecycle. |
+| Package   | Import path                         | Role                                                                                                                                                    |
+|-----------|-------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `flags`   | `github.com/petabytecl/dib/flags`   | Explicit flag sets, long/short flags, shorthand groups, repeated values, and typed parse diagnostics.                                                   |
+| `command` | `github.com/petabytecl/dib/command` | Command routing, nested trees, aliases, local/inherited flags, deterministic help/usage, and typed routing errors.                                      |
+| `config`  | `github.com/petabytecl/dib/config`  | Registered keys, explicit setters, flag/env/JSON bindings, precedence, typed getters, provenance, and redaction.                                        |
+| `cli`     | `github.com/petabytecl/dib/cli`     | Optional composition: carries `os.Args` as an explicit `Invocation`, routes commands, resolves config, and returns a `Result` without owning process lifecycle. |
 
 The first three packages work independently: `flags` works without `command` or `config`; `command` does not depend on `config`; callers compose these surfaces explicitly. `cli` is an optional fourth surface that composes all three in a single call.
 
@@ -158,14 +158,14 @@ See `docs/compatibility.md` for the full compatibility boundary table.
 
 ## Documentation
 
-| Document | Contents |
-| --- | --- |
-| `docs/config-precedence.md` | Canonical config precedence order (`explicit setter > flag binding > env > JSON > default`) |
-| `docs/diagnostics-and-errors.md` | Error taxonomy and diagnostic vocabulary |
-| `docs/compatibility.md` | Compatibility boundaries vs Go `flag`, pflag, Cobra, Viper |
-| `docs/behavior-matrices.md` | Consolidated adoption evidence |
-| `docs/testing.md` | Local verification, lint, coverage, release gates |
-| `docs/release-checklist.md` | Release evidence |
-| `examples/migration/` | Executable migration examples |
-| `examples/multicommand/` | CLI composition example |
-| `CONTRIBUTING.md` | Contribution guidelines and clean-room policy |
+| Document                         | Contents                                                                                    |
+|----------------------------------|---------------------------------------------------------------------------------------------|
+| `docs/config-precedence.md`      | Canonical config precedence order (`explicit setter > flag binding > env > JSON > default`) |
+| `docs/diagnostics-and-errors.md` | Error taxonomy and diagnostic vocabulary                                                    |
+| `docs/compatibility.md`          | Compatibility boundaries vs Go `flag`, pflag, Cobra, Viper                                  |
+| `docs/behavior-matrices.md`      | Consolidated adoption evidence                                                              |
+| `docs/testing.md`                | Local verification, lint, coverage, release gates                                           |
+| `docs/release-checklist.md`      | Release evidence                                                                            |
+| `examples/migration/`            | Executable migration examples                                                               |
+| `examples/multicommand/`         | CLI composition example                                                                     |
+| `CONTRIBUTING.md`                | Contribution guidelines and clean-room policy                                               |
