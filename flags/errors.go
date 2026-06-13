@@ -29,11 +29,11 @@ type DefinitionError struct {
 	category       error
 }
 
-func newDefinitionError(name string, shorthand string, category error) *DefinitionError {
+func newDefinitionError(name, shorthand string, category error) *DefinitionError {
 	return &DefinitionError{name: name, shorthand: shorthand, category: category}
 }
 
-func newInvalidNormalizedDefinitionError(name string, normalizedName string) *DefinitionError {
+func newInvalidNormalizedDefinitionError(name, normalizedName string) *DefinitionError {
 	return &DefinitionError{
 		name:           name,
 		normalizedName: normalizedName,
@@ -41,7 +41,7 @@ func newInvalidNormalizedDefinitionError(name string, normalizedName string) *De
 	}
 }
 
-func newNormalizedDefinitionError(name string, collidingName string, normalizedName string) *DefinitionError {
+func newNormalizedDefinitionError(name, collidingName, normalizedName string) *DefinitionError {
 	return &DefinitionError{
 		name:           name,
 		collidingName:  collidingName,
@@ -165,7 +165,7 @@ type ParseError struct {
 	cause          error
 }
 
-func newParseError(category error, token string, name string, normalizedName string, def Definition, hasDefinition bool, cause error) *ParseError {
+func newParseError(category error, token, name, normalizedName string, def Definition, hasDefinition bool, cause error) *ParseError {
 	return &ParseError{
 		category:       category,
 		token:          token,

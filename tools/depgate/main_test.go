@@ -223,7 +223,7 @@ func buildDepgateBinary(t *testing.T) string {
 	return binary
 }
 
-func runDepgateFixture(t *testing.T, binary string, fixture string) depgateRunResult {
+func runDepgateFixture(t *testing.T, binary, fixture string) depgateRunResult {
 	t.Helper()
 
 	cmd := exec.Command(binary)
@@ -240,7 +240,7 @@ func runDepgateFixture(t *testing.T, binary string, fixture string) depgateRunRe
 	}
 }
 
-func writeFile(t *testing.T, root string, name string, content string) {
+func writeFile(t *testing.T, root, name, content string) {
 	t.Helper()
 
 	path := filepath.Join(root, name)

@@ -556,7 +556,7 @@ func TestGetErrorAccessors(t *testing.T) {
 	if got := getErr.Redacted(); got != false {
 		t.Fatalf("Redacted() = %v, want false", got)
 	}
-	if got := getErr.Category(); got != config.ErrGetConversion {
+	if got := getErr.Category(); !errors.Is(got, config.ErrGetConversion) {
 		t.Fatalf("Category() = %v, want ErrGetConversion", got)
 	}
 }

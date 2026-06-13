@@ -73,7 +73,7 @@ func (s Set) parseLong(args []string, index int, snapshot *Snapshot) (int, bool,
 
 func (s Set) parseShortGroup(args []string, index int, snapshot *Snapshot, group string) (int, bool, error) {
 	members := []rune(group)
-	for i := 0; i < len(members); i++ {
+	for i := range len(members) {
 		shorthand := string(members[i])
 		token := shortGroupToken(members, i)
 		occurrence := "-" + shorthand
@@ -184,13 +184,13 @@ func parseResolvedFlagWithOccurrence(
 	return index, false, nil
 }
 
-func splitLongFlag(arg string) (token string, name string, rawValue string, hasAttachedValue bool) {
+func splitLongFlag(arg string) (token, name, rawValue string, hasAttachedValue bool) {
 	body := strings.TrimPrefix(arg, "--")
 	namePart, value, found := strings.Cut(body, "=")
 	return "--" + namePart, namePart, value, found
 }
 
-func splitShortFlag(arg string) (token string, shorthand string, rawValue string, hasAttachedValue bool) {
+func splitShortFlag(arg string) (token, shorthand, rawValue string, hasAttachedValue bool) {
 	body := strings.TrimPrefix(arg, "-")
 	namePart, value, found := strings.Cut(body, "=")
 	return "-" + namePart, namePart, value, found
@@ -235,7 +235,7 @@ func noOptionValue(def Definition) (any, error) {
 	return nil, newValueError(def.name, def.kind, ErrMissingValue)
 }
 
-func applyNoOptionParsedValue(snapshot *Snapshot, def Definition, token string, occurrence string, name string, normalizedName string) error {
+func applyNoOptionParsedValue(snapshot *Snapshot, def Definition, token, occurrence, name, normalizedName string) error {
 	value, err := noOptionValue(def)
 	if err != nil {
 		return newParseError(ErrConversion, token, name, normalizedName, def, true, err)
@@ -243,7 +243,7 @@ func applyNoOptionParsedValue(snapshot *Snapshot, def Definition, token string, 
 	return applyParsedValue(snapshot, def, token, occurrence, name, normalizedName, value)
 }
 
-func applyParsedValue(snapshot *Snapshot, def Definition, token string, occurrence string, name string, normalizedName string, value any) error {
+func applyParsedValue(snapshot *Snapshot, def Definition, token, occurrence, name, normalizedName string, value any) error {
 	state := snapshot.values[def.name]
 	if state.explicit && def.repeatPolicy != RepeatAccumulated {
 		return newParseError(ErrDuplicateValue, token, name, normalizedName, def, true, nil)

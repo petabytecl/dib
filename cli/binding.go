@@ -14,7 +14,7 @@ type FlagBinding struct {
 }
 
 // BindFlag returns a flag-to-config binding value.
-func BindFlag(flagName string, configKey string) FlagBinding {
+func BindFlag(flagName, configKey string) FlagBinding {
 	return FlagBinding{FlagName: flagName, ConfigKey: configKey}
 }
 

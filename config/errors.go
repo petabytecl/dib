@@ -34,9 +34,9 @@ type DefinitionError struct {
 	category        error
 }
 
-func newDefinitionError(key string, collidingKey string, normalizedKey string, kind Kind, diagnosticValue string, redacted bool, category error) *DefinitionError {
+func newDefinitionError(key, collidingKey, normalizedKey string, kind Kind, diagnosticValue string, redacted bool, category error) *DefinitionError {
 	provenance := ""
-	if category == ErrInvalidDefault {
+	if errors.Is(category, ErrInvalidDefault) {
 		provenance = SourceDefault
 	}
 	return &DefinitionError{
@@ -164,7 +164,7 @@ type SourceError struct {
 	cause           error
 }
 
-func newSourceError(key string, source string, envName string, jsonPath string, jsonReaderLabel string, kind Kind, diagnosticValue string, redacted bool, category error, cause error) *SourceError {
+func newSourceError(key, source, envName, jsonPath, jsonReaderLabel string, kind Kind, diagnosticValue string, redacted bool, category, cause error) *SourceError {
 	if redacted {
 		diagnosticValue = ""
 	}
@@ -312,7 +312,7 @@ type GetError struct {
 	category    error
 }
 
-func newGetError(key string, kind Kind, wantKind Kind, sourceLabel string, redacted bool, category error) *GetError {
+func newGetError(key string, kind, wantKind Kind, sourceLabel string, redacted bool, category error) *GetError {
 	return &GetError{
 		key:         key,
 		kind:        kind,
@@ -328,7 +328,7 @@ func (e *GetError) Error() string {
 		return "config: get error"
 	}
 	message := fmt.Sprintf("config: %v for %q", e.category, e.key)
-	if e.category != ErrKeyNotFound && e.kind.String() != "unknown" {
+	if !errors.Is(e.category, ErrKeyNotFound) && e.kind.String() != "unknown" {
 		message += fmt.Sprintf(" as %s", e.kind)
 	}
 	if e.sourceLabel != "" {
@@ -337,7 +337,7 @@ func (e *GetError) Error() string {
 	if e.redacted {
 		message += " value redacted"
 	}
-	if e.category == ErrGetConversion {
+	if errors.Is(e.category, ErrGetConversion) {
 		message += fmt.Sprintf(": want %s", e.wantKind)
 	}
 	return message

@@ -243,7 +243,7 @@ func TestBoundaryAccessorsAreDefensiveAndReusable(t *testing.T) {
 	const runs = 32
 	errs := make(chan string, runs)
 	var wg sync.WaitGroup
-	for i := 0; i < runs; i++ {
+	for range runs {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()

@@ -20,7 +20,7 @@ type BindingError struct {
 	cause     error
 }
 
-func newBindingError(flagName string, configKey string, category error, cause error) *BindingError {
+func newBindingError(flagName, configKey string, category, cause error) *BindingError {
 	return &BindingError{
 		flagName:  flagName,
 		configKey: configKey,

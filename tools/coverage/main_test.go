@@ -140,7 +140,7 @@ func TestCoverageOutputFormatVerifiesAllFields(t *testing.T) {
 
 func TestCoverageExecutionFailureWhenConfigMissing(t *testing.T) {
 	// Only command data present; config and flags missing → execution failure.
-	partial := fmt.Sprintf("ok  \tgithub.com/petabytecl/dib/command\t0.006s\tcoverage: 90.0%% of statements")
+	partial := "ok  \tgithub.com/petabytecl/dib/command\t0.006s\tcoverage: 90.0%% of statements"
 	var stdout, stderr bytes.Buffer
 	code := check([]byte(partial), &stdout, &stderr)
 	if code != executionFailureExit {

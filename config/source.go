@@ -3,6 +3,7 @@ package config
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -46,7 +47,7 @@ type EnvBinding struct {
 }
 
 // BindEnv binds key to the explicit environment variable name.
-func BindEnv(key string, envName string) EnvBinding {
+func BindEnv(key, envName string) EnvBinding {
 	return EnvBinding{key: key, envName: envName, explicit: true}
 }
 
@@ -189,9 +190,9 @@ func loadJSONBytes(set Set, data []byte, path string, options jsonOptions) (Snap
 		return Snapshot{}, newSourceError("", SourceJSON, "", path, options.readerLabel, Kind(-1), "", false, ErrJSONDecode, err)
 	}
 	var trailing any
-	if err := decoder.Decode(&trailing); err != io.EOF {
+	if err := decoder.Decode(&trailing); !errors.Is(err, io.EOF) {
 		if err == nil {
-			err = fmt.Errorf("extra JSON data after object")
+			err = errors.New("extra JSON data after object")
 		}
 		return Snapshot{}, newSourceError("", SourceJSON, "", path, options.readerLabel, Kind(-1), "", false, ErrJSONDecode, err)
 	}
@@ -257,7 +258,7 @@ func explicitValue(def Definition, value any) (any, error) {
 	return clonePublicValue(value), nil
 }
 
-func convertStringValue(def Definition, raw string, source string, envName string, jsonPath string, jsonReaderLabel string) (any, error) {
+func convertStringValue(def Definition, raw, source, envName, jsonPath, jsonReaderLabel string) (any, error) {
 	switch def.kind {
 	case KindString:
 		return raw, nil
@@ -313,7 +314,7 @@ func convertStringValue(def Definition, raw string, source string, envName strin
 	}
 }
 
-func convertJSONValue(def Definition, raw any, jsonPath string, jsonReaderLabel string) (any, error) {
+func convertJSONValue(def Definition, raw any, jsonPath, jsonReaderLabel string) (any, error) {
 	switch value := raw.(type) {
 	case string:
 		if def.kind == KindString {
@@ -342,7 +343,7 @@ func convertJSONValue(def Definition, raw any, jsonPath string, jsonReaderLabel 
 	return nil, newSourceError(def.key, SourceJSON, "", jsonPath, jsonReaderLabel, def.kind, fmt.Sprintf("%v", raw), def.sensitive, ErrSourceConversion, nil)
 }
 
-func convertJSONNumber(def Definition, number json.Number, jsonPath string, jsonReaderLabel string) (any, error) {
+func convertJSONNumber(def Definition, number json.Number, jsonPath, jsonReaderLabel string) (any, error) {
 	raw := number.String()
 	switch def.kind {
 	case KindInt:

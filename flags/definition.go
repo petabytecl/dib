@@ -91,7 +91,7 @@ func Repeatable() Option {
 }
 
 // String returns a string flag definition.
-func String(name string, defaultValue string, usage string, opts ...Option) Definition {
+func String(name, defaultValue, usage string, opts ...Option) Definition {
 	return newDefinition(name, KindString, defaultValue, usage, ParserFunc(stringParser), ArityRequired, false, opts...)
 }
 

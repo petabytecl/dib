@@ -220,7 +220,7 @@ func TestDispatchErrorAccessorsAndNilReceiver(t *testing.T) {
 	if !errors.As(err, &dispatchErr) {
 		t.Fatalf("run err %T, want *cli.DispatchError", err)
 	}
-	if dispatchErr.Category() != cli.ErrNoHandler {
+	if !errors.Is(dispatchErr.Category(), cli.ErrNoHandler) {
 		t.Fatalf("category = %v, want ErrNoHandler", dispatchErr.Category())
 	}
 	if !strings.Contains(dispatchErr.Error(), "svcctl start") {

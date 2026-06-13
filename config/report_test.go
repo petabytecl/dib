@@ -239,7 +239,7 @@ func TestInspectDiagnosticClassifiesConfigErrors(t *testing.T) {
 			if !ok {
 				t.Fatalf("InspectDiagnostic returned ok=false for %T", tt.err)
 			}
-			if diag.Category() != tt.category {
+			if !errors.Is(diag.Category(), tt.category) {
 				t.Fatalf("Category() = %v, want %v", diag.Category(), tt.category)
 			}
 			if diag.Key() != tt.key || diag.Kind() != tt.kind || diag.WantKind() != tt.wantKind || diag.SourceLabel() != tt.source {

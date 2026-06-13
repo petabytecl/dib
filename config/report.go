@@ -97,7 +97,7 @@ func (s Snapshot) SourceReport() []SourceReportEntry {
 // WriteSourceReport renders value-free source provenance to the caller-supplied writer.
 func (s Snapshot) WriteSourceReport(w io.Writer) error {
 	if w == nil {
-		return fmt.Errorf("config: nil source report writer")
+		return errors.New("config: nil source report writer")
 	}
 	for _, entry := range s.SourceReport() {
 		if _, err := fmt.Fprintf(
@@ -240,7 +240,7 @@ func InspectDiagnostic(err error) (Diagnostic, bool) {
 // WriteDiagnostic renders a deterministic value-free diagnostic to the caller-supplied writer.
 func WriteDiagnostic(w io.Writer, err error) error {
 	if w == nil {
-		return fmt.Errorf("config: nil diagnostic writer")
+		return errors.New("config: nil diagnostic writer")
 	}
 	diagnostic, ok := InspectDiagnostic(err)
 	if !ok {

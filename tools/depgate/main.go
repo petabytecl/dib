@@ -27,7 +27,7 @@ func main() {
 	os.Exit(run(ctx, ".", os.Stdout, os.Stderr))
 }
 
-func run(ctx context.Context, dir string, stdout io.Writer, stderr io.Writer) int {
+func run(ctx context.Context, dir string, stdout, stderr io.Writer) int {
 	violations, err := findViolations(ctx, dir)
 	if err != nil {
 		fmt.Fprintf(stderr, "depgate execution error: %v\n", err)

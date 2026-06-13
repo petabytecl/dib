@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func runConsumerContract(t *testing.T, name string, source string) {
+func runConsumerContract(t *testing.T, name, source string) {
 	t.Helper()
 
 	repoRoot, err := filepath.Abs("..")
@@ -40,7 +40,7 @@ replace github.com/petabytecl/dib => %s
 	}
 }
 
-func writeTempFile(t *testing.T, dir string, name string, content string) {
+func writeTempFile(t *testing.T, dir, name, content string) {
 	t.Helper()
 
 	if err := os.WriteFile(filepath.Join(dir, name), []byte(content), 0o600); err != nil {

@@ -354,7 +354,7 @@ func TestParseHelpLongUnregistered(t *testing.T) {
 	if pe.Name() != "help" {
 		t.Errorf("ParseError.Name() = %q, want help", pe.Name())
 	}
-	if pe.Category() != flags.ErrHelpRequest {
+	if !errors.Is(pe.Category(), flags.ErrHelpRequest) {
 		t.Errorf("ParseError.Category() = %v, want ErrHelpRequest", pe.Category())
 	}
 }
@@ -384,7 +384,7 @@ func TestParseHelpShortUnregistered(t *testing.T) {
 	if pe.Name() != "help" {
 		t.Errorf("ParseError.Name() = %q, want help", pe.Name())
 	}
-	if pe.Category() != flags.ErrHelpRequest {
+	if !errors.Is(pe.Category(), flags.ErrHelpRequest) {
 		t.Errorf("ParseError.Category() = %v, want ErrHelpRequest", pe.Category())
 	}
 }

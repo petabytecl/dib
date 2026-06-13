@@ -346,7 +346,7 @@ func TestRouteSnapshotsAreDefensiveAndDeterministic(t *testing.T) {
 	const runs = 32
 	var wg sync.WaitGroup
 	errs := make(chan string, runs)
-	for i := 0; i < runs; i++ {
+	for range runs {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()

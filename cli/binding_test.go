@@ -409,7 +409,7 @@ func assertConfigValue(t *testing.T, snapshot config.Snapshot, key string, wantV
 	}
 }
 
-func assertBindingError(t *testing.T, err error, category error, flagName string, configKey string, cause error) {
+func assertBindingError(t *testing.T, err, category error, flagName, configKey string, cause error) {
 	t.Helper()
 	if !errors.Is(err, category) {
 		t.Fatalf("error does not satisfy %v: %v", category, err)

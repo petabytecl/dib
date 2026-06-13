@@ -310,7 +310,7 @@ func TestParseShortGroupDiagnosticsAreTyped(t *testing.T) {
 			if !errors.As(err, &parseErr) {
 				t.Fatalf("error does not expose *flags.ParseError: %T", err)
 			}
-			if parseErr.Category() != tt.wantCategory {
+			if !errors.Is(parseErr.Category(), tt.wantCategory) {
 				t.Fatalf("ParseError.Category() = %v, want %v", parseErr.Category(), tt.wantCategory)
 			}
 			if parseErr.Token() != tt.wantToken || parseErr.Name() != tt.wantName {

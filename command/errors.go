@@ -68,7 +68,7 @@ type AliasError struct {
 	alias      string
 }
 
-func newAliasError(parentPath []string, command string, alias string) *AliasError {
+func newAliasError(parentPath []string, command, alias string) *AliasError {
 	return &AliasError{
 		parentPath: append([]string(nil), parentPath...),
 		command:    command,
@@ -123,7 +123,7 @@ type TokenConflictError struct {
 	collidingCommand string
 }
 
-func newTokenConflictError(parentPath []string, token string, firstCommand string, collidingCommand string) *TokenConflictError {
+func newTokenConflictError(parentPath []string, token, firstCommand, collidingCommand string) *TokenConflictError {
 	return &TokenConflictError{
 		parentPath:       append([]string(nil), parentPath...),
 		token:            token,

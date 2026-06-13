@@ -882,7 +882,7 @@ func TestQAConfigDiagnosticsDistinguishSourceAndCategory(t *testing.T) {
 	if !ok {
 		t.Fatal("InspectDiagnostic returned ok=false")
 	}
-	if diag.Category() != config.ErrSourceConversion {
+	if !errors.Is(diag.Category(), config.ErrSourceConversion) {
 		t.Fatalf("Category() = %v, want ErrSourceConversion", diag.Category())
 	}
 	if diag.SourceLabel() != config.SourceEnv {

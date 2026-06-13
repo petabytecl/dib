@@ -20,7 +20,7 @@ type Boundary struct {
 }
 
 // NewBoundary returns immutable boundary metadata for an existing route result.
-func NewBoundary(ctx context.Context, result Result, args []string, stdout io.Writer, stderr io.Writer) Boundary {
+func NewBoundary(ctx context.Context, result Result, args []string, stdout, stderr io.Writer) Boundary {
 	return Boundary{
 		ctx:       ctx,
 		result:    result,
@@ -33,7 +33,7 @@ func NewBoundary(ctx context.Context, result Result, args []string, stdout io.Wr
 
 // RouteBoundary routes explicit caller args and packages the resulting route
 // snapshot with caller-owned context and writer metadata.
-func (d Definition) RouteBoundary(ctx context.Context, args []string, stdout io.Writer, stderr io.Writer) (Boundary, error) {
+func (d Definition) RouteBoundary(ctx context.Context, args []string, stdout, stderr io.Writer) (Boundary, error) {
 	result, err := d.Route(args)
 	if err != nil {
 		return Boundary{}, err

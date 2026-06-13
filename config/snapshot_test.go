@@ -136,7 +136,7 @@ func TestDefaultSnapshotConcurrentReuse(t *testing.T) {
 	snapshot := set.DefaultSnapshot()
 
 	var wg sync.WaitGroup
-	for i := 0; i < 16; i++ {
+	for range 16 {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()

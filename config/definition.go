@@ -66,7 +66,7 @@ func Define(key string, kind Kind, usage string, opts ...Option) Definition {
 }
 
 // String returns a string config key definition with a default value.
-func String(key string, defaultValue string, usage string, opts ...Option) Definition {
+func String(key, defaultValue, usage string, opts ...Option) Definition {
 	return Define(key, KindString, usage, withDefault(defaultValue, opts)...)
 }
 

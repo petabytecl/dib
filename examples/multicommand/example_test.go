@@ -117,7 +117,7 @@ func TestDispatchStartStopCallsApplicationHandlers(t *testing.T) {
 	}
 }
 
-func serviceCommands(start cli.Handler, stop cli.Handler) *cli.Command {
+func serviceCommands(start, stop cli.Handler) *cli.Command {
 	root := cli.New("svcctl",
 		cli.Description("service control"),
 		cli.Config(config.String("target", "scrapd", "service target")),
@@ -126,7 +126,7 @@ func serviceCommands(start cli.Handler, stop cli.Handler) *cli.Command {
 	return root
 }
 
-func registerServiceCommands(root *cli.Command, start cli.Handler, stop cli.Handler) {
+func registerServiceCommands(root *cli.Command, start, stop cli.Handler) {
 	service := root.Command("service", cli.Description("service commands"))
 	service.Command("start",
 		cli.Flags(flags.String("target", "scrapd", "service target")),
@@ -266,7 +266,7 @@ func runServiceCLI(ctx context.Context, argv []string, app serviceApp) (int, str
 
 	route := result.Route().PathNames()
 	if len(route) < 2 {
-		return 2, "", fmt.Errorf("missing command")
+		return 2, "", errors.New("missing command")
 	}
 
 	switch route[1] {

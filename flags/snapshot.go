@@ -98,7 +98,7 @@ type ValueOccurrence struct {
 	definition     Definition
 }
 
-func newValueOccurrence(spelling string, normalizedName string, definition Definition) ValueOccurrence {
+func newValueOccurrence(spelling, normalizedName string, definition Definition) ValueOccurrence {
 	return ValueOccurrence{spelling: spelling, normalizedName: normalizedName, definition: definition}
 }
 

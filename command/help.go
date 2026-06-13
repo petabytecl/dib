@@ -121,7 +121,7 @@ func writeUsage(w io.Writer, path []Definition) error {
 	return nil
 }
 
-func writeSection(w io.Writer, title string, body string) error {
+func writeSection(w io.Writer, title, body string) error {
 	if _, err := fmt.Fprintln(w); err != nil {
 		return err
 	}

@@ -13,7 +13,7 @@ type Result struct {
 	hasFlagSnapshot bool
 }
 
-func newResult(path []Definition, matchTokens []string, remaining []string) Result {
+func newResult(path []Definition, matchTokens, remaining []string) Result {
 	return Result{
 		path:        cloneDefinitions(path),
 		matchTokens: append([]string(nil), matchTokens...),
@@ -21,7 +21,7 @@ func newResult(path []Definition, matchTokens []string, remaining []string) Resu
 	}
 }
 
-func newFlagResult(path []Definition, matchTokens []string, remaining []string, set flags.Set, snapshot flags.Snapshot) Result {
+func newFlagResult(path []Definition, matchTokens, remaining []string, set flags.Set, snapshot flags.Snapshot) Result {
 	return Result{
 		path:            cloneDefinitions(path),
 		matchTokens:     append([]string(nil), matchTokens...),
