@@ -20,7 +20,7 @@ allowing imports only from the Go standard library and the
 be a deliberate, reviewed change to `.golangci.yml`.
 
 The linter version is pinned: CI installs `golangci-lint` `v2.10.1` through the
-maintainers' `golangci/golangci-lint-action@v7` action, and local runs use the
+maintainers' `golangci/golangci-lint-action@v9` action, and local runs use the
 same version. The effective pin is that explicit version plus the Go version
 selected from `go.mod`.
 
@@ -41,7 +41,7 @@ CI step (pinned in `.github/workflows/ci.yml`):
 
 ```yaml
 - name: Lint
-  uses: golangci/golangci-lint-action@v7
+  uses: golangci/golangci-lint-action@v9
   with:
     version: v2.10.1
 ```
