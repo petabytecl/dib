@@ -29,10 +29,15 @@ reference-derived material, or a source whose influence should be audited.
 Run these baseline checks before handing work off for review:
 
 ```sh
+golangci-lint run
 go test ./...
 go vet ./...
 go run ./tools/depgate
 ```
+
+The lint gate uses `golangci-lint` (pinned to `v2.10.1` in CI) with the strict
+ruleset in `.golangci.yml`. See [`docs/testing.md`](docs/testing.md) for the
+local command and version pin.
 
 The dependency gate is the repository authority for Dib's
 standard-library-only contract. Do not treat ad hoc `go list` commands as

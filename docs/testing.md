@@ -5,39 +5,46 @@ commands from the repository root with Go 1.26 or newer.
 
 ## Lint Gate
 
-Story 6.1 selected a repository-local standard-library lint tool instead of an
-external linter action or binary. The short tooling review favored this path
-because it adds deterministic maintainability coverage for Go formatting, runs
-with the same Go toolchain already pinned by `go.mod`, and does not add
-third-party imports, a root `require`, a root `replace`, a `toolchain`
-directive, or a go sum file.
+The lint gate runs [`golangci-lint`](https://golangci-lint.run) over the whole
+repository using the strict ruleset in `.golangci.yml` (around sixty linters
+derived from the community "golden" configuration). It supersedes the earlier
+repository-local standard-library formatter: `golangci-lint` enforces
+`gofumpt`/`gofmt` formatting plus correctness, complexity, and style analysis.
+
+`golangci-lint` runs only as an external, pinned CI binary and is never imported
+by the module, so the repository keeps its dependency-free posture: the gate adds
+no third-party imports, no root `require`, no root `replace`, no `toolchain`
+directive, and no go sum file. The `depguard` linter enforces that invariant by
+allowing imports only from the Go standard library and the
+`github.com/petabytecl/dib` module itself, so adding any external dependency must
+be a deliberate, reviewed change to `.golangci.yml`.
+
+The linter version is pinned: CI installs `golangci-lint` `v2.10.1` through the
+maintainers' `golangci/golangci-lint-action@v6` action, and local runs use the
+same version. The effective pin is that explicit version plus the Go version
+selected from `go.mod`.
 
 Rejected alternatives:
 
-- `golangci-lint` as a GitHub Action or local binary: acceptable only with exact
-  action and linter version pins, but unnecessary for the current gate and adds
-  a development/CI supply-chain dependency.
-- `go install` or shell installer based linting: rejected because it would make
-  local and CI behavior depend on mutable remote state unless separately pinned
-  and audited.
+- Floating linter versions (a `latest` or `stable` release channel, or an
+  unpinned `go install`): rejected because they make local and CI behavior depend
+  on mutable remote state. The gate always records an exact `golangci-lint`
+  version.
 
 Local command:
 
 ```sh
-GOCACHE=/tmp/dib-go-build go run ./tools/lint
+golangci-lint run
 ```
 
-CI command:
+CI step (pinned in `.github/workflows/ci.yml`):
 
-```sh
-go run ./tools/lint
+```yaml
+- name: Lint
+  uses: golangci/golangci-lint-action@v6
+  with:
+    version: v2.10.1
 ```
-
-The lint tool lives under `tools/lint`, imports only the Go standard library,
-and is versioned with the repository. Its effective pin is the checked-out Dib
-commit plus the Go version selected from `go.mod`; there is no external linter
-package or binary version to record. It walks repository Go source while
-skipping repository metadata and BMAD/agent artifact directories.
 
 ## Coverage Gate
 
@@ -47,9 +54,9 @@ path because it adds deterministic package-aware coverage evidence for the publi
 runtime packages, runs with the same Go toolchain already pinned by `go.mod`,
 and does not add third-party imports, a root `require`, a root `replace`, a
 `toolchain` directive, or a go sum file. This approach is consistent with the
-`tools/lint` and `tools/depgate` precedent already established in this
-repository. Story 7.4 extended the gate to cover the `cli` package as the fourth
-public runtime package.
+`tools/depgate` precedent already established in this repository.
+Story 7.4 extended the gate to cover the `cli` package as the fourth public
+runtime package.
 
 The coverage tool lives under `tools/coverage`, imports only the Go standard
 library, and is versioned with the repository. It invokes `go test -cover` via
@@ -78,19 +85,14 @@ Per-package thresholds (floor to nearest 5%, minimum 80%):
 
 ### Tooling Package Exceptions
 
-Tooling packages (`tools/depgate`, `tools/lint`, `tools/coverage`) have a
-separate risk profile from public runtime packages. Each exception names the
-critical-path tests that preserve confidence:
+Tooling packages (`tools/depgate`, `tools/coverage`) have a separate risk
+profile from public runtime packages. Each exception names the critical-path
+tests that preserve confidence:
 
 - `tools/depgate`: exception granted; critical-path tests
   `TestDepgateFixtures`, `TestDepgateReportsEveryViolationDeterministically`,
   and `TestDepgateDisablesWorkspaceMode` in `tools/depgate/main_test.go`
   preserve confidence.
-- `tools/lint`: exception granted; critical-path tests
-  `TestLintPassesCleanFormattedGoFiles`,
-  `TestLintReportsUnformattedFilesDeterministically`, and
-  `TestLintCommandRunsFromRepositoryRoot` in `tools/lint/main_test.go` preserve
-  confidence.
 - `tools/coverage`: exception granted; critical-path tests
   `TestCoveragePassesPackagesMeetingThreshold`,
   `TestCoverageFailsPackagesBelowThreshold`, and
@@ -103,7 +105,7 @@ The release checklist records exact command outcomes for the trust gates used by
 release review:
 
 ```sh
-GOCACHE=/tmp/dib-go-build go run ./tools/lint
+golangci-lint run
 GOCACHE=/tmp/dib-go-build go test ./...
 GOCACHE=/tmp/dib-go-build go vet ./...
 GOCACHE=/tmp/dib-go-build go run ./tools/coverage

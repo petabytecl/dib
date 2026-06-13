@@ -31,7 +31,6 @@ func TestTestingGuideDocumentsCoverageGate(t *testing.T) {
 		"cli",
 		"threshold",
 		"tools/depgate",
-		"tools/lint",
 		"tools/coverage",
 		"tooling package",
 		"exception granted",
@@ -76,10 +75,10 @@ func TestTestingGuideDocumentsLintGateIsolationAndPinning(t *testing.T) {
 	for _, phrase := range []string{
 		"# Testing",
 		"## Lint Gate",
-		"repository-local standard-library lint tool",
-		"GOCACHE=/tmp/dib-go-build go run ./tools/lint",
-		"go run ./tools/lint",
-		"tools/lint",
+		"golangci-lint",
+		"`.golangci.yml`",
+		"golangci/golangci-lint-action@v6",
+		"v2.10.1",
 		"go.mod",
 		"root `require`",
 		"root `replace`",
@@ -92,15 +91,13 @@ func TestTestingGuideDocumentsLintGateIsolationAndPinning(t *testing.T) {
 		}
 	}
 	for _, phrase := range []string{
-		"checked-out dib",
-		"commit plus the go version selected from `go.mod`",
-		"no external linter",
-		"binary version to record",
-		"skipping repository metadata",
-		"bmad/agent artifact directories",
-		"does not add",
+		"golangci-lint run",
+		"depguard",
+		"dependency-free",
+		"external",
+		"pinned",
+		"effective pin",
 		"third-party imports",
-		"go install",
 		"rejected because",
 	} {
 		if !strings.Contains(lower, phrase) {

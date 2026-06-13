@@ -18,7 +18,7 @@ Release review for a v0 module tag records these local gates in
 `docs/release-checklist.md`:
 
 - `go test ./...`
-- `go run ./tools/lint`
+- `golangci-lint run`
 - `go vet ./...`
 - `go run ./tools/coverage`
 - `go run ./tools/depgate`
@@ -27,7 +27,7 @@ Release review for a v0 module tag records these local gates in
 Parser fuzz targets are release-candidate hardening evidence when parser
 behavior changes or when release-candidate fuzz evidence is requested.
 
-Epic 6: Release Hardening and Public Usage Onboarding added three formal release gates: the isolated lint gate (`go run ./tools/lint`), package-aware coverage validation for public runtime packages (`go run ./tools/coverage`), and public usage documentation (`README.md`).
+Epic 6: Release Hardening and Public Usage Onboarding added three formal release gates: the isolated lint gate (now `golangci-lint run`, configured by `.golangci.yml`), package-aware coverage validation for public runtime packages (`go run ./tools/coverage`), and public usage documentation (`README.md`).
 
 ## Compatibility And Migration
 

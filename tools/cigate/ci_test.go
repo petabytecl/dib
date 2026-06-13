@@ -20,7 +20,7 @@ func TestCIWorkflowRunsTrustGates(t *testing.T) {
 		"go.mod version file":  "go-version-file: go.mod",
 		"cache disabled":       "cache: false",
 		"go version evidence":  "run: go version",
-		"lint gate":            "run: go run ./tools/lint",
+		"lint gate":            "uses: golangci/golangci-lint-action@v6",
 		"go test gate":         "run: go test ./...",
 		"go vet gate":          "run: go vet ./...",
 		"dependency gate":      "run: go run ./tools/depgate",
@@ -51,8 +51,11 @@ func TestCIWorkflowUsesOnlyTrustedStaticSteps(t *testing.T) {
 			continue
 		}
 		action := strings.TrimSpace(strings.TrimPrefix(trimmed, "uses:"))
-		if action != "actions/checkout@v6" && action != "actions/setup-go@v6" {
-			t.Fatalf("CI workflow uses unsupported action %q; only official checkout/setup-go actions are allowed", action)
+		switch action {
+		case "actions/checkout@v6", "actions/setup-go@v6", "golangci/golangci-lint-action@v6":
+			// Official GitHub actions and the golangci-lint maintainers' action.
+		default:
+			t.Fatalf("CI workflow uses unsupported action %q; only the official checkout/setup-go and golangci-lint actions are allowed", action)
 		}
 	}
 }
@@ -63,7 +66,7 @@ func TestCIWorkflowRunsLintAfterGoSetupAndBeforeReleaseGates(t *testing.T) {
 	assertOrderedMarkers(t, workflow, []string{
 		"uses: actions/setup-go@v6",
 		"run: go version",
-		"run: go run ./tools/lint",
+		"uses: golangci/golangci-lint-action@v6",
 		"run: go test ./...",
 		"run: go vet ./...",
 		"run: go run ./tools/depgate",
@@ -91,10 +94,10 @@ func TestReleaseChecklistCapturesRequiredEvidence(t *testing.T) {
 		"go.mod reference":       "go.mod",
 		"ci reference":           ".github/workflows/ci.yml",
 		"go test gate":           "go test ./...",
-		"lint gate":              "go run ./tools/lint",
+		"lint gate":              "golangci-lint run",
 		"go vet gate":            "go vet ./...",
 		"dependency gate":        "go run ./tools/depgate",
-		"lint isolation":         "standard-library-only repository-local lint tool",
+		"lint isolation":         "external, pinned ci binary",
 		"lint documentation":     "docs/testing.md",
 		"race gate":              "go test -race ./...",
 		"docs examples":          "docs/examples",

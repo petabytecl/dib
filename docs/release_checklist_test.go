@@ -48,7 +48,7 @@ func TestReleaseChecklistRecordsReleaseCandidateEvidence(t *testing.T) {
 		"documentation version references:",
 		"drift review result:",
 		"`go test ./...`:",
-		"`go run ./tools/lint`:",
+		"`golangci-lint run`:",
 		"`go vet ./...`:",
 		"`go run ./tools/depgate`:",
 		"`go test -race ./...`:",
@@ -176,7 +176,7 @@ func TestReleaseChecklistRecordsPassingRequiredGates(t *testing.T) {
 
 	for _, command := range []string{
 		"go test ./...",
-		"go run ./tools/lint",
+		"golangci-lint run",
 		"go vet ./...",
 		"go run ./tools/depgate",
 		"go test -race ./...",
@@ -257,7 +257,7 @@ func TestReleaseNotesV0ExistAndPreserveBoundaries(t *testing.T) {
 		"migration examples",
 		"readme.md",
 		"`go test ./...`",
-		"`go run ./tools/lint`",
+		"`golangci-lint run`",
 		"`go vet ./...`",
 		"`go run ./tools/coverage`",
 		"`go run ./tools/depgate`",
