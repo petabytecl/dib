@@ -235,6 +235,7 @@ linters:
           - gocognit
           - gocyclo
           - cyclop
+          - nestif
           - gosec
           - noctx
           - usetesting
@@ -252,6 +253,20 @@ linters:
           - revive
         path: _test\.go
         text: "unused-parameter"
+      # Unchecked type assertions in tests fail fast by panicking, which is
+      # acceptable test behaviour (e.g. defensive-copy checks that mutate
+      # got.([]string)[0]). Genuine unchecked error returns ("...value of `fn` is
+      # not checked") remain reported.
+      - linters:
+          - errcheck
+        path: _test\.go
+        text: "Error return value is not checked"
+      # Generic test helpers return a type parameter by design, and helper
+      # parameters are kept for call-site clarity even when currently constant.
+      - linters:
+          - ireturn
+          - unparam
+        path: _test\.go
       - linters:
           - govet
         path: _test\.go

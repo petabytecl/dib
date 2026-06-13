@@ -63,11 +63,9 @@ func TestAliasErrorParentPathIsDefensive(t *testing.T) {
 	}
 
 	parent := aliasErr.ParentPath()
-	if parent != nil {
-		parent = append(parent, "mutated")
-	}
+	parent = append(parent, "mutated")
 	if got := aliasErr.ParentPath(); len(got) != 0 {
-		t.Fatalf("ParentPath() leaked mutable slice: %q", got)
+		t.Fatalf("ParentPath() leaked mutable slice: %q (after local append %q)", got, parent)
 	}
 }
 

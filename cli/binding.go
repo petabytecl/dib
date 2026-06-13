@@ -31,8 +31,8 @@ func NewFlagSnapshot(set config.Set, route command.Result, bindings []FlagBindin
 
 	values := make([]config.FlagValue, 0, len(bindings))
 	for _, binding := range bindings {
-		state, ok := flagSnapshot.Lookup(binding.FlagName)
-		if !ok {
+		state, exists := flagSnapshot.Lookup(binding.FlagName)
+		if !exists {
 			return config.Snapshot{}, newBindingError(binding.FlagName, binding.ConfigKey, ErrUnknownFlagBinding, nil)
 		}
 
@@ -78,8 +78,8 @@ func bindingContextForCause(set config.Set, bindings []FlagBinding, cause error)
 		return "", key
 	}
 	for _, binding := range bindings {
-		bindingDef, ok := set.Lookup(binding.ConfigKey)
-		if ok && bindingDef.Name() == def.Name() {
+		bindingDef, found := set.Lookup(binding.ConfigKey)
+		if found && bindingDef.Name() == def.Name() {
 			return binding.FlagName, binding.ConfigKey
 		}
 	}
@@ -94,8 +94,8 @@ func duplicateBindingContext(set config.Set, bindings []FlagBinding, key string)
 
 	seen := false
 	for _, binding := range bindings {
-		def, ok := set.Lookup(binding.ConfigKey)
-		if !ok || def.Name() != target.Name() {
+		def, found := set.Lookup(binding.ConfigKey)
+		if !found || def.Name() != target.Name() {
 			continue
 		}
 		if seen {
@@ -110,8 +110,8 @@ func bindingValue(set config.Set, configKey string, values []any) any {
 	if def, ok := set.Lookup(configKey); ok && def.Kind() == config.KindStringList {
 		strings := make([]string, 0, len(values))
 		for _, value := range values {
-			s, ok := value.(string)
-			if !ok {
+			s, isString := value.(string)
+			if !isString {
 				return append([]any(nil), values...)
 			}
 			strings = append(strings, s)

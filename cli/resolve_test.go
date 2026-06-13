@@ -205,8 +205,7 @@ func TestResolveSensitiveValueReachableNotLeakedInErrors(t *testing.T) {
 	}
 
 	envSnap, err := config.NewEnvSnapshot(set, func(name string) (string, bool) {
-		switch name {
-		case "DIB_API_KEY":
+		if name == "DIB_API_KEY" {
 			return fakeSecret, true
 		}
 		return "", false

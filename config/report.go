@@ -62,6 +62,7 @@ func (e SourceReportEntry) String() string {
 	return fmt.Sprintf("config.SourceReportEntry{key:%q kind:%s set:%t source:%q redacted:%t}", e.key, e.kind, e.set, e.sourceLabel, e.redacted)
 }
 
+// GoString renders the entry in Go syntax for the %#v verb.
 func (e SourceReportEntry) GoString() string {
 	return e.String()
 }
@@ -186,6 +187,7 @@ func (d Diagnostic) String() string {
 	return fmt.Sprintf("config.Diagnostic{category:%q key:%q kind:%s want:%s source:%q redacted:%t safe_cause:%t}", diagnosticCategoryString(d.category), d.key, d.kind, d.wantKind, d.sourceLabel, d.redacted, d.hasSafeCause)
 }
 
+// GoString renders the diagnostic in Go syntax for the %#v verb.
 func (d Diagnostic) GoString() string {
 	return d.String()
 }

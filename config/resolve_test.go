@@ -656,7 +656,7 @@ func TestResolveConcurrentSourceReuse(t *testing.T) {
 	results := make([]config.Snapshot, goroutines)
 	var wg sync.WaitGroup
 	wg.Add(goroutines)
-	for i := 0; i < goroutines; i++ {
+	for i := range goroutines {
 		go func() {
 			defer wg.Done()
 			results[i] = config.Resolve(set, explicit, config.Snapshot{}, env, jsonSnap)

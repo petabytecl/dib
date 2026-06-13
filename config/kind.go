@@ -3,6 +3,7 @@ package config
 // Kind identifies the value type expected by a config key definition.
 type Kind int
 
+// Recognized config value kinds.
 const (
 	KindString Kind = iota
 	KindBool

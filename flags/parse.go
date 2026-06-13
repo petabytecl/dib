@@ -7,36 +7,48 @@ func (s Set) Parse(args []string) (Snapshot, error) {
 	snapshot := s.DefaultSnapshot()
 
 	for i := 0; i < len(args); i++ {
-		arg := args[i]
-		if arg == "--" {
+		if args[i] == "--" {
 			snapshot.remaining = append(snapshot.remaining, args[i+1:]...)
 			break
 		}
-		if !isLongFlagToken(arg) {
-			if isShortFlagToken(arg) {
-				next, consumed, err := s.parseShort(args, i, &snapshot)
-				if err != nil {
-					return Snapshot{}, err
-				}
-				if consumed {
-					i = next
-				}
-				continue
-			}
-			snapshot.remaining = append(snapshot.remaining, arg)
-			continue
-		}
 
-		next, consumed, err := s.parseLong(args, i, &snapshot)
+		next, err := s.parseArg(args, i, &snapshot)
 		if err != nil {
 			return Snapshot{}, err
 		}
-		if consumed {
-			i = next
-		}
+		i = next
 	}
 
 	return snapshot, nil
+}
+
+// parseArg dispatches a single token to the long, short, or positional handler
+// and returns the index of the last argument it consumed.
+func (s Set) parseArg(args []string, index int, snapshot *Snapshot) (int, error) {
+	arg := args[index]
+	switch {
+	case isLongFlagToken(arg):
+		next, consumed, err := s.parseLong(args, index, snapshot)
+		return resumeIndex(index, next, consumed, err)
+	case isShortFlagToken(arg):
+		next, consumed, err := s.parseShort(args, index, snapshot)
+		return resumeIndex(index, next, consumed, err)
+	default:
+		snapshot.remaining = append(snapshot.remaining, arg)
+		return index, nil
+	}
+}
+
+// resumeIndex collapses a (next, consumed, err) handler result into the index
+// the caller should resume from.
+func resumeIndex(index, next int, consumed bool, err error) (int, error) {
+	if err != nil {
+		return index, err
+	}
+	if consumed {
+		return next, nil
+	}
+	return index, nil
 }
 
 func (s Set) parseShort(args []string, index int, snapshot *Snapshot) (int, bool, error) {
@@ -73,7 +85,7 @@ func (s Set) parseLong(args []string, index int, snapshot *Snapshot) (int, bool,
 
 func (s Set) parseShortGroup(args []string, index int, snapshot *Snapshot, group string) (int, bool, error) {
 	members := []rune(group)
-	for i := range len(members) {
+	for i := range members {
 		shorthand := string(members[i])
 		token := shortGroupToken(members, i)
 		occurrence := "-" + shorthand
@@ -124,6 +136,14 @@ func parseResolvedFlag(
 	return parseResolvedFlagWithOccurrence(args, index, snapshot, def, token, token, name, lookupKey, rawValue, hasAttachedValue, stopBeforeLong)
 }
 
+// resolvedRawValue carries how an unattached flag value was resolved. When done
+// is true the value has already been applied and the caller should stop.
+type resolvedRawValue struct {
+	raw      string
+	consumed bool
+	done     bool
+}
+
 func parseResolvedFlagWithOccurrence(
 	args []string,
 	index int,
@@ -144,38 +164,22 @@ func parseResolvedFlagWithOccurrence(
 	valueRaw := rawValue
 	consumedNext := false
 	if !hasAttachedValue {
-		switch def.arity {
-		case ArityOptional:
-			value, err := noOptionValue(def)
-			if err != nil {
-				return index, false, newParseError(ErrConversion, token, name, lookupKey, def, true, err)
-			}
-			if err := applyParsedValue(snapshot, def, token, occurrence, name, lookupKey, value); err != nil {
-				return index, false, err
-			}
-			return index, false, nil
-		case ArityRequired:
-			if index+1 >= len(args) || args[index+1] == "--" || (stopBeforeLong && isLongFlagToken(args[index+1])) {
-				if hasNoOptionDefault(def) {
-					if err := applyNoOptionParsedValue(snapshot, def, token, occurrence, name, lookupKey); err != nil {
-						return index, false, err
-					}
-					return index, false, nil
-				}
-				return index, false, newParseError(ErrMissingValue, token, name, lookupKey, def, true, nil)
-			}
-			valueRaw = args[index+1]
-			consumedNext = true
-		default:
-			valueRaw = ""
+		resolved, err := resolveUnattachedValue(args, index, snapshot, def, token, occurrence, name, lookupKey, stopBeforeLong)
+		if err != nil {
+			return index, false, err
 		}
+		if resolved.done {
+			return index, false, nil
+		}
+		valueRaw = resolved.raw
+		consumedNext = resolved.consumed
 	}
 
 	value, err := def.Parse(valueRaw)
 	if err != nil {
 		return index, false, newParseError(ErrConversion, token, name, lookupKey, def, true, err)
 	}
-	if err := applyParsedValue(snapshot, def, token, occurrence, name, lookupKey, value); err != nil {
+	if err = applyParsedValue(snapshot, def, token, occurrence, name, lookupKey, value); err != nil {
 		return index, false, err
 	}
 	if consumedNext {
@@ -184,13 +188,52 @@ func parseResolvedFlagWithOccurrence(
 	return index, false, nil
 }
 
-func splitLongFlag(arg string) (token, name, rawValue string, hasAttachedValue bool) {
+// resolveUnattachedValue determines the raw value for a flag supplied without an
+// attached "=value", honouring arity and no-option defaults.
+func resolveUnattachedValue(
+	args []string,
+	index int,
+	snapshot *Snapshot,
+	def Definition,
+	token, occurrence, name, lookupKey string,
+	stopBeforeLong bool,
+) (resolvedRawValue, error) {
+	switch def.arity {
+	case ArityOptional:
+		value, err := noOptionValue(def)
+		if err != nil {
+			return resolvedRawValue{done: true}, newParseError(ErrConversion, token, name, lookupKey, def, true, err)
+		}
+		return resolvedRawValue{done: true}, applyParsedValue(snapshot, def, token, occurrence, name, lookupKey, value)
+	case ArityRequired:
+		if hasFollowingValue(args, index, stopBeforeLong) {
+			return resolvedRawValue{raw: args[index+1], consumed: true}, nil
+		}
+		if hasNoOptionDefault(def) {
+			return resolvedRawValue{done: true}, applyNoOptionParsedValue(snapshot, def, token, occurrence, name, lookupKey)
+		}
+		return resolvedRawValue{done: true}, newParseError(ErrMissingValue, token, name, lookupKey, def, true, nil)
+	default:
+		return resolvedRawValue{}, nil
+	}
+}
+
+// hasFollowingValue reports whether args[index+1] can serve as a required flag's value.
+func hasFollowingValue(args []string, index int, stopBeforeLong bool) bool {
+	if index+1 >= len(args) {
+		return false
+	}
+	next := args[index+1]
+	return next != "--" && (!stopBeforeLong || !isLongFlagToken(next))
+}
+
+func splitLongFlag(arg string) (string, string, string, bool) {
 	body := strings.TrimPrefix(arg, "--")
 	namePart, value, found := strings.Cut(body, "=")
 	return "--" + namePart, namePart, value, found
 }
 
-func splitShortFlag(arg string) (token, shorthand, rawValue string, hasAttachedValue bool) {
+func splitShortFlag(arg string) (string, string, string, bool) {
 	body := strings.TrimPrefix(arg, "-")
 	namePart, value, found := strings.Cut(body, "=")
 	return "-" + namePart, namePart, value, found

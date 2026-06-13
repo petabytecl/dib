@@ -155,7 +155,7 @@ func referencedLocalPaths(text string) []string {
 		}
 	}
 
-	var paths []string
+	paths := make([]string, 0, len(candidates))
 	for path := range candidates {
 		paths = append(paths, path)
 	}

@@ -336,7 +336,7 @@ func TestGetValueFromAllSources(t *testing.T) {
 		},
 		{
 			name:       config.SourceDefault,
-			snap:       func() config.Snapshot { return set.DefaultSnapshot() },
+			snap:       set.DefaultSnapshot,
 			wantSource: config.SourceDefault,
 			wantValue:  "default-val",
 		},

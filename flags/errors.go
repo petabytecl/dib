@@ -5,6 +5,7 @@ import (
 	"fmt"
 )
 
+// Sentinel errors returned by the flags package; match them with errors.Is.
 var (
 	ErrInvalidDefinition       = errors.New("invalid flag definition")
 	ErrDuplicateName           = errors.New("duplicate flag name")

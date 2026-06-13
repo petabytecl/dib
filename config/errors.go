@@ -5,6 +5,7 @@ import (
 	"fmt"
 )
 
+// Sentinel errors returned by the config package; match them with errors.Is.
 var (
 	ErrInvalidDefinition      = errors.New("invalid config definition")
 	ErrDuplicateKey           = errors.New("duplicate config key")
@@ -223,6 +224,7 @@ func (e *SourceError) Unwrap() error {
 	return e.cause
 }
 
+// Is reports whether target matches this error's category or wrapped cause.
 func (e *SourceError) Is(target error) bool {
 	if e == nil {
 		return false
@@ -350,6 +352,7 @@ func (e *GetError) Unwrap() error {
 	return e.category
 }
 
+// Is reports whether target matches this error's category.
 func (e *GetError) Is(target error) bool {
 	if e == nil {
 		return false

@@ -63,47 +63,63 @@ func writeHelp(w io.Writer, path []Definition, definitions []flags.Definition) e
 			return err
 		}
 	}
-	if len(command.children) > 0 {
-		if _, err := fmt.Fprintln(w); err != nil {
-			return err
-		}
-		if _, err := fmt.Fprintln(w, "Commands:"); err != nil {
-			return err
-		}
-		width := commandNameWidth(command.children)
-		for _, child := range command.children {
-			line := fmt.Sprintf("  %-*s", width, child.name)
-			if child.description != "" {
-				line += "  " + child.description
-			}
-			if _, err := fmt.Fprintln(w, line); err != nil {
-				return err
-			}
-		}
+	if err := writeCommands(w, command.children); err != nil {
+		return err
 	}
-	visibleFlags := visibleFlagDefinitions(definitions)
-	if len(visibleFlags) > 0 {
-		if _, err := fmt.Fprintln(w); err != nil {
-			return err
+	return writeFlags(w, definitions)
+}
+
+func writeCommands(w io.Writer, children []Definition) error {
+	if len(children) == 0 {
+		return nil
+	}
+	if _, err := fmt.Fprintln(w); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprintln(w, "Commands:"); err != nil {
+		return err
+	}
+	width := commandNameWidth(children)
+	for _, child := range children {
+		line := fmt.Sprintf("  %-*s", width, child.name)
+		if child.description != "" {
+			line += "  " + child.description
 		}
-		if _, err := fmt.Fprintln(w, "Flags:"); err != nil {
+		if _, err := fmt.Fprintln(w, line); err != nil {
 			return err
-		}
-		for _, definition := range visibleFlags {
-			spelling := flagSpelling(definition)
-			line := "  " + spelling
-			if definition.Usage() != "" {
-				line += "  " + definition.Usage()
-			}
-			if deprecated := definition.Deprecated(); deprecated != "" {
-				line += " (deprecated: " + deprecated + ")"
-			}
-			if _, err := fmt.Fprintln(w, line); err != nil {
-				return err
-			}
 		}
 	}
 	return nil
+}
+
+func writeFlags(w io.Writer, definitions []flags.Definition) error {
+	visibleFlags := visibleFlagDefinitions(definitions)
+	if len(visibleFlags) == 0 {
+		return nil
+	}
+	if _, err := fmt.Fprintln(w); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprintln(w, "Flags:"); err != nil {
+		return err
+	}
+	for _, definition := range visibleFlags {
+		if _, err := fmt.Fprintln(w, flagHelpLine(definition)); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func flagHelpLine(definition flags.Definition) string {
+	line := "  " + flagSpelling(definition)
+	if definition.Usage() != "" {
+		line += "  " + definition.Usage()
+	}
+	if deprecated := definition.Deprecated(); deprecated != "" {
+		line += " (deprecated: " + deprecated + ")"
+	}
+	return line
 }
 
 func writeUsage(w io.Writer, path []Definition) error {

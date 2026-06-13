@@ -49,7 +49,7 @@ func routeWithoutFlags(root Definition, args []string) (Result, error) {
 	path := []Definition{current}
 	matchTokens := []string{current.name}
 
-	for i := range len(args) {
+	for i := range args {
 		token := args[i]
 		if token == "--" {
 			return newResult(path, matchTokens, args[i+1:]), nil

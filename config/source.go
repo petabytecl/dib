@@ -211,8 +211,8 @@ func loadJSONBytes(set Set, data []byte, path string, options jsonOptions) (Snap
 
 	for _, key := range keys {
 		raw := object[key]
-		def, index, ok := lookupSourceDefinition(set, key)
-		if !ok {
+		def, index, found := lookupSourceDefinition(set, key)
+		if !found {
 			if options.permissive {
 				continue
 			}

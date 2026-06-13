@@ -13,6 +13,7 @@ type Parser interface {
 // ParserFunc adapts a function into a Parser.
 type ParserFunc func(raw string) (any, error)
 
+// ParseFlagValue applies the adapted function, returning ErrInvalidDefinition when nil.
 func (f ParserFunc) ParseFlagValue(raw string) (any, error) {
 	if f == nil {
 		return nil, ErrInvalidDefinition

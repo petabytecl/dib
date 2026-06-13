@@ -1,3 +1,5 @@
+// Command depgate fails when any dib package imports a dependency outside the
+// Go standard library, enforcing the module's zero-dependency invariant.
 package main
 
 import (
@@ -21,16 +23,21 @@ const (
 )
 
 func main() {
+	os.Exit(realMain())
+}
+
+// realMain hosts the deferred context cancellation so it runs before os.Exit.
+func realMain() int {
 	ctx, cancel := context.WithTimeout(context.Background(), goListTimeout)
 	defer cancel()
 
-	os.Exit(run(ctx, ".", os.Stdout, os.Stderr))
+	return run(ctx, ".", os.Stdout, os.Stderr)
 }
 
 func run(ctx context.Context, dir string, stdout, stderr io.Writer) int {
 	violations, err := findViolations(ctx, dir)
 	if err != nil {
-		fmt.Fprintf(stderr, "depgate execution error: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "depgate execution error: %v\n", err)
 		return executionFailureExit
 	}
 
@@ -39,7 +46,7 @@ func run(ctx context.Context, dir string, stdout, stderr io.Writer) int {
 	}
 
 	for _, violation := range violations {
-		fmt.Fprintf(stdout, "non-standard import: package=%s import=%s\n", violation.Package, violation.Import)
+		_, _ = fmt.Fprintf(stdout, "non-standard import: package=%s import=%s\n", violation.Package, violation.Import)
 	}
 	return dependencyViolationExit
 }

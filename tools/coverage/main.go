@@ -1,6 +1,9 @@
+// Command coverage enforces per-package test-coverage thresholds for dib's
+// public runtime packages.
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -13,6 +16,8 @@ import (
 const (
 	thresholdViolationExit = 1
 	executionFailureExit   = 2
+
+	minCoveragePct = 85.0
 )
 
 type threshold struct {
@@ -20,11 +25,12 @@ type threshold struct {
 	minPct float64
 }
 
+//nolint:gochecknoglobals // Threshold table is the tool's configuration and is referenced directly by tests.
 var thresholds = []threshold{
-	{pkg: "github.com/petabytecl/dib/command", minPct: 85.0},
-	{pkg: "github.com/petabytecl/dib/config", minPct: 85.0},
-	{pkg: "github.com/petabytecl/dib/flags", minPct: 85.0},
-	{pkg: "github.com/petabytecl/dib/cli", minPct: 85.0},
+	{pkg: "github.com/petabytecl/dib/command", minPct: minCoveragePct},
+	{pkg: "github.com/petabytecl/dib/config", minPct: minCoveragePct},
+	{pkg: "github.com/petabytecl/dib/flags", minPct: minCoveragePct},
+	{pkg: "github.com/petabytecl/dib/cli", minPct: minCoveragePct},
 }
 
 var coverageRE = regexp.MustCompile(`coverage: (\d+\.\d+)%`)
@@ -34,10 +40,10 @@ func main() {
 }
 
 func run(stdout, stderr io.Writer) int {
-	cmd := exec.Command("go", "test", "-cover", "./command", "./config", "./flags", "./cli")
+	cmd := exec.CommandContext(context.Background(), "go", "test", "-cover", "./command", "./config", "./flags", "./cli")
 	out, err := cmd.CombinedOutput()
 	if err != nil && len(strings.TrimSpace(string(out))) == 0 {
-		fmt.Fprintf(stderr, "coverage execution error: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "coverage execution error: %v\n", err)
 		return executionFailureExit
 	}
 	return check(out, stdout, stderr)
@@ -59,7 +65,7 @@ func check(goTestOutput []byte, stdout, stderr io.Writer) int {
 
 	for _, t := range thresholds {
 		if _, ok := coverages[t.pkg]; !ok {
-			fmt.Fprintf(stderr, "coverage execution error: no coverage data for %s\n", t.pkg)
+			_, _ = fmt.Fprintf(stderr, "coverage execution error: no coverage data for %s\n", t.pkg)
 			return executionFailureExit
 		}
 	}
@@ -72,7 +78,7 @@ func check(goTestOutput []byte, stdout, stderr io.Writer) int {
 			status = "FAIL"
 			failed = true
 		}
-		fmt.Fprintf(stdout, "coverage: %s: %.1f%% (threshold %.0f%%) %s\n", t.pkg, pct, t.minPct, status)
+		_, _ = fmt.Fprintf(stdout, "coverage: %s: %.1f%% (threshold %.0f%%) %s\n", t.pkg, pct, t.minPct, status)
 	}
 
 	if failed {

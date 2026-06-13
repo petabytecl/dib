@@ -3,6 +3,7 @@ package flags
 // Kind identifies the value type accepted by a flag definition.
 type Kind int
 
+// Recognized flag value kinds.
 const (
 	KindString Kind = iota
 	KindBool
@@ -43,6 +44,7 @@ func (k Kind) String() string {
 // Arity identifies how a flag consumes command-line values.
 type Arity int
 
+// Recognized flag arities.
 const (
 	ArityNone Arity = iota
 	ArityOptional
@@ -52,6 +54,7 @@ const (
 // RepeatPolicy identifies how repeated occurrences are represented.
 type RepeatPolicy int
 
+// Recognized repeat policies.
 const (
 	RepeatLast RepeatPolicy = iota
 	RepeatAccumulated

@@ -189,6 +189,23 @@ func TestWriteHelpPropagatesWriterFailuresAndRejectsInvalidDefinitions(t *testin
 	}
 }
 
+func TestWriteHelpPropagatesWriterFailureAtEveryStage(t *testing.T) {
+	writerErr := errors.New("staged writer failure")
+	root := mustHelpTree(t)
+
+	var counting countingWriter
+	if err := root.WriteHelp(&counting); err != nil {
+		t.Fatalf("counting WriteHelp returned unexpected error: %v", err)
+	}
+
+	for stage := range counting.writes {
+		w := &failAfterWriter{ok: stage, err: writerErr}
+		if err := root.WriteHelp(w); !errors.Is(err, writerErr) {
+			t.Fatalf("WriteHelp failing at write %d returned %v, want %v", stage, err, writerErr)
+		}
+	}
+}
+
 func TestWriteHelpIsRepeatableConcurrentAndDefensive(t *testing.T) {
 	root := mustHelpTree(t)
 	var want bytes.Buffer
@@ -306,4 +323,20 @@ type failingWriter struct {
 
 func (w failingWriter) Write([]byte) (int, error) {
 	return 0, w.err
+}
+
+// failAfterWriter succeeds for the first ok writes, then fails with err, so a
+// caller can drive a failure at any individual write boundary.
+type failAfterWriter struct {
+	ok      int
+	err     error
+	written int
+}
+
+func (w *failAfterWriter) Write(p []byte) (int, error) {
+	if w.written >= w.ok {
+		return 0, w.err
+	}
+	w.written++
+	return len(p), nil
 }
