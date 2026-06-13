@@ -43,6 +43,10 @@ Dib v0 releases are Go module tags. This guidance does not define standalone
 artifact publishing, container images, cluster manifests, completion-script
 generation, or manpage generation.
 
+## License
+
+Dib v0 is published under the MIT License.
+
 ## Epic 7: CLI Composition Ergonomics
 
 Epic 7 added the `cli` package as an optional fourth public package surface,

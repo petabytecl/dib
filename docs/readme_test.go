@@ -26,6 +26,7 @@ func TestREADMEExistsAndCoversAdoptionOnboarding(t *testing.T) {
 		"## Quickstart",
 		"## Compatibility",
 		"## Documentation",
+		"## License",
 		"go get github.com/petabytecl/dib",
 		"flags.NewSet",
 		"set.Parse",
@@ -50,11 +51,31 @@ func TestREADMEExistsAndCoversAdoptionOnboarding(t *testing.T) {
 		"docs/diagnostics-and-errors.md",
 		"docs/release-checklist.md",
 		"contributing.md",
+		"mit license",
+		"license",
 		"examples/migration/",
 		"examples/multicommand/",
 	} {
 		if !strings.Contains(lower, phrase) {
 			t.Fatalf("README.md missing required phrase (case-insensitive) %q", phrase)
+		}
+	}
+}
+
+func TestRepositoryHasMITLicense(t *testing.T) {
+	content, err := os.ReadFile("../LICENSE")
+	if err != nil {
+		t.Fatalf("read LICENSE: %v", err)
+	}
+	text := string(content)
+
+	for _, phrase := range []string{
+		"MIT License",
+		"Copyright (c) 2026 PetabyteCL",
+		"Permission is hereby granted, free of charge",
+	} {
+		if !strings.Contains(text, phrase) {
+			t.Fatalf("LICENSE missing required phrase %q", phrase)
 		}
 	}
 }

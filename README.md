@@ -235,3 +235,8 @@ See `docs/compatibility.md` for the full compatibility boundary table.
 | `examples/migration/`            | Executable migration examples                                                               |
 | `examples/multicommand/`         | CLI composition example                                                                     |
 | `CONTRIBUTING.md`                | Contribution guidelines and clean-room policy                                               |
+| `LICENSE`                        | MIT License                                                                                 |
+
+## License
+
+Dib is licensed under the [MIT License](LICENSE).

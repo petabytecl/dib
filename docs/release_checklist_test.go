@@ -32,9 +32,10 @@ func TestReleaseChecklistRecordsReleaseCandidateEvidence(t *testing.T) {
 
 	required := []string{
 		"go module tag: `v0.1.0`",
-		"exact commit: `d5ce41ce693413b88df95e644eb4358702ae205e`",
+		"tag commit authority: git tag `v0.1.0` and github release metadata",
+		"license: mit (`license`)",
 		"owner: coto",
-		"date: 2026-06-12",
+		"date: 2026-06-13",
 		"reviewer: release reviewer",
 		"story 6.1 evidence scope:",
 		"story 6.2 evidence scope:",
@@ -72,7 +73,8 @@ func TestReleaseChecklistRecordsReleaseCandidateEvidence(t *testing.T) {
 
 	for _, field := range []string{
 		"Go module tag",
-		"Exact commit",
+		"Tag commit authority",
+		"License",
 		"Owner",
 		"Date",
 		"Reviewer",
@@ -95,6 +97,7 @@ func TestReleaseChecklistRecordsReleaseCandidateEvidence(t *testing.T) {
 		"Lint pinning evidence",
 		"Coverage gate reviewed",
 		"Coverage isolation evidence",
+		"License evidence",
 		"Any fixture-local dependency exceptions",
 		"All required evidence captured",
 		"All waivers approved with expiry",
@@ -134,7 +137,13 @@ func TestReleaseChecklistEvidenceMatchesRepositoryState(t *testing.T) {
 	}
 	text := string(content)
 
-	requiredChecklistMatch(t, text, "exact commit", `(?m)^- Exact commit: `+"`"+`([0-9a-f]{40})`+"`"+`$`)
+	tagAuthority := requiredChecklistMatch(t, text, "tag commit authority", `(?m)^- Tag commit authority: (.+)$`)
+	authorityLower := strings.ToLower(tagAuthority)
+	for _, phrase := range []string{"git tag `v0.1.0`", "github release metadata", "exact target commit"} {
+		if !strings.Contains(authorityLower, phrase) {
+			t.Fatalf("tag commit authority missing phrase %q: %q", phrase, tagAuthority)
+		}
+	}
 
 	goMod, err := os.ReadFile("../go.mod")
 	if err != nil {
@@ -239,6 +248,7 @@ func TestReleaseNotesV0ExistAndPreserveBoundaries(t *testing.T) {
 	for _, phrase := range []string{
 		"v0 experimental api status",
 		"go 1.26 or newer",
+		"mit license",
 		"standard-library-only",
 		"clean-room",
 		"redaction",
