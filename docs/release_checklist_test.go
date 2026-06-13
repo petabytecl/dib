@@ -364,7 +364,8 @@ func TestSprintStatusYAMLRecordsEpic7TrackerState(t *testing.T) {
 		"7-2-compose-command-routing-with-config-flag-bindings: done",
 		"7-3-resolve-a-cli-composition-plan-without-owning-execution: done",
 		"7-4-document-and-reconcile-cli-composition-evidence: done",
-		"epic-7: in-progress",
+		"epic-7: done",
+		"epic-7-retrospective: done",
 	} {
 		if !strings.Contains(lower, phrase) {
 			t.Fatalf("sprint-status.yaml missing Epic 7 tracker phrase %q", phrase)
@@ -375,7 +376,8 @@ func TestSprintStatusYAMLRecordsEpic7TrackerState(t *testing.T) {
 		"7-4-document-and-reconcile-cli-composition-evidence: backlog",
 		"7-4-document-and-reconcile-cli-composition-evidence: ready-for-dev",
 		"7-4-document-and-reconcile-cli-composition-evidence: review",
-		"epic-7: done",
+		"epic-7: in-progress",
+		"epic-7-retrospective: optional",
 	} {
 		if strings.Contains(lower, prohibited) {
 			t.Fatalf("sprint-status.yaml records Epic 7 in unexpected state: %q", prohibited)

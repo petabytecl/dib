@@ -43,7 +43,7 @@ documented as supported, narrowed, omitted, or intentionally different in
 | Source reports, diagnostics, and redaction | Story 4.5 | FR16, FR20, NFR3, NFR4, NFR8 | Source reports are deterministic, value-free, definition-ordered, and include absent registered keys. Rendered diagnostics are deterministic, value-free, caller-writer-bound, and distinguish source labels from error categories. The redaction corpus is named only as fake sensitive corpus: `dib_fake_secret_value`, `dib_fake_password_value`, and `dib_fake_token_value`; rendered examples and value-bearing matrix prose must not expose those raw values as output claims. | `docs/diagnostics-and-errors.md`; `config/report_test.go` `TestSourceReportCoversWinningSourcesAndAbsentKeys`; `config/report_test.go` `TestSourceReportRenderingIsDeterministicValueFreeAndWriterBound`; `config/report_test.go` `TestInspectDiagnosticClassifiesConfigErrors`; `config/report_test.go` `TestWriteDiagnosticIsDeterministicValueFreeAndWriterBound`; `config/report_test.go` `TestDiagnosticFalsePositiveRedactionCoverage`; `config/qa_e2e_test.go` `TestQAConfigProvenanceRenderingRedactsSensitiveCorpus` | current |
 | Compatibility boundaries | Story 5.1 | FR17, FR18, FR20, FR21, NFR1, NFR7 | Familiar Go `flag`, pflag, Cobra, and Viper concepts are documented as supported, narrowed, omitted, or intentionally different. Dib does not claim source compatibility, a compatible replacement, a clone API, or a framework compatibility layer. | `docs/compatibility.md`; `docs/compatibility_test.go` `TestCompatibilityDocumentBoundaries`; `docs/compatibility_test.go` `TestCompatibilityDocumentDoesNotMakePositiveCompatibilityClaims`; `docs/compatibility_test.go` `TestCompatibilityTableCoversStorySurfaces`; `docs/provenance-log.md` | current |
 | Migration examples | Story 5.2 | FR18, FR19, FR21, NFR1, NFR2, NFR3, NFR5, NFR6, NFR7, NFR8 | Executable migration examples demonstrate familiar standard `flag`, pflag-style, Cobra-style, and Viper-style concepts through Dib's native API. Examples use explicit instances, caller-supplied args/readers/writers/env lookup, typed errors, deterministic help, and redaction-safe source reports. | `examples/migration/standard_flag_concepts_test.go` `Example_standardFlagConcepts` `TestStandardFlagConceptsInspectParseErrors`; `examples/migration/shorthand_flag_migration_test.go` `Example_shorthandFlagMigration` `TestShorthandFlagMigrationIntentionalDifferences`; `examples/migration/nested_command_migration_test.go` `Example_nestedCommandMigration` `TestNestedCommandMigrationRoutesAliasesFlagsAndHelp`; `examples/migration/config_precedence_migration_test.go` `Example_configPrecedenceMigration` `TestConfigPrecedenceMigrationReportsAreValueFreeAndRedacted`; `go test ./examples/migration` | current |
-| Dependency gate evidence | Story 5.3, Story 6.1, Story 6.2 | FR21, FR23, FR24, NFR1 | Dependency, lint, and coverage behavior are adoption evidence. Runtime packages, tests, examples, and tools stay standard-library-only unless architecture changes. The local dependency gate checks package imports, CI runs the same dependency gate after tests and vet, Story 6.1 adds a repository-local standard-library lint gate for deterministic Go formatting, and Story 6.2 adds a package-aware coverage gate for the three public runtime packages (`command`, `config`, `flags`). The root module has no `require`, `replace`, or `toolchain` directive and no root go sum file. | `go.mod`; `.github/workflows/ci.yml`; `docs/testing.md`; `tools/depgate/main_test.go` `TestDepgateFixtures`; `tools/depgate/main_test.go` `TestDepgateReportsEveryViolationDeterministically`; `tools/depgate/main_test.go` `TestDepgateDisablesWorkspaceMode`; `tools/coverage/main_test.go` `TestCoveragePassesPackagesMeetingThreshold`; `tools/coverage/main_test.go` `TestCoverageFailsPackagesBelowThreshold`; `tools/coverage/main_test.go` `TestCoverageCommandRunsFromRepositoryRoot`; `go run ./tools/depgate`; `go run ./tools/lint`; `go run ./tools/coverage`; `docs/release-checklist.md` | current |
+| Dependency gate evidence | Story 5.3, Story 6.1, Story 6.2, Story 7.4 | FR21, FR23, FR24, NFR1 | Dependency, lint, and coverage behavior are adoption evidence. Runtime packages, tests, examples, and tools stay standard-library-only unless architecture changes. The local dependency gate checks package imports, CI runs the same dependency gate after tests and vet, Story 6.1 adds a repository-local standard-library lint gate for deterministic Go formatting, Story 6.2 adds a package-aware coverage gate, and Story 7.4 extends that gate to the four public runtime packages (`cli`, `command`, `config`, `flags`). The root module has no `require`, `replace`, or `toolchain` directive and no root go sum file. | `go.mod`; `.github/workflows/ci.yml`; `docs/testing.md`; `tools/depgate/main_test.go` `TestDepgateFixtures`; `tools/depgate/main_test.go` `TestDepgateReportsEveryViolationDeterministically`; `tools/depgate/main_test.go` `TestDepgateDisablesWorkspaceMode`; `tools/coverage/main_test.go` `TestCoveragePassesPackagesMeetingThreshold`; `tools/coverage/main_test.go` `TestCoverageFailsPackagesBelowThreshold`; `tools/coverage/main_test.go` `TestCoverageCommandRunsFromRepositoryRoot`; `go run ./tools/depgate`; `go run ./tools/lint`; `go run ./tools/coverage`; `docs/release-checklist.md` | current |
 | Release-candidate evidence | Story 5.4 | FR21, NFR1, NFR4 | The v0 evidence package records exact commit, tag candidate, Go version alignment, CI runner/action versions, test/vet/dependency-gate/race outcomes, parser mutation-fuzz outcomes, docs/examples evidence, final provenance review, compatibility review, migration review, dependency evidence, and waiver status. It is evidence for human release review, not tag approval. | `docs/release-checklist.md`; `docs/release-notes-v0.md`; `docs/release_checklist_test.go` | current |
 | Public usage documentation | Story 6.3 | FR25, NFR12 | `README.md` provides install/import guidance, package roles, quickstart flag/command/config usage, v0 experimental API status, and links to compatibility, behavior matrix, diagnostics, config precedence, testing, and release evidence docs. Does not imply source compatibility with Go `flag`, pflag, Cobra, or Viper. | `docs/readme_test.go` `TestREADMEExistsAndCoversAdoptionOnboarding`; `docs/readme_test.go` `TestREADMEDoesNotImplySourceCompatibility`; `README.md` | current |
 | Release hardening reconciliation | Story 6.4 | FR23, FR24, FR25, NFR11 | Epic 6 scope (lint gate, coverage validation, public usage documentation) is reconciled as formal release gates in `docs/release-notes-v0.md` and `docs/release-checklist.md`. Sprint-status.yaml records all Epic 6 stories. GitHub issues for Epic 6 align with local sprint status. Any accepted gate waiver records owner, reason, expiry, and impact. | `docs/release-checklist.md`; `docs/release_checklist_test.go` `TestReleaseChecklistRecordsReleaseCandidateEvidence` | current |
@@ -96,7 +96,7 @@ artifacts; the fake sensitive corpus is named only for redaction auditing.
 ## Dependency And Release Evidence
 
 Adoption evidence for dependency behavior started in Story 5.3 and is current
-through the Epic 6 release-hardening evidence:
+through the Epic 7 CLI composition evidence:
 
 - `go.mod` contains only `module github.com/petabytecl/dib` and `go 1.26`.
 - The root repository has no go sum file.
@@ -107,8 +107,9 @@ through the Epic 6 release-hardening evidence:
 - `tools/depgate/` remains the executable local dependency gate.
 - `tools/lint/` remains the executable local lint gate and imports only the Go
   standard library.
-- `tools/coverage/` remains the executable local coverage gate and imports only
-  the Go standard library.
+- `tools/coverage/` remains the executable local coverage gate, imports only
+  the Go standard library, and enforces thresholds for `cli`, `command`,
+  `config`, and `flags`.
 - `docs/release-checklist.md` records the consolidated behavior matrix and the
   Story 5.4 release-candidate outcomes for human release review.
 
@@ -119,11 +120,11 @@ decision.
 
 ## Current Scope Boundaries
 
-This matrix covers implemented behavior from Epics 2 through 4 and adoption,
-release, and public-onboarding evidence from Stories 5.1 through 6.4. It does
-not add runtime APIs, adapters, package-global helpers, `/cmd` scaffolding,
-generated assets, new config formats, callback invocation, or release-ready
-claims.
+This matrix covers implemented behavior from Epics 2 through 4, adoption,
+release, and public-onboarding evidence from Stories 5.1 through 6.4, and CLI
+composition evidence from Epic 7. It does not add source-compatible adapters,
+package-global helpers, `/cmd` scaffolding, generated assets, new config
+formats, callback invocation, process-owning behavior, or release-ready claims.
 
 Callback invocation, shell completion, manpages, scaffolding, generated command
 assets, additional config formats, remote stores, live reload, config aliases,

@@ -126,7 +126,7 @@ NFR12: A new adopter must be able to start from public docs rather than BMAD pla
 - Implement CI with GitHub Actions using an explicit runner image such as `ubuntu-24.04`, official actions, and Go version alignment across `go.mod`, docs, CI, and release notes.
 - Core PR gates must include `go test ./...`, `go vet ./...`, the dependency gate, lint gate, and package-aware coverage validation. Release-candidate gates additionally include `go test -race ./...`.
 - Keep linter tooling pinned, reproducible, and isolated as development or CI tooling. It must not enter Dib runtime package imports or the root module's checked package imports unless the PRD and architecture are updated.
-- Validate coverage with standard Go coverage output where practical. Public runtime packages (`command`, `config`, and `flags`) must have package-level threshold evidence; tooling packages may use a separate threshold or documented exception.
+- Validate coverage with standard Go coverage output where practical. Public runtime packages (`cli`, `command`, `config`, and `flags`) must have package-level threshold evidence; tooling packages may use a separate threshold or documented exception.
 - Implement `tools/depgate/` as isolated repository tooling. Once it exists, dependency verification must use `go run ./tools/depgate`.
 - The dependency gate must verify zero external imports for all library, test, and example packages, and zero external imports for tool packages unless the architecture is updated.
 - Until `tools/depgate/` exists, the temporary architecture-approved `go list` dependency check may be used only for the initial scaffold story and not as release-candidate evidence.

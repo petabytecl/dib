@@ -85,7 +85,7 @@ row. GitHub issue #46 (Epic 7) and issue #50 (Story 7.4) track this scope.
 - Lint gate reviewed: PASS; `go run ./tools/lint` enforces deterministic Go formatting as a standard-library-only repository-local lint tool.
 - Lint isolation evidence: PASS; `tools/lint` imports only the Go standard library, CI invokes it with `go run ./tools/lint`, root `go.mod` remains dependency-free, and no external linter import appears under library, test, example, or tool packages.
 - Lint pinning evidence: PASS; `docs/testing.md` records the local command and isolation model, and the lint implementation is versioned in the repository with the Go version selected from `go.mod`; no floating linter version, shell installer, or external action is used.
-- Coverage gate reviewed: PASS; `go run ./tools/coverage` proves package-aware coverage for `command`, `config`, and `flags` public runtime packages against 85% per-package thresholds using a standard-library-only tool.
+- Coverage gate reviewed: PASS; `go run ./tools/coverage` proves package-aware coverage for `cli`, `command`, `config`, and `flags` public runtime packages against 85% per-package thresholds using a standard-library-only tool.
 - Coverage isolation evidence: PASS; `tools/coverage` imports only the Go standard library, uses `os/exec` (stdlib) to invoke `go test -cover`, no external coverage tool package enters the module graph, and CI invokes it with `go run ./tools/coverage`.
 - Any fixture-local dependency exceptions: Fixture-local external modules are isolated under `tools/depgate/testdata/` as intentional negative fixtures for `tools/depgate/main_test.go`.
 
@@ -99,6 +99,6 @@ Waivers require owner, reason, expiry, and impact tracking. Open-ended waivers b
 
 ## Final Review
 
-- All required evidence captured: Yes; exact commit, lint, test, vet, coverage, dependency-gate, race-test, docs/examples (including `README.md` public onboarding), fuzz, provenance, compatibility, migration, CI runner/action, Go version, dependency, lint-isolation, and coverage-isolation evidence are recorded above; Epic 6 lint gate, package-aware coverage validation, and public usage documentation are formally confirmed as release gates.
+- All required evidence captured: Yes; exact commit, lint, test, vet, coverage, dependency-gate, race-test, docs/examples (including `README.md` public onboarding and `examples/multicommand/` CLI composition evidence), fuzz, provenance, compatibility, migration, CI runner/action, Go version, dependency, lint-isolation, and coverage-isolation evidence are recorded above; Epic 6 lint gate, package-aware coverage validation, public usage documentation, and Epic 7 CLI composition evidence are formally confirmed as release gates.
 - All waivers approved with expiry: No waivers requested; any future waiver must include owner, reason, expiry, and impact before release review continues.
 - Tagging decision: Evidence is captured for human release review of `v0.1.0`; this checklist does not approve or perform the tag action.

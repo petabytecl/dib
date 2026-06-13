@@ -117,3 +117,27 @@
 - Before a tag action, refresh `docs/release-checklist.md` exact commit against the reviewed tag candidate and rerun the documented gates.
 - Keep Epic 6 lint, coverage, dependency, README, release-note, and sprint-status assertions in CI-facing tests.
 - Continue amending final automator and retrospective metadata into the story commit so each automator run ends with a clean tree.
+
+## Run: 2026-06-13T02:52:00Z
+
+**Epic:** CLI Composition Ergonomics
+**Stories:** 7.3, 7.4
+
+### Patterns Observed
+- Claude completed low-complexity create/dev/QA/review steps reliably, but monitor processes sometimes hung after the pane returned to the prompt.
+- Source-of-truth verification through story artifacts and `sprint-status.yaml` stayed reliable across create, dev, QA, review, and retro.
+- Documentation/evidence stories can accidentally truncate cumulative summaries; preserve-and-prepend checks are needed before commit.
+
+### Code Review Insights
+- Common issues: evidence drift around package lists, coverage wording, and final tracker aggregate status.
+- Average cycles to clean: one review cycle per story.
+
+### Timing Estimates
+- create-story: minutes per story.
+- dev-story: longer for documentation/evidence stories because README, examples, docs tests, and release artifacts move together.
+- code-review: one cycle per story, with retrospective doc reconciliation after all stories completed.
+
+### Recommendations for Future Runs
+- Continue checking large evidence-file diffs before commit when QA/review agents rewrite summaries.
+- Prefer source-of-truth verification over monitor output when panes are idle at prompts.
+- Before v0 tagging, rerun release gates against the exact tag candidate and reconcile the release checklist commit.
